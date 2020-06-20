@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
@@ -26,7 +27,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 	public void handle(final RoutingContext ctx) {
 		final String auth = ctx.request().getHeader("Authorization");
 		if (auth == null) {
-			ctx.next();
+			ctx.next(); // non strict auth
 			return;
 		}
 
@@ -34,7 +35,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 		try {
 			token = this.srv.getTokenize().validateToken(auth, this::fetchAccount);
 		} catch (final SignatureException e) {
-			ctx.next();
+			ctx.next(); // non strict auth
 			return;
 		}
 

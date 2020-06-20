@@ -1,8 +1,13 @@
 package me.vinceh121.gmcserver;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.Random;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.Conventions;
@@ -27,6 +32,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.event.WebsocketManager;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
@@ -40,6 +46,8 @@ public class GMCServer {
 	public static final String ERROR_USER_ID = "Invalid user ID (AID)";
 	public static final String ERROR_DEVICE_ID = "Invalid device ID (GID)";
 	public static final String ERROR_DEVICE_NOT_OWNED = "User does not own device";
+	public static final String CONFIG_PATH = "./config.properties";
+	private final Properties config = new Properties();
 	private final PojoCodecProvider pojoCodecProvider;
 	private final CodecRegistry codecRegistry;
 	private final MongoClient mongoClient;
@@ -49,6 +57,8 @@ public class GMCServer {
 	private final MongoCollection<Device> colDevices;
 	private final HttpServer srv;
 	private final Router router;
+
+	private final WebsocketManager wsManager;
 
 	private final Tokenize tokenize;
 	private final Argon2 argon;
@@ -64,6 +74,13 @@ public class GMCServer {
 	}
 
 	public GMCServer() {
+		try {
+			config.load(new FileInputStream(CONFIG_PATH));
+		} catch (IOException e) {
+			LOG.error("Failed to load config", e);
+			System.exit(-1);
+		}
+
 		this.pojoCodecProvider = PojoCodecProvider.builder()
 				.automatic(true)
 				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
@@ -74,7 +91,7 @@ public class GMCServer {
 				CodecRegistries.fromProviders(this.pojoCodecProvider));
 		final MongoClientSettings set = MongoClientSettings.builder()
 				.applicationName("GMCServer")
-				.applyConnectionString(new ConnectionString("mongodb://localhost"))
+				.applyConnectionString(new ConnectionString(config.getProperty("mongo.constring")))
 				.codecRegistry(this.codecRegistry)
 				.build();
 
@@ -84,9 +101,19 @@ public class GMCServer {
 		this.colUsers = this.mongoDb.getCollection("users", User.class);
 		this.colDevices = this.mongoDb.getCollection("devices", Device.class);
 
-		final byte[] secret = new byte[1024];
-
-		new Random().nextBytes(secret);
+		byte[] secret;
+		try {
+			final String strSecret = this.config.getProperty("auth.secret");
+			if (strSecret == null || strSecret.isEmpty()) // this is ugly aaaaaaaaaaaa
+				throw new DecoderException();
+			secret = Hex.decodeHex(strSecret);
+		} catch (final DecoderException e) {
+			LOG.error("Could not decode secret, generating random one", e);
+			secret = new byte[1024];
+			new Random().nextBytes(secret);
+			this.config.setProperty("auth.secret", Hex.encodeHexString(secret));
+			LOG.warn("New temporary secret is {}", this.config.getProperty("auth.secret"));
+		}
 
 		this.tokenize = new Tokenize(secret);
 		this.argon = Argon2Factory.create();
@@ -96,9 +123,7 @@ public class GMCServer {
 
 		final Vertx vertx = Vertx.factory.vertx(options);
 		this.srv = vertx.createHttpServer();
-		this.srv.exceptionHandler(t -> {
-			GMCServer.LOG.error("Unexpected error: {}", t);
-		});
+		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
 
 		this.router = Router.router(vertx);
 		this.srv.requestHandler(this.router);
@@ -109,6 +134,9 @@ public class GMCServer {
 		this.strictAuthHandler = new StrictAuthHandler();
 
 		this.registerModules();
+
+		this.wsManager = new WebsocketManager(this);
+		this.srv.webSocketHandler(this.wsManager);
 	}
 
 	private void registerModules() {
@@ -118,7 +146,7 @@ public class GMCServer {
 	}
 
 	public void start() {
-		this.srv.listen(80);
+		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")));
 		GMCServer.LOG.info("Listening on port {}", this.srv.actualPort());
 	}
 
@@ -160,6 +188,10 @@ public class GMCServer {
 
 	public Argon2 getArgon() {
 		return this.argon;
+	}
+
+	public WebsocketManager getWebsocketManager() {
+		return wsManager;
 	}
 
 }

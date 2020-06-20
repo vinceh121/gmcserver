@@ -1,0 +1,9 @@
+<mat-drawer-container [hasBackdrop]="true">
+  <mat-drawer #drawer mode="side">
+  </mat-drawer>
+  <mat-drawer-content>
+    <button mat-raised-button (click)="drawer.toggle()">Toggle drawer</button>
+    <router-outlet></router-outlet>
+    <p>Lorem ipsum</p>
+  </mat-drawer-content>
+</mat-drawer-container>

@@ -26,7 +26,7 @@
 		<dependency>
 			<groupId>xyz.bowser65</groupId>
 			<artifactId>Tokenize</artifactId>
-			<version>cc2d36c</version>
+			<version>5510691</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
@@ -42,6 +42,12 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.2.3</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.14</version>
 		</dependency>
 	</dependencies>
 </project>

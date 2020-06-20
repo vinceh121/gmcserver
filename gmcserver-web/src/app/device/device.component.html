@@ -1,0 +1,20 @@
+<mat-card *ngIf="device != null">
+  <mat-card-header>
+    <mat-card-title>{{device.name}}</mat-card-title>
+    <mat-card-subtitle>{{device.id}}<span *ngIf="device.owner"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-tab-group>
+      <mat-tab label="Chart">
+      </mat-tab>
+      <mat-tab label="Table">
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+  <mat-card-actions>
+    <mat-slide-toggle [checked]="fullTimeline" (click)="fetchTimeline()"></mat-slide-toggle>
+  </mat-card-actions>
+</mat-card>
+<mat-card *ngIf="device == null">
+  <mat-spinner></mat-spinner>
+</mat-card>

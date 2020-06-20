@@ -1,15 +1,18 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.event.StandardIntent;
 
 public class LoggingModule extends AbstractModule {
 	public static final String ERROR_SYNTAX = "The syntax of one of the logging parameters is incorrect";
@@ -102,5 +105,9 @@ public class LoggingModule extends AbstractModule {
 
 		this.srv.getColRecords().insertOne(rec);
 		ctx.response().setStatusCode(200).end();
+
+		this.srv.getWebsocketManager()
+				.sendIntent(user.getId(),
+						StandardIntent.LOG2_RECORD.create(new JsonObject().put("record", rec.toJson())));
 	}
 }
