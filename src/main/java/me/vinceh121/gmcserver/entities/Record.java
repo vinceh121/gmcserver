@@ -1,6 +1,7 @@
 package me.vinceh121.gmcserver.entities;
 
 import java.util.Date;
+import java.util.Objects;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
@@ -13,6 +14,7 @@ public class Record extends AbstractEntity {
 	private ObjectId userId, deviceId;
 	private double cpm, acpm, usv;
 	private Date date;
+	private String ip;
 
 	public ObjectId getUserId() {
 		return this.userId;
@@ -62,13 +64,33 @@ public class Record extends AbstractEntity {
 		this.date = date;
 	}
 
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	@Override
 	@JsonIgnore
 	@BsonIgnore
-	public JsonObject getPublicJson() {
-		final JsonObject obj = JsonObject.mapFrom(this);
+	public JsonObject toJson() {
+		final JsonObject obj = super.toJson();
+		obj.put("deviceId", Objects.toString(deviceId));
+		obj.put("userId", Objects.toString(userId));
+		return obj;
+	}
+
+	@Override
+	@JsonIgnore
+	@BsonIgnore
+	public JsonObject toPublicJson() {
+		final JsonObject obj = toJson();
 		obj.remove("id");
 		obj.remove("deviceId");
 		obj.remove("userId");
+		obj.remove("ip");
 		return obj;
 	}
 

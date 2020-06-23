@@ -1,7 +1,6 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.util.Date;
-import java.util.HashMap;
 
 import com.mongodb.client.model.Filters;
 
@@ -28,8 +27,6 @@ public class LoggingModule extends AbstractModule {
 		// CPM
 		// ACPM
 		// uSV
-		this.log.info("log2 request from {}", ctx.request().remoteAddress());
-
 		final long gmcUserId;
 		try {
 			gmcUserId = Long.parseLong(ctx.request().getParam("AID"));
@@ -100,8 +97,12 @@ public class LoggingModule extends AbstractModule {
 		rec.setDeviceId(device.getId());
 		rec.setUserId(user.getId());
 		rec.setUsv(usv);
+		
+		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
+			rec.setIp(ctx.request().remoteAddress().host());
+		}
 
-		this.log.info("Inserting record {}", rec);
+		this.log.debug("Inserting record {}", rec);
 
 		this.srv.getColRecords().insertOne(rec);
 		ctx.response().setStatusCode(200).end();

@@ -1,18 +1,33 @@
 <mat-card *ngIf="device != null">
   <mat-card-header>
     <mat-card-title>{{device.name}}</mat-card-title>
-    <mat-card-subtitle>{{device.id}}<span *ngIf="device.owner"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
+    <mat-card-subtitle>{{device.id}}<span *ngIf="device.own"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     <mat-tab-group>
       <mat-tab label="Chart">
+        <canvas baseChart [datasets]="chartData" [labels]="chartLabels" [options]="chartOptions" chartType="line" legend="true"></canvas>
       </mat-tab>
       <mat-tab label="Table">
+        <table matSort (matSortChange)="sort($event)">é
+	        <tr>
+            <th mat-sort-header="name">Date</th>
+            <th mat-sort-header="cpm">CPM</th>
+            <th mat-sort-header="acpm">ACPM</th>
+            <th mat-sort-header="usv">µSv</th>
+          </tr>
+          <tr *ngFor="let rec of sortedData">
+            <td>{{rec.date}}</td>
+            <td>{{rec.cpm}}</td>
+            <td>{{rec.acpm}}</td>
+            <td>{{rec.usv}}</td>
+          </tr>
+	      </table>
       </mat-tab>
     </mat-tab-group>
   </mat-card-content>
   <mat-card-actions>
-    <mat-slide-toggle [checked]="fullTimeline" (click)="fetchTimeline()"></mat-slide-toggle>
+    <mat-slide-toggle [disabled]="!device.own" (click)="fetchTimeline()">Full timeline</mat-slide-toggle>
   </mat-card-actions>
 </mat-card>
 <mat-card *ngIf="device == null">

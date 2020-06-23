@@ -7,7 +7,6 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;

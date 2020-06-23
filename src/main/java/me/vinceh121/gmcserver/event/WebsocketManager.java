@@ -1,9 +1,11 @@
 package me.vinceh121.gmcserver.event;
 
 import java.security.SignatureException;
-import java.util.Hashtable;
+import java.util.Collection;
 import java.util.Objects;
 
+import org.apache.commons.collections4.multimap.AbstractMultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +22,13 @@ import xyz.bowser65.tokenize.Token;
 
 public class WebsocketManager implements Handler<ServerWebSocket> {
 	private static final Logger LOG = LoggerFactory.getLogger(WebsocketManager.class);
+	private final int SESSION_LIMIT;
 	private final GMCServer srv;
-	private final Hashtable<ObjectId, WebsocketSession> sessions = new Hashtable<>();
+	private final AbstractMultiValuedMap<ObjectId, WebsocketSession> sessions = new ArrayListValuedHashMap<>();
 
 	public WebsocketManager(final GMCServer srv) {
 		this.srv = srv;
+		this.SESSION_LIMIT = Integer.parseInt(this.srv.getConfig().getProperty("server.session-limit"));
 	}
 
 	@Override
@@ -49,18 +53,34 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 		}
 
 		final User user = (User) token.getAccount();
+		if (user == null) {
+			socket.close((short) 403, "Invalid token");
+			return;
+		}
 		LOG.info("User {} opened a websocket session", user);
+
+		if (this.sessions.get(user.getId()).size() >= SESSION_LIMIT) {
+			socket.close((short) 403, "Reacher Websocket session limit for user");
+			LOG.info("User {} reached the limit of opened sessions", user);
+			return;
+		}
+
 		final WebsocketSession sess = new WebsocketSession(user, socket);
 		sessions.put(user.getId(), sess);
 
 		this.sendIntent(user.getId(), StandardIntent.HANDHAKE_COMPLETE.create(new JsonObject()));
+
+		sess.getSocket().closeHandler(v -> {
+			LOG.info("User {} closed his websocket session", user.toString());
+			sessions.remove(user.getId());
+		});
 	}
 
-	public Hashtable<ObjectId, WebsocketSession> getSessions() {
+	public AbstractMultiValuedMap<ObjectId, WebsocketSession> getSessions() {
 		return sessions;
 	}
 
-	public WebsocketSession getSession(final ObjectId userId) {
+	public Collection<WebsocketSession> getSessions(final ObjectId userId) {
 		return getSessions().get(userId);
 	}
 
@@ -68,10 +88,11 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 		Objects.requireNonNull(oid);
 		Objects.requireNonNull(intent);
 
-		final WebsocketSession session = getSession(oid);
-		if (session == null)
+		final Collection<WebsocketSession> sess = getSessions(oid);
+		if (sess == null)
 			return;
-		session.getSocket().writeTextMessage(intent.toJson().encode());
+		for (final WebsocketSession session : sess)
+			session.getSocket().writeTextMessage(intent.toJson().encode());
 	}
 
 	private IAccount fetchAccount(final String id) {

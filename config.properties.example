@@ -8,13 +8,4 @@ auth.secret=5924763d344fb5eb7616a4b6202eefdff31f02737fad14d5f66a8fdbf0cf8b460869
 ## Server
 server.port=80
 server.session-limit=5
-
-## Device management
-device.user-limit=20
 device.public-timeline-limit=50
-
-## Geiger logging
-geiger.log-ip=true
-
-## Privacy
-privacy.log-login-ip=true

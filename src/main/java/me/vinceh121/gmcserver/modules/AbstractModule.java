@@ -19,7 +19,7 @@ public abstract class AbstractModule {
 		this.log = LoggerFactory.getLogger(this.getClass());
 	}
 
-	protected Route registerStrctAuthedRoute(final HttpMethod method, final String path,
+	protected Route registerStrictAuthedRoute(final HttpMethod method, final String path,
 			final Handler<RoutingContext> handler) {
 		return this.registerAuthedRoute(method, path, this.srv.getStrictAuthHandler()).handler(handler);
 	}

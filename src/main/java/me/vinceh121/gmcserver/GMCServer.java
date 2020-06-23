@@ -26,6 +26,7 @@ import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -128,6 +129,18 @@ public class GMCServer {
 		this.router = Router.router(vertx);
 		this.srv.requestHandler(this.router);
 
+		this.router.route().handler(ctx -> { // XXX debug
+			// and i swear if you forget to remove this one i'll slap you across the ocean
+			ctx.response().putHeader("Access-Control-Allow-Origin", "*");
+			if (ctx.request().method().equals(HttpMethod.OPTIONS)) {
+				ctx.response().putHeader("Access-Control-Request-Method", "POST, GET, OPTIONS");
+				ctx.response().putHeader("Access-Control-Allow-Headers", "Content-Type");
+				ctx.response().setStatusCode(204).end();
+			} else {
+				ctx.next();
+			}
+		});
+
 		this.bodyHandler = BodyHandler.create();
 		this.apiHandler = new APIHandler();
 		this.authHandler = new AuthHandler(this);
@@ -192,6 +205,10 @@ public class GMCServer {
 
 	public WebsocketManager getWebsocketManager() {
 		return wsManager;
+	}
+
+	public Properties getConfig() {
+		return config;
 	}
 
 }

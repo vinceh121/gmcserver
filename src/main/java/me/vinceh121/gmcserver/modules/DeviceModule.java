@@ -19,7 +19,36 @@ public class DeviceModule extends AbstractModule {
 
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
+		this.registerStrictAuthedRoute(HttpMethod.POST, "/device", this::handleCreateDevice);
+		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevicePublic);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
+	}
+
+	private void handleCreateDevice(final RoutingContext ctx) {
+		
+	}
+	
+	private void handleDevicePublic(final RoutingContext ctx) {
+		final String rawDeviceId = ctx.pathParam("deviceId");
+
+		final ObjectId deviceId;
+		try {
+			deviceId = new ObjectId(rawDeviceId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid device ID");
+			return;
+		}
+
+		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+
+		if (dev == null) {
+			this.error(ctx, 404, "Device not found");
+			return;
+		}
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		ctx.response().end(dev.toPublicJson().put("own", user != null && user.getId().equals(dev.getOwner())).encode());
 	}
 
 	private void handleDeviceHistory(final RoutingContext ctx) {
@@ -45,7 +74,7 @@ public class DeviceModule extends AbstractModule {
 		obj.put("records", arr);
 
 		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.eq("deviceId", dev.getId()));
-		it.limit(50); // TODO make dynamic
+		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 		final String full = ctx.request().getParam("full");
@@ -53,9 +82,11 @@ public class DeviceModule extends AbstractModule {
 			it.limit(0);
 		}
 
-		it.forEach(r -> {
-			arr.add(r.getPublicJson());
-		});
+		if (user.getId().equals(dev.getOwner())) {
+			it.forEach(r -> arr.add(r.toJson()));
+		} else {
+			it.forEach(r -> arr.add(r.toPublicJson()));
+		}
 
 		ctx.response().end(obj.encode());
 	}
