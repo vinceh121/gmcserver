@@ -65,10 +65,10 @@ public class Record extends AbstractEntity {
 	}
 
 	public String getIp() {
-		return ip;
+		return this.ip;
 	}
 
-	public void setIp(String ip) {
+	public void setIp(final String ip) {
 		this.ip = ip;
 	}
 
@@ -77,8 +77,8 @@ public class Record extends AbstractEntity {
 	@BsonIgnore
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
-		obj.put("deviceId", Objects.toString(deviceId));
-		obj.put("userId", Objects.toString(userId));
+		obj.put("deviceId", Objects.toString(this.deviceId));
+		obj.put("userId", Objects.toString(this.userId));
 		return obj;
 	}
 
@@ -86,7 +86,7 @@ public class Record extends AbstractEntity {
 	@JsonIgnore
 	@BsonIgnore
 	public JsonObject toPublicJson() {
-		final JsonObject obj = toJson();
+		final JsonObject obj = this.toJson();
 		obj.remove("id");
 		obj.remove("deviceId");
 		obj.remove("userId");

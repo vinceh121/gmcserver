@@ -97,7 +97,7 @@ public class LoggingModule extends AbstractModule {
 		rec.setDeviceId(device.getId());
 		rec.setUserId(user.getId());
 		rec.setUsv(usv);
-		
+
 		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
 			rec.setIp(ctx.request().remoteAddress().host());
 		}

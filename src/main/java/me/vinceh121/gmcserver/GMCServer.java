@@ -76,9 +76,9 @@ public class GMCServer {
 
 	public GMCServer() {
 		try {
-			config.load(new FileInputStream(CONFIG_PATH));
-		} catch (IOException e) {
-			LOG.error("Failed to load config", e);
+			this.config.load(new FileInputStream(GMCServer.CONFIG_PATH));
+		} catch (final IOException e) {
+			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
 		}
 
@@ -92,7 +92,7 @@ public class GMCServer {
 				CodecRegistries.fromProviders(this.pojoCodecProvider));
 		final MongoClientSettings set = MongoClientSettings.builder()
 				.applicationName("GMCServer")
-				.applyConnectionString(new ConnectionString(config.getProperty("mongo.constring")))
+				.applyConnectionString(new ConnectionString(this.config.getProperty("mongo.constring")))
 				.codecRegistry(this.codecRegistry)
 				.build();
 
@@ -105,15 +105,16 @@ public class GMCServer {
 		byte[] secret;
 		try {
 			final String strSecret = this.config.getProperty("auth.secret");
-			if (strSecret == null || strSecret.isEmpty()) // this is ugly aaaaaaaaaaaa
+			if (strSecret == null || strSecret.isEmpty()) {
 				throw new DecoderException();
+			}
 			secret = Hex.decodeHex(strSecret);
 		} catch (final DecoderException e) {
-			LOG.error("Could not decode secret, generating random one", e);
+			GMCServer.LOG.error("Could not decode secret, generating random one", e);
 			secret = new byte[1024];
 			new Random().nextBytes(secret);
 			this.config.setProperty("auth.secret", Hex.encodeHexString(secret));
-			LOG.warn("New temporary secret is {}", this.config.getProperty("auth.secret"));
+			GMCServer.LOG.warn("New temporary secret is {}", this.config.getProperty("auth.secret"));
 		}
 
 		this.tokenize = new Tokenize(secret);
@@ -180,7 +181,7 @@ public class GMCServer {
 	}
 
 	public BodyHandler getBodyHandler() {
-		return bodyHandler;
+		return this.bodyHandler;
 	}
 
 	public APIHandler getApiHandler() {
@@ -204,11 +205,11 @@ public class GMCServer {
 	}
 
 	public WebsocketManager getWebsocketManager() {
-		return wsManager;
+		return this.wsManager;
 	}
 
 	public Properties getConfig() {
-		return config;
+		return this.config;
 	}
 
 }

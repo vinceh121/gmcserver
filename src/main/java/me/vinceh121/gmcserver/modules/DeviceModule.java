@@ -25,9 +25,9 @@ public class DeviceModule extends AbstractModule {
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
-		
+
 	}
-	
+
 	private void handleDevicePublic(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
 

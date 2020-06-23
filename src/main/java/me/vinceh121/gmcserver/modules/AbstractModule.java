@@ -33,7 +33,7 @@ public abstract class AbstractModule {
 		return this.srv.getRouter()
 				.route(method, path)
 				.handler(this.srv.getApiHandler())
-				.handler(srv.getBodyHandler())
+				.handler(this.srv.getBodyHandler())
 				.handler(handler)
 				.enable();
 	}

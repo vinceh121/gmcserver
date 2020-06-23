@@ -43,16 +43,16 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (srv.getColUsers().find(Filters.eq("username", username)).first() != null) {
+		if (this.srv.getColUsers().find(Filters.eq("username", username)).first() != null) {
 			this.error(ctx, 403, "Username already taken");
 			return;
 		}
 
 		final User user = new User();
 		user.setUsername(username);
-		user.setPassword(srv.getArgon().hash(10, 65536, 1, password.toCharArray()));
+		user.setPassword(this.srv.getArgon().hash(10, 65536, 1, password.toCharArray()));
 
-		srv.getColUsers().insertOne(user);
+		this.srv.getColUsers().insertOne(user);
 		ctx.response()
 				.end(new JsonObject().put("username", user.getUsername())
 						.put("id", user.getId().toHexString())

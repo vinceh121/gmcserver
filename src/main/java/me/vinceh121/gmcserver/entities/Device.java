@@ -37,27 +37,28 @@ public class Device extends AbstractEntity {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
 	public Point getLocation() {
-		return location;
+		return this.location;
 	}
 
-	public void setLocation(Point location) {
+	public void setLocation(final Point location) {
 		this.location = location;
 	}
 
 	@Override
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
-		if (this.location != null)
+		if (this.location != null) {
 			obj.put("location", this.location.getPosition().getValues());
-		obj.put("owner", getOwner().toHexString());
+		}
+		obj.put("owner", this.getOwner().toHexString());
 		return obj;
 	}
 

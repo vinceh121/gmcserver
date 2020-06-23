@@ -13,7 +13,7 @@ public abstract class AbstractEntity {
 	private ObjectId id;
 
 	public AbstractEntity() {
-		id = new ObjectId();
+		this.id = new ObjectId();
 	}
 
 	public ObjectId getId() {
@@ -26,7 +26,7 @@ public abstract class AbstractEntity {
 
 	public JsonObject toJson() {
 		final JsonObject obj = JsonObject.mapFrom(this);
-		obj.put("id", Objects.toString(id));
+		obj.put("id", Objects.toString(this.id));
 		return obj;
 	}
 

@@ -57,42 +57,44 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 			socket.close((short) 403, "Invalid token");
 			return;
 		}
-		LOG.info("User {} opened a websocket session", user);
+		WebsocketManager.LOG.info("User {} opened a websocket session", user);
 
-		if (this.sessions.get(user.getId()).size() >= SESSION_LIMIT) {
+		if (this.sessions.get(user.getId()).size() >= this.SESSION_LIMIT) {
 			socket.close((short) 403, "Reacher Websocket session limit for user");
-			LOG.info("User {} reached the limit of opened sessions", user);
+			WebsocketManager.LOG.info("User {} reached the limit of opened sessions", user);
 			return;
 		}
 
 		final WebsocketSession sess = new WebsocketSession(user, socket);
-		sessions.put(user.getId(), sess);
+		this.sessions.put(user.getId(), sess);
 
 		this.sendIntent(user.getId(), StandardIntent.HANDHAKE_COMPLETE.create(new JsonObject()));
 
 		sess.getSocket().closeHandler(v -> {
-			LOG.info("User {} closed his websocket session", user.toString());
-			sessions.remove(user.getId());
+			WebsocketManager.LOG.info("User {} closed his websocket session", user.toString());
+			this.sessions.remove(user.getId());
 		});
 	}
 
 	public AbstractMultiValuedMap<ObjectId, WebsocketSession> getSessions() {
-		return sessions;
+		return this.sessions;
 	}
 
 	public Collection<WebsocketSession> getSessions(final ObjectId userId) {
-		return getSessions().get(userId);
+		return this.getSessions().get(userId);
 	}
 
 	public void sendIntent(final ObjectId oid, final Intent intent) {
 		Objects.requireNonNull(oid);
 		Objects.requireNonNull(intent);
 
-		final Collection<WebsocketSession> sess = getSessions(oid);
-		if (sess == null)
+		final Collection<WebsocketSession> sess = this.getSessions(oid);
+		if (sess == null) {
 			return;
-		for (final WebsocketSession session : sess)
+		}
+		for (final WebsocketSession session : sess) {
 			session.getSocket().writeTextMessage(intent.toJson().encode());
+		}
 	}
 
 	private IAccount fetchAccount(final String id) {

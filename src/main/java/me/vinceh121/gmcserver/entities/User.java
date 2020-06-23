@@ -61,7 +61,7 @@ public class User extends AbstractEntity implements IAccount {
 
 	@Override
 	public String toString() {
-		return getUsername() + " (" + getId().toString() + ")";
+		return this.getUsername() + " (" + this.getId().toString() + ")";
 	}
 
 }
