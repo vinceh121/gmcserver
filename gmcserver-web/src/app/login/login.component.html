@@ -1,6 +1,9 @@
 <mat-card>
   <form (ngSubmit)="executeLogin()">
-    <mat-card-header><mat-card-title>Login</mat-card-title></mat-card-header>
+    <mat-card-header>
+      <mat-card-title>Login</mat-card-title>
+      <mat-card-subtitle><mat-error *ngIf="errorMsg != null">{{this.errorMsg}}</mat-error></mat-card-subtitle>
+    </mat-card-header>
     <mat-card-content>
       <p>
         <mat-form-field><mat-label>Username</mat-label><input name="username" [(ngModel)]="this.username" required matInput></mat-form-field>

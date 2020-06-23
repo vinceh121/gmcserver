@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RequestService } from '../request.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 /*import { NgForm } from '@angular/forms';*/
 
 @Component({
@@ -13,6 +14,7 @@ export class LoginComponent implements OnInit {
   username: string;
   password: string;
   progress: boolean = false;
+  errorMsg: string;
 
   constructor(private req: RequestService) { }
 
@@ -20,15 +22,20 @@ export class LoginComponent implements OnInit {
   }
 
   executeLogin(): void {
-    console.log('lul');
+    this.errorMsg = null;
     if (this.username != null && this.password != null
       && this.username.length != 0 && this.password.length != 0)
       this.req.login(this.username, this.password)
-      /*.pipe(catchError((e: HttpErrorResponse) => {
-        this.progress = false;
-      }))*/
-      .subscribe((r: any) => {
-        console.log(r);
-      });
+        .pipe(catchError((e: HttpErrorResponse) => {
+          if (e.error instanceof ErrorEvent) {
+            this.errorMsg = e.error.error;
+          } else {
+            this.errorMsg = e.status + ': ' + e.error.description;
+          }
+          return throwError('Error in login');
+        }))
+        .subscribe((r: any) => {
+          console.log('subscribe: ' + r);
+        });
   }
 }
