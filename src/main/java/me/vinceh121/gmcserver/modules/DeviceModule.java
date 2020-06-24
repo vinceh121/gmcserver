@@ -82,7 +82,7 @@ public class DeviceModule extends AbstractModule {
 			it.limit(0);
 		}
 
-		if (user.getId().equals(dev.getOwner())) {
+		if (user != null && user.getId().equals(dev.getOwner())) {
 			it.forEach(r -> arr.add(r.toJson()));
 		} else {
 			it.forEach(r -> arr.add(r.toPublicJson()));

@@ -135,7 +135,7 @@ public class GMCServer {
 			ctx.response().putHeader("Access-Control-Allow-Origin", "*");
 			if (ctx.request().method().equals(HttpMethod.OPTIONS)) {
 				ctx.response().putHeader("Access-Control-Request-Method", "POST, GET, OPTIONS");
-				ctx.response().putHeader("Access-Control-Allow-Headers", "Content-Type");
+				ctx.response().putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 				ctx.response().setStatusCode(204).end();
 			} else {
 				ctx.next();

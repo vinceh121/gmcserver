@@ -26,16 +26,17 @@ export class LoginComponent implements OnInit {
     if (this.username != null && this.password != null
       && this.username.length != 0 && this.password.length != 0)
       this.req.login(this.username, this.password)
-        .pipe(catchError((e: HttpErrorResponse) => {
-          if (e.error instanceof ErrorEvent) {
-            this.errorMsg = e.error.error;
-          } else {
-            this.errorMsg = e.status + ': ' + e.error.description;
+        .subscribe(
+          res => {
+            this.req.setLoginInfo(res.id, res.token);
+          },
+          err => {
+            if (err.error instanceof ErrorEvent) {
+              this.errorMsg = err.error.error;
+            } else {
+              this.errorMsg = err.status + ': ' + err.error.description;
+            }
           }
-          return throwError('Error in login');
-        }))
-        .subscribe((r: any) => {
-          console.log('subscribe: ' + r);
-        });
+        )
   }
 }

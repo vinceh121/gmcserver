@@ -4,7 +4,6 @@ import { Sort } from '@angular/material/sort';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Device, Record } from '../types';
 import { RequestService } from '../request.service';
-import { Label } from 'ng2-charts';
 
 @Component({
   selector: 'app-device',
@@ -24,7 +23,7 @@ export class DeviceComponent implements OnInit {
 
   chartLabels: any[] = []
 
-  chartOptions: any = {
+  chartOptions: ChartOptions = {
     scales: {
       yAxes: [
         {

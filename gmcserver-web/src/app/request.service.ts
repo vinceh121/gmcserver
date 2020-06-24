@@ -2,26 +2,39 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Device, Record } from './types';
+import { DRIVERS, Locker } from 'angular-safeguard'
 
 @Injectable({
   providedIn: 'root'
 })
 export class RequestService {
-  token: string = 'NWVkN2Q5YjhkZTIyNjMwYTAxMDVlN2Jm.NDY2MTc2NzM=.4PbIYEheO7y2WtiPOcXm8nSRyl4PLMgr2/SPnjMmuJA'; // TODO remove this
   baseUrl: string = 'http://127.0.0.1:80/';
   headers: HttpHeaders;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private locker: Locker) {
     this.updateHeaders();
   }
 
   public updateHeaders(): void {
-    this.headers = new HttpHeaders();
-    this.headers.append('Authorization', this.token);
+    this.headers = new HttpHeaders({Authorization: this.getToken()});
   }
 
   public login(username: string, password: string): Observable<any> {
     return this.http.post(this.getPath('auth/login'), { username: username, password: password }, { headers: this.headers });
+  }
+
+  public setLoginInfo(id: string, token: string): void {
+    this.locker.set(DRIVERS.LOCAL, 'user-id', id);
+    this.locker.set(DRIVERS.LOCAL, 'token', token);
+    this.updateHeaders();
+  }
+
+  public getUserId(): string {
+    return this.locker.get(DRIVERS.LOCAL, 'user-id');
+  }
+
+  public getToken(): string {
+    return this.locker.get(DRIVERS.LOCAL, 'token');
   }
 
   public getDevice(id: string): Observable<Device> {

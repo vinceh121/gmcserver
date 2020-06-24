@@ -14,9 +14,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import {MatSortModule} from '@angular/material/sort'; 
+import { MatSortModule } from '@angular/material/sort';
 
 import { ChartsModule } from 'ng2-charts';
+import { LockerModule } from 'angular-safeguard'
 
 import { DeviceComponent } from './device/device.component';
 import { HomeComponent } from './home/home.component';
@@ -45,7 +46,8 @@ import { LoginComponent } from './login/login.component';
     MatInputModule,
     MatButtonModule,
     MatSortModule,
-    ChartsModule
+    ChartsModule,
+    LockerModule
   ],
   providers: [],
   bootstrap: [AppComponent]
