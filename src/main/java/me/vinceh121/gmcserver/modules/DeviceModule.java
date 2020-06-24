@@ -51,7 +51,7 @@ public class DeviceModule extends AbstractModule {
 
 		boolean own = user != null && user.getId().equals(dev.getOwner());
 
-		ctx.response().end((own ? dev.toJson() : dev.toPublicJson()).put("own", own).encode());
+		ctx.response().end((own ? dev.toJson() : dev.toPublicJson()).put("own", own).toBuffer());
 	}
 
 	private void handleDeviceHistory(final RoutingContext ctx) {
@@ -92,7 +92,7 @@ public class DeviceModule extends AbstractModule {
 			it.forEach(r -> arr.add(r.toPublicJson()));
 		}
 
-		ctx.response().end(obj.encode());
+		ctx.response().end(obj.toBuffer());
 	}
 
 }

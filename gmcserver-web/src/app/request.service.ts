@@ -16,7 +16,12 @@ export class RequestService {
   }
 
   public updateHeaders(): void {
-    this.headers = new HttpHeaders({Authorization: this.getToken()});
+    const tok = this.getToken(); // find out why dynamic setting isn't working
+    console.log('token: ' + tok);
+    if (tok != null)
+      this.headers = new HttpHeaders({ Authorization: tok });
+    else
+      this.headers = new HttpHeaders();
   }
 
   public login(username: string, password: string): Observable<any> {
@@ -35,6 +40,10 @@ export class RequestService {
 
   public getToken(): string {
     return this.locker.get(DRIVERS.LOCAL, 'token');
+  }
+
+  public checkAuth(): boolean {
+    return this.getToken() != null;
   }
 
   public getDevice(id: string): Observable<Device> {

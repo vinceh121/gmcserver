@@ -16,6 +16,7 @@ export class DeviceComponent implements OnInit {
   public fullTimeline: boolean = false;
   displayedColumns = ['date', 'cpm', 'acpm', 'usv'];
   tableData: MatTableDataSource<Record> = new MatTableDataSource();
+  errorMsg: string = null;
 
   lineTension: number = 0.1
 
@@ -73,6 +74,13 @@ export class DeviceComponent implements OnInit {
           this.displayedColumns.push('ip');
         }
         this.fetchTimeline();
+      }, err => {
+        console.error(err);
+        if (err.error instanceof ErrorEvent) {
+          this.errorMsg = err.error.error;
+        } else {
+          this.errorMsg = err.status + ': ' + err.error.description;
+        }
       });
     });
   }
@@ -83,6 +91,13 @@ export class DeviceComponent implements OnInit {
       this.tableData.data = this.device.timeline;
       this.tableData.sort = this.sort;
       this.buildChart();
+    }, err => {
+      console.error(err);
+      if (err.error instanceof ErrorEvent) {
+        this.errorMsg = err.error.error;
+      } else {
+        this.errorMsg = err.status + ': ' + err.error.description;
+      }
     });
   }
 

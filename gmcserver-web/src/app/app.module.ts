@@ -16,6 +16,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { ChartsModule } from 'ng2-charts';
 import { LockerModule } from 'angular-safeguard'
@@ -48,6 +52,10 @@ import { LoginComponent } from './login/login.component';
     MatButtonModule,
     MatSortModule,
     MatTableModule,
+    MatIconModule,
+    MatToolbarModule,
+    MatListModule,
+    MatMenuModule,
     ChartsModule,
     LockerModule
   ],

@@ -1,4 +1,4 @@
-<mat-card *ngIf="device != null">
+<mat-card *ngIf="device != null && this.errorMsg == null">
   <mat-card-header>
     <mat-card-title>{{device.name}}</mat-card-title>
     <mat-card-subtitle>{{device.id}}<span *ngIf="device.own"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
@@ -42,4 +42,7 @@
 </mat-card>
 <mat-card *ngIf="device == null">
   <mat-spinner></mat-spinner>
+</mat-card>
+<mat-card *ngIf="this.errorMsg != null">
+  <mat-card-title><mat-error>{{errorMsg}}</mat-error></mat-card-title>
 </mat-card>

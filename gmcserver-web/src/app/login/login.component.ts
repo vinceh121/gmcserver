@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { RequestService } from '../request.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+/*import { HttpErrorResponse } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-/*import { NgForm } from '@angular/forms';*/
+import { NgForm } from '@angular/forms';*/
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,7 @@ export class LoginComponent implements OnInit {
   progress: boolean = false;
   errorMsg: string;
 
-  constructor(private req: RequestService) { }
+  constructor(private req: RequestService, private router: Router) { }
 
   ngOnInit(): void {
   }
@@ -29,8 +30,10 @@ export class LoginComponent implements OnInit {
         .subscribe(
           res => {
             this.req.setLoginInfo(res.id, res.token);
+            this.router.navigate(['/']);
           },
           err => {
+            console.error(err);
             if (err.error instanceof ErrorEvent) {
               this.errorMsg = err.error.error;
             } else {
