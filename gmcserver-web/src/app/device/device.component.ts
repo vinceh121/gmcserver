@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { Sort } from '@angular/material/sort';
+import { Sort, MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Device, Record } from '../types';
 import { RequestService } from '../request.service';
@@ -13,17 +14,21 @@ import { RequestService } from '../request.service';
 export class DeviceComponent implements OnInit {
   public device: Device;
   public fullTimeline: boolean = false;
-  sortedData: Record[] = [];
+  displayedColumns = ['date', 'cpm', 'acpm', 'usv'];
+  tableData: MatTableDataSource<Record> = new MatTableDataSource();
+
+  lineTension: number = 0.1
 
   chartData: ChartDataSets[] = [
-    { label: 'CPM' },
-    { label: 'ACPM' },
-    { label: 'µSv', yAxisID: 'usv' }
+    { label: 'CPM', lineTension: this.lineTension },
+    { label: 'ACPM', lineTension: this.lineTension },
+    { label: 'µSv', yAxisID: 'usv', lineTension: this.lineTension }
   ]
 
   chartLabels: any[] = []
 
   chartOptions: ChartOptions = {
+    spanGaps: false,
     scales: {
       yAxes: [
         {
@@ -36,28 +41,47 @@ export class DeviceComponent implements OnInit {
           type: 'linear',
           position: 'right'
         }
+      ],
+      xAxes: [
+        {
+          type: 'time',
+          position: 'bottom',
+          time: {
+            unit: 'minute',
+            tooltipFormat: 'HH:mm:ss D/M/YYYY',
+            displayFormats: {
+              minute: 'll H:mm'
+            }
+          }
+        }
       ]
     }
   }
+
+  @ViewChild(MatSort, { static: true }) sort: MatSort = new MatSort()
 
   constructor(private req: RequestService, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
+    console.log('sort on init: ' + this.sort);
     this.route.paramMap.subscribe((params: ParamMap) => {
       const id: string = params.get('id');
       this.req.getDevice(id).subscribe((dev: Device) => {
-	      this.device = dev;
-	      this.fetchTimeline();
+        this.device = dev;
+        if (this.device.own) {
+          this.displayedColumns.push('ip');
+        }
+        this.fetchTimeline();
       });
     });
   }
 
   public fetchTimeline(): void {
-    console.log('full = '+this.fullTimeline);
     this.req.getDeviceTimeline(this.device.id, this.fullTimeline).subscribe((records: any) => {
       this.device.timeline = records.records;
-      this.sortedData = records.records;
+      this.tableData.data = this.device.timeline;
+      this.tableData.sort = this.sort;
       this.buildChart();
     });
   }
@@ -66,29 +90,6 @@ export class DeviceComponent implements OnInit {
     this.chartData[0].data = this.device.timeline.map(r => r.cpm);
     this.chartData[1].data = this.device.timeline.map(r => r.acpm);
     this.chartData[2].data = this.device.timeline.map(r => r.usv);
-    this.chartLabels = this.device.timeline.map(r => new Date(r.date).toLocaleString());
+    this.chartLabels = this.device.timeline.map(r => new Date(r.date));
   }
-
-  sort(sort: Sort): void {
-    const data = this.device.timeline;
-    if (!sort.active || sort.direction === '') {
-      this.sortedData = data;
-      return;
-    }
-
-    this.sortedData = data.sort((a, b) => {
-      const isAsc = sort.direction === 'asc';
-      switch (sort.active) {
-        case 'date': return compare(a.date, b.date, isAsc);
-        case 'cpm': return compare(a.cpm, b.cpm, isAsc);
-        case 'acpm': return compare(a.cpm, b.cpm, isAsc);
-        case 'usv': return compare(a.usv, b.usv, isAsc);
-        default: return 0;
-      }
-    });
-  }
-}
-
-function compare(a: number | string | Date, b: number | string | Date, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

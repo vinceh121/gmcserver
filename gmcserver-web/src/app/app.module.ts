@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
 
 import { ChartsModule } from 'ng2-charts';
 import { LockerModule } from 'angular-safeguard'
@@ -46,6 +47,7 @@ import { LoginComponent } from './login/login.component';
     MatInputModule,
     MatButtonModule,
     MatSortModule,
+    MatTableModule,
     ChartsModule,
     LockerModule
   ],

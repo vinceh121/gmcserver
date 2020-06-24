@@ -50,7 +50,6 @@ export class RequestService {
   }
 
   private get<T>(path: string): Observable<T> {
-    console.log(this.headers);
     return this.http.get<T>(this.baseUrl + path, { headers: this.headers });
   }
 }

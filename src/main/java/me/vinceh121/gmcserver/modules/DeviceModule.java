@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -20,7 +21,7 @@ public class DeviceModule extends AbstractModule {
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/device", this::handleCreateDevice);
-		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevicePublic);
+		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
 	}
 
@@ -28,7 +29,7 @@ public class DeviceModule extends AbstractModule {
 
 	}
 
-	private void handleDevicePublic(final RoutingContext ctx) {
+	private void handleDevice(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
 
 		final ObjectId deviceId;
@@ -48,7 +49,9 @@ public class DeviceModule extends AbstractModule {
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
-		ctx.response().end(dev.toPublicJson().put("own", user != null && user.getId().equals(dev.getOwner())).encode());
+		boolean own = user != null && user.getId().equals(dev.getOwner());
+
+		ctx.response().end((own ? dev.toJson() : dev.toPublicJson()).put("own", own).encode());
 	}
 
 	private void handleDeviceHistory(final RoutingContext ctx) {
@@ -74,6 +77,7 @@ public class DeviceModule extends AbstractModule {
 		obj.put("records", arr);
 
 		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.eq("deviceId", dev.getId()));
+		it.sort(Sorts.ascending("date"));
 		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
