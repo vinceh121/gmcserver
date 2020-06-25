@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Device, Record } from './types';
+import { Device, Record, MapDevice } from './types';
 import { DRIVERS, Locker } from 'angular-safeguard'
 
 @Injectable({
@@ -52,6 +52,10 @@ export class RequestService {
 
   public getDeviceTimeline(id: string, full: boolean): Observable<Record[]> {
     return this.get<Record[]>('device/' + id + '/timeline' + (full ? '?full=y' : ''));
+  }
+
+  public getMap(rect: number[][]): Observable<MapDevice[]> {
+    return this.get<MapDevice[]>('map/' + JSON.stringify(rect));
   }
 
   public getPath(path: string): string {

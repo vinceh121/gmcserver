@@ -5,6 +5,8 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -46,6 +48,9 @@ public class DeviceModule extends AbstractModule {
 			this.error(ctx, 404, "Device not found");
 			return;
 		}
+
+		dev.setLocation(new Point(new Position(43.6044622, 1.4442469)));
+		this.srv.getColDevices().replaceOne(Filters.eq(dev.getId()), dev);
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 

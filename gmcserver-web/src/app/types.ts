@@ -6,13 +6,16 @@ export interface Record {
   usv: number;
 }
 
-export interface Device {
+export interface MapDevice {
   id: string;
+  location?: number[];
+}
+
+export interface Device extends MapDevice {
   name?: string;
   owner: string;
   own: boolean;
   gmcId?: number;
   model?: string;
-  coord?: number[];
   timeline?: Record[];
 }

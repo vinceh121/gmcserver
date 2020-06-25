@@ -1,0 +1,2 @@
+The map icons are taken from the Material Icons set under the Apache 2.0 License
+

@@ -69,4 +69,11 @@ public class Device extends AbstractEntity {
 		return obj;
 	}
 
+	public JsonObject toMapJson() {
+		final JsonObject obj = new JsonObject();
+		obj.put("id", this.getId().toHexString());
+		obj.put("location", location.getCoordinates().getValues());
+		return obj;
+	}
+
 }

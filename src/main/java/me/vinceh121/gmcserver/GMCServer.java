@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.Conventions;
@@ -20,7 +21,10 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
@@ -39,6 +43,7 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
+import me.vinceh121.gmcserver.modules.GeoModule;
 import me.vinceh121.gmcserver.modules.LoggingModule;
 import xyz.bowser65.tokenize.Tokenize;
 
@@ -89,7 +94,7 @@ public class GMCServer {
 						Conventions.CLASS_AND_PROPERTY_CONVENTION))
 				.build();
 		this.codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-				CodecRegistries.fromProviders(this.pojoCodecProvider));
+				CodecRegistries.fromProviders(this.pojoCodecProvider, new GeoJsonCodecProvider()));
 		final MongoClientSettings set = MongoClientSettings.builder()
 				.applicationName("GMCServer")
 				.applyConnectionString(new ConnectionString(this.config.getProperty("mongo.constring")))
@@ -98,9 +103,12 @@ public class GMCServer {
 
 		this.mongoClient = MongoClients.create(set);
 		this.mongoDb = this.mongoClient.getDatabase("gmcserver");
+
 		this.colRecords = this.mongoDb.getCollection("records", Record.class);
 		this.colUsers = this.mongoDb.getCollection("users", User.class);
 		this.colDevices = this.mongoDb.getCollection("devices", Device.class);
+
+		this.checkIndexes();
 
 		byte[] secret;
 		try {
@@ -153,10 +161,26 @@ public class GMCServer {
 		this.srv.webSocketHandler(this.wsManager);
 	}
 
+	private void checkIndexes() {
+		int deviceIndexCount = 0;
+		final MongoCursor<Document> cur = this.colDevices.listIndexes().iterator();
+
+		while (cur.hasNext()) {
+			cur.next();
+			deviceIndexCount++;
+		}
+
+		if (deviceIndexCount <= 1) {
+			LOG.warn("Device collection does not have index, generating");
+			this.colDevices.createIndex(Indexes.geo2dsphere("location"));
+		}
+	}
+
 	private void registerModules() {
 		new LoggingModule(this);
 		new DeviceModule(this);
 		new AuthModule(this);
+		new GeoModule(this);
 	}
 
 	public void start() {

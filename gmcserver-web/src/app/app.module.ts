@@ -23,11 +23,13 @@ import { MatMenuModule } from '@angular/material/menu';
 
 import { ChartsModule } from 'ng2-charts';
 import { LockerModule } from 'angular-safeguard'
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
 import { DeviceComponent } from './device/device.component';
 import { HomeComponent } from './home/home.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { LoginComponent } from './login/login.component';
+import { MapComponent } from './map/map.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +37,8 @@ import { LoginComponent } from './login/login.component';
     DeviceComponent,
     HomeComponent,
     NotfoundComponent,
-    LoginComponent
+    LoginComponent,
+    MapComponent
   ],
   imports: [
     BrowserModule,
@@ -57,7 +60,8 @@ import { LoginComponent } from './login/login.component';
     MatListModule,
     MatMenuModule,
     ChartsModule,
-    LockerModule
+    LockerModule,
+    LeafletModule
   ],
   providers: [],
   bootstrap: [AppComponent]
