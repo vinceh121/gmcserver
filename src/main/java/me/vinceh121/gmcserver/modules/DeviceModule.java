@@ -1,12 +1,22 @@
 package me.vinceh121.gmcserver.modules;
 
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
+import java.util.Vector;
+
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
+import com.mongodb.client.result.UpdateResult;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -19,16 +29,153 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 
 public class DeviceModule extends AbstractModule {
+	private final Random rng = new SecureRandom();
 
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/device", this::handleCreateDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
+		this.registerStrictAuthedRoute(HttpMethod.PUT, "/device/:deviceId", this::handleUpdateDevice);
+		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/device/:deviceId", this::handleRemoveDevice);
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
+		final JsonObject obj = ctx.getBodyAsJson();
 
+		final User user = ctx.get(AuthHandler.USER_KEY);
+		final int deviceLimit;
+		if (user.getDeviceLimit() != -1) {
+			deviceLimit = user.getDeviceLimit();
+		} else {
+			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
+		}
+
+		if (deviceLimit == 0) {
+			this.error(ctx, 403, "Device limit reached");
+			return;
+		}
+
+		final JsonArray arrLoc = obj.getJsonArray("position");
+		final Point location;
+		if (arrLoc != null && arrLoc.size() == 2) {
+			location = this.jsonArrToPoint(arrLoc);
+		} else if (arrLoc != null && arrLoc.size() != 2) {
+			this.error(ctx, 400, "Invalid location");
+			return;
+		} else {
+			location = null;
+		}
+
+		final String deviceName = obj.getString("name");
+		if (deviceName == null) {
+			this.error(ctx, 400, "Missing parameter name");
+			return;
+		}
+
+		final String deviceModel = obj.getString("model");
+
+		final long gmcId = this.rng.nextLong();
+
+		final Device dev = new Device();
+		dev.setOwner(user.getId());
+		dev.setName(deviceName);
+		dev.setModel(deviceModel);
+		dev.setGmcId(gmcId);
+		dev.setLocation(location);
+
+		ctx.response().end(dev.toJson().toBuffer());
+	}
+
+	private void handleRemoveDevice(final RoutingContext ctx) {
+		final String rawDeviceId = ctx.pathParam("deviceId");
+
+		final ObjectId deviceId;
+		try {
+			deviceId = new ObjectId(rawDeviceId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid device ID");
+			return;
+		}
+
+		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+
+		if (dev == null) {
+			this.error(ctx, 404, "Device not found");
+			return;
+		}
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		if (!user.getId().equals(dev.getId()) || user.isAdmin()) {
+			this.error(ctx, 403, "Not owner of device");
+			return;
+		}
+
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final boolean delete = obj.getBoolean("delete");
+
+		if (!delete) {
+			this.srv.getColDevices().updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
+		} else {
+			this.srv.getColRecords().deleteMany(Filters.eq("deviceId", dev.getId()));
+			this.srv.getColDevices().deleteOne(Filters.eq(dev.getId()));
+		}
+
+		ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+	}
+
+	private void handleUpdateDevice(final RoutingContext ctx) {
+		final String rawDeviceId = ctx.pathParam("deviceId");
+
+		final ObjectId deviceId;
+		try {
+			deviceId = new ObjectId(rawDeviceId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid device ID");
+			return;
+		}
+
+		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+
+		if (dev == null) {
+			this.error(ctx, 404, "Device not found");
+			return;
+		}
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		if (!user.getId().equals(dev.getOwner())) {
+			this.error(ctx, 403, "Not owner of the device");
+			return;
+		}
+
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final List<Bson> updates = new Vector<>();
+
+		final String name = obj.getString("name");
+		if (name != null)
+			updates.add(Updates.set("name", name));
+
+		final String model = obj.getString("model");
+		if (model != null)
+			updates.add(Updates.set("model", model));
+
+		final JsonArray location = obj.getJsonArray("location");
+		if (location != null)
+			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
+
+		this.srv.getColDevices().updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
+
+		ctx.response().end(new JsonObject().put("changed", updates.size()).toBuffer());
+	}
+
+	private Point jsonArrToPoint(final JsonArray arr) { // standard lat lon in array -> lon lat for mongo
+		final Position pos = new Position(arr.getDouble(1), arr.getDouble(0));
+		final Point point = new Point(pos);
+		return point;
 	}
 
 	private void handleDevice(final RoutingContext ctx) {
@@ -48,9 +195,6 @@ public class DeviceModule extends AbstractModule {
 			this.error(ctx, 404, "Device not found");
 			return;
 		}
-
-		dev.setLocation(new Point(new Position(43.6044622, 1.4442469)));
-		this.srv.getColDevices().replaceOne(Filters.eq(dev.getId()), dev);
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 

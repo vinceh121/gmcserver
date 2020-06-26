@@ -11,6 +11,7 @@ public class Device extends AbstractEntity {
 	private Point location;
 	private ObjectId owner;
 	private long gmcId;
+	private boolean disabled;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -50,6 +51,14 @@ public class Device extends AbstractEntity {
 
 	public void setLocation(final Point location) {
 		this.location = location;
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	public void setDisabled(boolean disabled) {
+		this.disabled = disabled;
 	}
 
 	@Override

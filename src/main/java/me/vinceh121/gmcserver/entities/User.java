@@ -13,6 +13,7 @@ public class User extends AbstractEntity implements IAccount {
 	 */
 	private int deviceLimit = -1;
 	private long gmcId;
+	private boolean admin;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -44,6 +45,14 @@ public class User extends AbstractEntity implements IAccount {
 
 	public void setDeviceLimit(final int deviceLimit) {
 		this.deviceLimit = deviceLimit;
+	}
+
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
 	}
 
 	@Override
