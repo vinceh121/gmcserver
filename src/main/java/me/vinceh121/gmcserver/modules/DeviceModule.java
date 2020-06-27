@@ -1,8 +1,6 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -16,7 +14,6 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
-import com.mongodb.client.result.UpdateResult;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;

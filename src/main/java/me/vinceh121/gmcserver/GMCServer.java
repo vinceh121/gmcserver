@@ -30,7 +30,6 @@ import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -40,6 +39,7 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.event.WebsocketManager;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
+import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
@@ -70,6 +70,7 @@ public class GMCServer {
 	private final Argon2 argon;
 
 	private final BodyHandler bodyHandler;
+	private final CorsHandler corsHandler;
 	private final APIHandler apiHandler;
 	private final AuthHandler authHandler;
 	private final StrictAuthHandler strictAuthHandler;
@@ -102,7 +103,7 @@ public class GMCServer {
 				.build();
 
 		this.mongoClient = MongoClients.create(set);
-		this.mongoDb = this.mongoClient.getDatabase("gmcserver");
+		this.mongoDb = this.mongoClient.getDatabase(this.config.getProperty("mongo.database"));
 
 		this.colRecords = this.mongoDb.getCollection("records", Record.class);
 		this.colUsers = this.mongoDb.getCollection("users", User.class);
@@ -138,22 +139,14 @@ public class GMCServer {
 		this.router = Router.router(vertx);
 		this.srv.requestHandler(this.router);
 
-		this.router.route().handler(ctx -> { // XXX debug
-			// and i swear if you forget to remove this one i'll slap you across the ocean
-			ctx.response().putHeader("Access-Control-Allow-Origin", "*");
-			if (ctx.request().method().equals(HttpMethod.OPTIONS)) {
-				ctx.response().putHeader("Access-Control-Request-Method", "POST, GET, OPTIONS");
-				ctx.response().putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-				ctx.response().setStatusCode(204).end();
-			} else {
-				ctx.next();
-			}
-		});
 
 		this.bodyHandler = BodyHandler.create();
 		this.apiHandler = new APIHandler();
 		this.authHandler = new AuthHandler(this);
 		this.strictAuthHandler = new StrictAuthHandler();
+		this.corsHandler = new CorsHandler(this.getConfig().getProperty("cors.web-host"));
+		
+		this.router.route().handler(this.corsHandler);
 
 		this.registerModules();
 
