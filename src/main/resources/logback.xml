@@ -1,15 +1,16 @@
 <!-- yes @Bowser65 -->
 <configuration>
-    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
-        <encoder>
-            <pattern>%boldMagenta([%d{yyyy-MM-dd HH:mm:ss}]) %highlight(%-5level:) %boldWhite([%thread]) %boldCyan([%logger{32}]) %boldRed(>) %white(%msg) %n</pattern>
-        </encoder>
-    </appender>
+	<appender name="Console"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+		</filter>
+		<encoder>
+			<pattern>%boldMagenta([%d{yyyy-MM-dd HH:mm:ss}]) %highlight(%-5level:) %boldWhite([%thread]) %boldCyan([%logger{32}]) %boldRed(>) %white(%msg) %n</pattern>
+		</encoder>
+	</appender>
 
-    <root level="INFO">
-        <appender-ref ref="Console"/>
-    </root>
+	<root level="INFO">
+		<appender-ref ref="Console" />
+	</root>
 </configuration>

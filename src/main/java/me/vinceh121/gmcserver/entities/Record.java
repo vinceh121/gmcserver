@@ -1,20 +1,28 @@
 package me.vinceh121.gmcserver.entities;
 
+import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.Vector;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 public class Record extends AbstractEntity {
 	private ObjectId userId, deviceId;
-	private double cpm, acpm, usv;
+	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
+			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
 	private Date date;
-	private String ip;
+	private String ip, type;
+	private Point location;
 
 	public ObjectId getUserId() {
 		return this.userId;
@@ -72,6 +80,183 @@ public class Record extends AbstractEntity {
 		this.ip = ip;
 	}
 
+	public double getCo2() {
+		return this.co2;
+	}
+
+	public void setCo2(final double co2) {
+		this.co2 = co2;
+	}
+
+	public double getHcho() {
+		return this.hcho;
+	}
+
+	public void setHcho(final double hcho) {
+		this.hcho = hcho;
+	}
+
+	public double getTmp() {
+		return this.tmp;
+	}
+
+	public void setTmp(final double tmp) {
+		this.tmp = tmp;
+	}
+
+	public double getAp() {
+		return this.ap;
+	}
+
+	public void setAp(final double ap) {
+		this.ap = ap;
+	}
+
+	public double getHmdt() {
+		return this.hmdt;
+	}
+
+	public void setHmdt(final double hmdt) {
+		this.hmdt = hmdt;
+	}
+
+	public double getAccy() {
+		return this.accy;
+	}
+
+	public void setAccy(final double accy) {
+		this.accy = accy;
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(final String type) {
+		this.type = type;
+	}
+
+	public Point getLocation() {
+		return this.location;
+	}
+
+	public void setLocation(final Point location) {
+		this.location = location;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(this.accy);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		temp = Double.doubleToLongBits(this.acpm);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		temp = Double.doubleToLongBits(this.ap);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		temp = Double.doubleToLongBits(this.co2);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		temp = Double.doubleToLongBits(this.cpm);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		result = prime * result + (this.date == null ? 0 : this.date.hashCode());
+		result = prime * result + (this.deviceId == null ? 0 : this.deviceId.hashCode());
+		temp = Double.doubleToLongBits(this.hcho);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		temp = Double.doubleToLongBits(this.hmdt);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		result = prime * result + (this.ip == null ? 0 : this.ip.hashCode());
+		result = prime * result + (this.location == null ? 0 : this.location.hashCode());
+		temp = Double.doubleToLongBits(this.tmp);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		result = prime * result + (this.type == null ? 0 : this.type.hashCode());
+		result = prime * result + (this.userId == null ? 0 : this.userId.hashCode());
+		temp = Double.doubleToLongBits(this.usv);
+		result = prime * result + (int) (temp ^ temp >>> 32);
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Record)) {
+			return false;
+		}
+		final Record other = (Record) obj;
+		if (Double.doubleToLongBits(this.accy) != Double.doubleToLongBits(other.accy)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.acpm) != Double.doubleToLongBits(other.acpm)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.ap) != Double.doubleToLongBits(other.ap)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.co2) != Double.doubleToLongBits(other.co2)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.cpm) != Double.doubleToLongBits(other.cpm)) {
+			return false;
+		}
+		if (this.date == null) {
+			if (other.date != null) {
+				return false;
+			}
+		} else if (!this.date.equals(other.date)) {
+			return false;
+		}
+		if (this.deviceId == null) {
+			if (other.deviceId != null) {
+				return false;
+			}
+		} else if (!this.deviceId.equals(other.deviceId)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.hcho) != Double.doubleToLongBits(other.hcho)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.hmdt) != Double.doubleToLongBits(other.hmdt)) {
+			return false;
+		}
+		if (this.ip == null) {
+			if (other.ip != null) {
+				return false;
+			}
+		} else if (!this.ip.equals(other.ip)) {
+			return false;
+		}
+		if (this.location == null) {
+			if (other.location != null) {
+				return false;
+			}
+		} else if (!this.location.equals(other.location)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.tmp) != Double.doubleToLongBits(other.tmp)) {
+			return false;
+		}
+		if (this.type == null) {
+			if (other.type != null) {
+				return false;
+			}
+		} else if (!this.type.equals(other.type)) {
+			return false;
+		}
+		if (this.userId == null) {
+			if (other.userId != null) {
+				return false;
+			}
+		} else if (!this.userId.equals(other.userId)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.usv) != Double.doubleToLongBits(other.usv)) {
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	@JsonIgnore
 	@BsonIgnore
@@ -106,8 +291,118 @@ public class Record extends AbstractEntity {
 				+ this.acpm
 				+ ", usv="
 				+ this.usv
+				+ ", co2="
+				+ this.co2
+				+ ", hcho="
+				+ this.hcho
+				+ ", tmp="
+				+ this.tmp
+				+ ", ap="
+				+ this.ap
+				+ ", hmdt="
+				+ this.hmdt
+				+ ", accy="
+				+ this.accy
 				+ ", date="
 				+ this.date
+				+ ", ip="
+				+ this.ip
+				+ ", type="
+				+ this.type
+				+ ", location="
+				+ this.location
 				+ "]";
+	}
+
+	public static class Builder { // XXX this will need a big clean up but at least it splits stuff
+		private final Record record = new Record();
+		private final MultiMap params;
+
+		public Builder(final MultiMap params) {
+			this.params = params;
+		}
+
+		public Builder withUser(final ObjectId id) {
+			this.record.setUserId(id);
+			return this;
+		}
+
+		public Builder withDevice(final ObjectId id) {
+			this.record.setDeviceId(id);
+			return this;
+		}
+
+		public Builder withCurrentDate() {
+			this.record.setDate(new Date());
+			return this;
+		}
+
+		public Builder withIp(final String ip) {
+			this.record.setIp(ip);
+			return this;
+		}
+
+		public Builder buildPosition() {
+			final String rawLat = this.params.get("lat");
+			final String rawLon = this.params.get("lon");
+			final String rawAlt = this.params.get("alt");
+
+			if (rawLat == null || rawLon == null) {
+				return this;
+			}
+
+			final double lat = Double.parseDouble(rawLat);
+			final double lon = Double.parseDouble(rawLon);
+
+			final List<Double> values = new Vector<>();
+			values.add(lon);
+			values.add(lat);
+
+			if (rawAlt != null) {
+				final double alt = Double.parseDouble(rawAlt);
+				values.add(alt);
+			}
+
+			final Position pos = new Position(values);
+			final Point point = new Point(pos);
+			this.record.setLocation(point);
+			return this;
+		}
+
+		public Builder buildParameters() {
+			for (final Field f : this.record.getClass().getDeclaredFields()) {
+				if (f.getType().equals(double.class)) {
+					this.buildDoubleParameter(f.getName());
+				}
+			}
+
+			if (this.params.contains("type")) {
+				this.record.setType(this.params.get("type"));
+			}
+			return this;
+		}
+
+		public Record build() {
+			return record;
+		}
+
+		private void buildDoubleParameter(final String name) {
+			final String str = this.params.get(name);
+			if (str == null) {
+				return;
+			}
+			final double value = Double.parseDouble(str);
+			this.reflectSetField(name, value);
+		}
+
+		private void reflectSetField(final String name, final Object value) {
+			try {
+				final Field f = this.record.getClass().getDeclaredField(name);
+				f.setAccessible(true);
+				f.set(this.record, value);
+			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+				throw new IllegalStateException(e);
+			}
+		}
 	}
 }

@@ -2,9 +2,9 @@ package me.vinceh121.gmcserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -49,9 +49,6 @@ import xyz.bowser65.tokenize.Tokenize;
 
 public class GMCServer {
 	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
-	public static final String ERROR_USER_ID = "Invalid user ID (AID)";
-	public static final String ERROR_DEVICE_ID = "Invalid device ID (GID)";
-	public static final String ERROR_DEVICE_NOT_OWNED = "User does not own device";
 	public static final String CONFIG_PATH = "./config.properties";
 	private final Properties config = new Properties();
 	private final PojoCodecProvider pojoCodecProvider;
@@ -121,9 +118,10 @@ public class GMCServer {
 		} catch (final DecoderException e) {
 			GMCServer.LOG.error("Could not decode secret, generating random one", e);
 			secret = new byte[1024];
-			new Random().nextBytes(secret);
+			new SecureRandom().nextBytes(secret);
 			this.config.setProperty("auth.secret", Hex.encodeHexString(secret));
 			GMCServer.LOG.warn("New temporary secret is {}", this.config.getProperty("auth.secret"));
+			GMCServer.LOG.warn("Please set the secret in the config file");
 		}
 
 		this.tokenize = new Tokenize(secret);
@@ -139,13 +137,12 @@ public class GMCServer {
 		this.router = Router.router(vertx);
 		this.srv.requestHandler(this.router);
 
-
 		this.bodyHandler = BodyHandler.create();
 		this.apiHandler = new APIHandler();
 		this.authHandler = new AuthHandler(this);
 		this.strictAuthHandler = new StrictAuthHandler();
 		this.corsHandler = new CorsHandler(this.getConfig().getProperty("cors.web-host"));
-		
+
 		this.router.route().handler(this.corsHandler);
 
 		this.registerModules();
