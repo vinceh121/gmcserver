@@ -57,7 +57,7 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 			socket.close((short) 403, "Invalid token");
 			return;
 		}
-		WebsocketManager.LOG.info("User {} opened a websocket session", user);
+		WebsocketManager.LOG.debug("User {} opened a websocket session", user);
 
 		if (this.sessions.get(user.getId()).size() >= this.SESSION_LIMIT) {
 			socket.close((short) 403, "Reacher Websocket session limit for user");
@@ -71,7 +71,7 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 		this.sendIntent(user.getId(), StandardIntent.HANDSHAKE_COMPLETE.create(new JsonObject()));
 
 		sess.getSocket().closeHandler(v -> {
-			WebsocketManager.LOG.info("User {} closed his websocket session", user.toString());
+			WebsocketManager.LOG.debug("User {} closed his websocket session", user.toString());
 			this.sessions.remove(user.getId());
 		});
 	}
