@@ -89,7 +89,8 @@ public class GMCServer {
 				.automatic(true)
 				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
 						Conventions.ANNOTATION_CONVENTION,
-						Conventions.CLASS_AND_PROPERTY_CONVENTION))
+						Conventions.CLASS_AND_PROPERTY_CONVENTION,
+						Conventions.OBJECT_ID_GENERATORS))
 				.build();
 		this.codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 				CodecRegistries.fromProviders(this.pojoCodecProvider, new GeoJsonCodecProvider()));

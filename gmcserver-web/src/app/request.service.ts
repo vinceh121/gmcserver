@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Device, Record, MapDevice } from './types';
+import { Device, Record, MapDevice, Intent } from './types';
 import { DRIVERS, Locker } from 'angular-safeguard'
 
 @Injectable({
   providedIn: 'root'
 })
 export class RequestService {
-  baseUrl: string = 'http://127.0.0.1:80/';
+  host: string = '127.0.0.1:80'
+  baseUrl: string = 'http://' + this.host + '/';
+  websocketUrl: string = 'ws://' + this.host + '/ws';
   headers: HttpHeaders;
+  websocket: WebSocket;
+  websocketObs: Observable<Intent>;
 
   constructor(private http: HttpClient, private locker: Locker) {
     this.updateHeaders();
@@ -25,13 +29,27 @@ export class RequestService {
   }
 
   public login(username: string, password: string): Observable<any> {
-    return this.http.post(this.getPath('auth/login'), { username: username, password: password }, { headers: this.headers });
+    let obs: Observable<any> = this.http.post(this.getPath('auth/login'), { username: username, password: password }, { headers: this.headers });
+    return obs;
   }
 
   public setLoginInfo(id: string, token: string): void {
     this.locker.set(DRIVERS.LOCAL, 'user-id', id);
     this.locker.set(DRIVERS.LOCAL, 'token', token);
     this.updateHeaders();
+  }
+
+  public connectWebsocket() {
+    this.websocket = new WebSocket(this.websocketUrl, this.getToken());
+    this.websocketObs = new Observable<Intent>(sub => {
+      this.websocket.onmessage = (evt) => sub.next(JSON.parse(evt.data));
+      this.websocket.onerror = (evt) => sub.error(evt);
+      this.websocket.onclose = () => sub.complete();
+    });
+  }
+
+  public getWebsocketObservable(): Observable<Intent> {
+    return this.websocketObs;
   }
 
   public getUserId(): string {

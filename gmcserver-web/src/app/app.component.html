@@ -24,7 +24,15 @@
        <button mat-icon-button [mat-menu-trigger-for]="authMenu"><mat-icon>person_outline</mat-icon></button>
       </span>
       <span *ngIf="this.req.checkAuth()">
-       <mat-menu #profileMenu="matMenu">
+        <mat-menu #notifMenu="matMenu">
+          <button mat-menu-item *ngFor="let notif of notifications">{{notif.name}}</button>
+        </mat-menu>
+        <button mat-icon-button [mat-menu-trigger-for]="notifMenu">
+            <mat-icon [matBadge]="getDisplayNotifNumber()"
+              matBadgeColor="accent"
+              [matBadgeHidden]="notifications.length == 0">notifications</mat-icon>
+          </button>
+        <mat-menu #profileMenu="matMenu">
           <button mat-menu-item routerLink="/profile">
             <mat-icon>person_pin</mat-icon>
             <span>Profile</span>
@@ -33,7 +41,7 @@
             <mat-icon>exit_to_app</mat-icon>
             <span>Logout</span>
           </button>
-       </mat-menu>
+        </mat-menu>
        <button mat-icon-button [mat-menu-trigger-for]="profileMenu"><mat-icon>person</mat-icon></button>
       </span>
     </mat-toolbar>

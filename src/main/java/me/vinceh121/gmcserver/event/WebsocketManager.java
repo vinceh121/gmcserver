@@ -38,7 +38,7 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 			return;
 		}
 
-		final String auth = socket.headers().get("Authorization");
+		final String auth = socket.headers().get("Sec-WebSocket-Protocol");
 		if (auth == null) { // dupe dupe code
 			socket.close((short) 403, "Invalid token");
 			return;
@@ -68,7 +68,7 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 		final WebsocketSession sess = new WebsocketSession(user, socket);
 		this.sessions.put(user.getId(), sess);
 
-		this.sendIntent(user.getId(), StandardIntent.HANDHAKE_COMPLETE.create(new JsonObject()));
+		this.sendIntent(user.getId(), StandardIntent.HANDSHAKE_COMPLETE.create(new JsonObject()));
 
 		sess.getSocket().closeHandler(v -> {
 			WebsocketManager.LOG.info("User {} closed his websocket session", user.toString());

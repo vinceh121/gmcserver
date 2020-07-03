@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
 
 import { ChartsModule } from 'ng2-charts';
 import { LockerModule } from 'angular-safeguard'
@@ -59,6 +60,7 @@ import { MapComponent } from './map/map.component';
     MatToolbarModule,
     MatListModule,
     MatMenuModule,
+    MatBadgeModule,
     ChartsModule,
     LockerModule,
     LeafletModule

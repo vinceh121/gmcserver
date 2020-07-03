@@ -19,3 +19,8 @@ export interface Device extends MapDevice {
   model?: string;
   timeline?: Record[];
 }
+
+export interface Intent {
+  name: string;
+  extras: any;
+}
