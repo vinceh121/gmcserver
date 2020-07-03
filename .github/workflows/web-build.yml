@@ -22,6 +22,7 @@ jobs:
         cmd: install
     - name: Install Angular CLI
       run: sudo npm install -g @angular/cli
-
+    - name: Dependencies
+      run: yarn
     - name: Build
       run: yarn build --prod
