@@ -1,0 +1,28 @@
+# The action that builds and tests gmcserver-web
+name: Web Build
+defaults:
+  run:
+    working-directory: gmcserver-web
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: Borales/actions-yarn@v2.3.0
+      with:
+        cmd: install
+    - name: Install Angular CLI
+      run: sudo npm install -g @angular/cli
+    - name: Dependencies
+      run: yarn
+    - name: Build
+      run: yarn build --prod
