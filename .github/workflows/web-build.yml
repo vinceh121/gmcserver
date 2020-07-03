@@ -18,5 +18,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - uses: Borales/actions-yarn@v2.3.0
-      name: Build
+      with:
+        cmd: install
+    - name: Build
       run: yarn build --prod
