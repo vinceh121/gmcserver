@@ -1,6 +1,8 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.security.SecureRandom;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -31,10 +33,10 @@ public class DeviceModule extends AbstractModule {
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/device", this::handleCreateDevice);
+		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/device/:deviceId", this::handleRemoveDevice);
+		this.registerStrictAuthedRoute(HttpMethod.PUT, "/device/:deviceId", this::handleUpdateDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
-		this.registerStrictAuthedRoute(HttpMethod.PUT, "/device/:deviceId", this::handleUpdateDevice);
-		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/device/:deviceId", this::handleRemoveDevice);
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
@@ -222,7 +224,41 @@ public class DeviceModule extends AbstractModule {
 		final JsonArray arr = new JsonArray();
 		obj.put("records", arr);
 
-		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.eq("deviceId", dev.getId()));
+		final Date start, end;
+
+		if (ctx.request().params().contains("start")) {
+			try {
+				start = new Date(Long.parseLong(ctx.request().getParam("start")));
+			} catch (final NumberFormatException e) {
+				this.error(ctx, 400, "Format error in start date");
+				return;
+			}
+		} else {
+			start = null;
+		}
+
+		if (ctx.request().params().contains("end")) {
+			try {
+				end = new Date(Long.parseLong(ctx.request().getParam("end")));
+			} catch (final NumberFormatException e) {
+				this.error(ctx, 400, "Format error in end date");
+				return;
+			}
+		} else {
+			end = null;
+		}
+
+		final Collection<Bson> filters = new Vector<>();
+		
+		filters.add(Filters.eq("deviceId", dev.getId()));
+
+		if (start != null)
+			filters.add(Filters.gte("date", start));
+
+		if (end != null)
+			filters.add(Filters.gte("date", end));
+
+		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.and(filters));
 		it.sort(Sorts.ascending("date"));
 		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 

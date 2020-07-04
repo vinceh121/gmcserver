@@ -37,7 +37,19 @@
     </mat-tab-group>
   </mat-card-content>
   <mat-card-actions>
-    <mat-slide-toggle [disabled]="!device.own" (change)="fetchTimeline()" [(ngModel)]="fullTimeline">Full timeline</mat-slide-toggle>
+    <mat-slide-toggle
+        [disabled]="!device.own"
+        (change)="fetchTimeline()"
+        [(ngModel)]="fullTimeline">Full timeline</mat-slide-toggle>
+    <mat-form-field>
+      <mat-label>Date range</mat-label>
+      <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate placeholder="Start date">
+        <input matEndDate placeholder="End date">
+      </mat-date-range-input>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
   </mat-card-actions>
 </mat-card>
 <mat-card *ngIf="device == null">
