@@ -1,0 +1,9 @@
+extraction:
+  javascript:
+    index:
+      include:
+        - gmcserver-web
+  java:
+    index:
+      maven:
+        version: 3.6.3
