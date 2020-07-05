@@ -1,4 +1,5 @@
 # GMCServer
+![GitHub](https://img.shields.io/github/license/vinceh121/gmcserver)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vinceh121/gmcserver/Java%20CI%20with%20Maven?label=Backend%20build)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vinceh121/gmcserver/Web%20Build?label=Frontend%20build)
 ![GitHub repo size](https://img.shields.io/github/repo-size/vinceh121/gmcserver)
