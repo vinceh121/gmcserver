@@ -24,9 +24,9 @@ export class DeviceComponent implements OnInit {
     lineTension: number = 0.1
 
     chartData: ChartDataSets[] = [
-        { label: 'CPM', lineTension: this.lineTension },
-        { label: 'ACPM', lineTension: this.lineTension },
-        { label: 'µSv', yAxisID: 'usv', lineTension: this.lineTension }
+        { label: 'CPM', lineTension: this.lineTension, data: [] },
+        { label: 'ACPM', lineTension: this.lineTension, data: [] },
+        { label: 'µSv', yAxisID: 'usv', lineTension: this.lineTension, data: [] }
     ]
 
     chartLabels: any[] = []
@@ -68,7 +68,6 @@ export class DeviceComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        console.log('sort on init: ' + this.sort);
         this.route.paramMap.subscribe((params: ParamMap) => {
             const id: string = params.get('id');
             this.req.getDevice(id).subscribe((dev: Device) => {
@@ -89,7 +88,7 @@ export class DeviceComponent implements OnInit {
     }
 
     public fetchTimeline(): void {
-        this.req.getDeviceTimeline(this.device.id, this.fullTimeline).subscribe((records: any) => {
+        this.req.getDeviceTimeline(this.device.id, this.fullTimeline, this.startDate, this.endDate).subscribe((records: any) => {
             this.device.timeline = records.records;
             this.tableData.data = this.device.timeline;
             this.tableData.sort = this.sort;
@@ -111,8 +110,13 @@ export class DeviceComponent implements OnInit {
         this.chartLabels = this.device.timeline.map(r => new Date(r.date));
     }
 
-    RangeChange(event: MatDatepickerInputEvent<Date>) {
+    startChange(event: MatDatepickerInputEvent<Date>) {
         this.startDate = event.value;
+        this.fetchTimeline();
+    }
+
+    endChange(event: MatDatepickerInputEvent<Date>) {
+        this.endDate = event.value;
         this.fetchTimeline();
     }
 }

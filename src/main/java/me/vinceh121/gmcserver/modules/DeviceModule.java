@@ -256,7 +256,7 @@ public class DeviceModule extends AbstractModule {
 			filters.add(Filters.gte("date", start));
 
 		if (end != null)
-			filters.add(Filters.gte("date", end));
+			filters.add(Filters.lte("date", end));
 
 		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.and(filters));
 		it.sort(Sorts.ascending("date"));
