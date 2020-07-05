@@ -2,6 +2,8 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vinceh121/gmcserver/Java%20CI%20with%20Maven?label=Backend%20build)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vinceh121/gmcserver/Web%20Build?label=Frontend%20build)
 ![GitHub repo size](https://img.shields.io/github/repo-size/vinceh121/gmcserver)
+![LGTM Grade](https://img.shields.io/lgtm/grade/java/github/vinceh121/gmcserver)
+![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/vinceh121/gmcserver)
 
 A simple, lightweight GMC logger server supporting multiple users and devices.
 
