@@ -2,6 +2,7 @@ package me.vinceh121.gmcserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Properties;
@@ -79,7 +80,9 @@ public class GMCServer {
 
 	public GMCServer() {
 		try {
-			this.config.load(new FileInputStream(GMCServer.CONFIG_PATH));
+			final FileInputStream configInput = new FileInputStream(GMCServer.CONFIG_PATH);
+			this.config.load(configInput);
+			configInput.close();
 		} catch (final IOException e) {
 			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
