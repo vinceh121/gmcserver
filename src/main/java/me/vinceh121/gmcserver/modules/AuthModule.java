@@ -11,6 +11,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
+
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.mfa.MFAKey;
@@ -53,7 +54,10 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (this.srv.getColUsers().find(Filters.eq("username", username)).first() != null) {
+		if (this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("username", username))
+				.first() != null) {
 			this.error(ctx, 403, "Username already taken");
 			return;
 		}
@@ -62,7 +66,7 @@ public class AuthModule extends AbstractModule {
 		user.setUsername(username);
 		user.setPassword(this.srv.getArgon().hash(10, 65536, 1, password.toCharArray()));
 
-		this.srv.getColUsers().insertOne(user);
+		this.srv.getDatabaseManager().getCollection(User.class).insertOne(user);
 		ctx.response()
 				.end(new JsonObject().put("username", user.getUsername())
 						.put("id", user.getId().toHexString())
@@ -84,7 +88,10 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getColUsers().find(Filters.eq("username", username)).first();
+		final User user = this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("username", username))
+				.first();
 
 		if (user == null) {
 			this.error(ctx, 404, "User not found");
@@ -180,6 +187,9 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private IAccount fetchAccount(final String id) {
-		return this.srv.getColUsers().find(Filters.eq(new ObjectId(id))).first();
+		return this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq(new ObjectId(id)))
+				.first();
 	}
 }

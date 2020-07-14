@@ -16,6 +16,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
+
 import me.vinceh121.gmcserver.entities.User;
 import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
@@ -98,7 +99,10 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 	}
 
 	private IAccount fetchAccount(final String id) {
-		return this.srv.getColUsers().find(Filters.eq(new ObjectId(id))).first();
+		return this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq(new ObjectId(id)))
+				.first();
 	}
 
 }

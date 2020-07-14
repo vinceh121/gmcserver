@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
+
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.Record.Builder;
@@ -59,13 +60,19 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getColUsers().find(Filters.eq("gmcId", gmcUserId)).first();
+		final User user = this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("gmcId", gmcUserId))
+				.first();
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
-		final Device device = this.srv.getColDevices().find(Filters.eq("gmcId", gmcDeviceId)).first();
+		final Device device = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq("gmcId", gmcDeviceId))
+				.first();
 		if (device == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
 			return;
@@ -93,7 +100,7 @@ public class LoggingModule extends AbstractModule {
 
 		this.log.debug("Inserting record {}", rec);
 
-		this.srv.getColRecords().insertOne(rec);
+		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
 		ctx.response().setStatusCode(200).end();
 
 		this.srv.getWebsocketManager()
@@ -166,14 +173,20 @@ public class LoggingModule extends AbstractModule {
 			usv = Double.NaN;
 		}
 
-		final User user = this.srv.getColUsers().find(Filters.eq("gmcId", userGmcId)).first();
+		final User user = this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("gmcId", userGmcId))
+				.first();
 
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
-		final Device device = this.srv.getColDevices().find(Filters.eq("gmcId", deviceGmcId)).first();
+		final Device device = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq("gmcId", deviceGmcId))
+				.first();
 
 		if (device == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
@@ -199,7 +212,7 @@ public class LoggingModule extends AbstractModule {
 
 		this.log.debug("Inserting record using old log {}", rec);
 
-		this.srv.getColRecords().insertOne(rec);
+		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
 		ctx.response().setStatusCode(200).end();
 
 		this.srv.getWebsocketManager()

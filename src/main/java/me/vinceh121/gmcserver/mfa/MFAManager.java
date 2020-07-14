@@ -18,6 +18,7 @@ import com.mongodb.client.model.Updates;
 
 import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
+
 import me.vinceh121.gmcserver.entities.User;
 
 public class MFAManager {
@@ -44,7 +45,9 @@ public class MFAManager {
 	}
 
 	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
-		return this.passwordMatches(this.srv.getColUsers().find(Filters.eq(id)).first(), pass);
+		return this.passwordMatches(
+				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(),
+				pass);
 	}
 
 	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {
@@ -58,7 +61,9 @@ public class MFAManager {
 
 	public MFAKey setupMFA(final User user) {
 		final MFAKey key = this.generateKey();
-		this.srv.getColUsers().updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
+		this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
 		user.setMfaKey(key);
 		return key;
 	}
@@ -67,7 +72,9 @@ public class MFAManager {
 		final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
 		final boolean matches = actualPassword == pass;
 		if (matches) {
-			this.srv.getColUsers().updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
+			this.srv.getDatabaseManager()
+					.getCollection(User.class)
+					.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
 			user.setMfa(true);
 		}
 		return matches;

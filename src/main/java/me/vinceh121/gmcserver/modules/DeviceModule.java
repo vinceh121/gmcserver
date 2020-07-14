@@ -22,6 +22,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
+
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
@@ -97,7 +98,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -116,10 +120,14 @@ public class DeviceModule extends AbstractModule {
 		final boolean delete = obj.getBoolean("delete");
 
 		if (!delete) {
-			this.srv.getColDevices().updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
+			this.srv.getDatabaseManager()
+					.getCollection(Device.class)
+					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
 		} else {
-			this.srv.getColRecords().deleteMany(Filters.eq("deviceId", dev.getId()));
-			this.srv.getColDevices().deleteOne(Filters.eq(dev.getId()));
+			this.srv.getDatabaseManager()
+					.getCollection(Record.class)
+					.deleteMany(Filters.eq("deviceId", dev.getId()));
+			this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
 		}
 
 		ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
@@ -136,7 +144,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -169,7 +180,9 @@ public class DeviceModule extends AbstractModule {
 			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
 		}
 
-		this.srv.getColDevices().updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
+		this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
 
 		ctx.response().end(new JsonObject().put("changed", updates.size()).toBuffer());
 	}
@@ -191,7 +204,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -216,7 +232,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getColDevices().find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -263,7 +282,8 @@ public class DeviceModule extends AbstractModule {
 			filters.add(Filters.lte("date", end));
 		}
 
-		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.and(filters));
+		final FindIterable<Record> it
+				= this.srv.getDatabaseManager().getCollection(Record.class).find(Filters.and(filters));
 		it.sort(Sorts.ascending("date"));
 		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
