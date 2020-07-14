@@ -47,6 +47,6 @@ public abstract class AbstractModule {
 		obj.put("status", status);
 		obj.put("description", desc);
 		obj.put("extras", extra);
-		ctx.response().setStatusCode(status).end(obj.encode());
+		ctx.response().setStatusCode(status).end(obj.toBuffer());
 	}
 }

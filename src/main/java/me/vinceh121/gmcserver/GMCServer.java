@@ -2,7 +2,6 @@ package me.vinceh121.gmcserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Properties;
@@ -42,6 +41,7 @@ import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
+import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
 import me.vinceh121.gmcserver.modules.GeoModule;
@@ -63,6 +63,7 @@ public class GMCServer {
 	private final Router router;
 
 	private final WebsocketManager wsManager;
+	private final MFAManager mfaManager;
 
 	private final Tokenize tokenize;
 	private final Argon2 argon;
@@ -153,6 +154,8 @@ public class GMCServer {
 
 		this.wsManager = new WebsocketManager(this);
 		this.srv.webSocketHandler(this.wsManager);
+
+		this.mfaManager = new MFAManager(this);
 	}
 
 	private void checkIndexes() {
@@ -224,6 +227,10 @@ public class GMCServer {
 
 	public WebsocketManager getWebsocketManager() {
 		return this.wsManager;
+	}
+
+	public MFAManager getMfaManager() {
+		return mfaManager;
 	}
 
 	public Properties getConfig() {

@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
@@ -35,6 +36,20 @@ public class AuthHandler implements Handler<RoutingContext> {
 			token = this.srv.getTokenize().validateToken(auth, this::fetchAccount);
 		} catch (final SignatureException e) {
 			ctx.next(); // non strict auth
+			return;
+		}
+
+		if (token == null) {
+			ctx.response()
+					.setStatusCode(401)
+					.end(new JsonObject().put("status", 401).put("msg", "Invalid token").toBuffer());
+			return;
+		}
+
+		if ("mfa".equals(token.getPrefix())) {
+			ctx.response()
+					.setStatusCode(401)
+					.end(new JsonObject().put("status", 401).put("msg", "MFA auth not complete").toBuffer());
 			return;
 		}
 

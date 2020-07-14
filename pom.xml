@@ -55,11 +55,30 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.4</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.eatthepath/java-otp -->
+		<dependency>
+			<groupId>com.eatthepath</groupId>
+			<artifactId>java-otp</artifactId>
+			<version>0.2.0</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>5.7.0-M1</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Parameterized Tests -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<version>5.5.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

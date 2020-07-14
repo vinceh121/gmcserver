@@ -1,5 +1,10 @@
 package me.vinceh121.gmcserver.modules;
 
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
+
+import org.bson.types.ObjectId;
+
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.http.HttpMethod;
@@ -7,6 +12,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.handlers.AuthHandler;
+import me.vinceh121.gmcserver.mfa.MFAKey;
+import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
 
 public class AuthModule extends AbstractModule {
@@ -15,6 +23,8 @@ public class AuthModule extends AbstractModule {
 		super(srv);
 		this.registerRoute(HttpMethod.POST, "/auth/register", this::handleRegister);
 		this.registerRoute(HttpMethod.POST, "/auth/login", this::handleLogin);
+		this.registerRoute(HttpMethod.POST, "/auth/mfa", this::handleSubmitMfa);
+		this.registerStrictAuthedRoute(HttpMethod.PUT, "/auth/mfa", this::handleActivateMfa);
 	}
 
 	private void handleRegister(final RoutingContext ctx) {
@@ -56,7 +66,7 @@ public class AuthModule extends AbstractModule {
 		ctx.response()
 				.end(new JsonObject().put("username", user.getUsername())
 						.put("id", user.getId().toHexString())
-						.encode());
+						.toBuffer());
 	}
 
 	private void handleLogin(final RoutingContext ctx) {
@@ -86,9 +96,90 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final Token token = this.srv.getTokenize().generateToken(user);
+		final Token token;
+		if (user.isMfa()) {
+			token = this.srv.getTokenize().generateToken(user, "mfa");
+		} else {
+			token = this.srv.getTokenize().generateToken(user);
+		}
 
 		ctx.response()
-				.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toHexString()).encode());
+				// .setStatusCode(user.isMfa() ? 100 : 200)
+				.end(new JsonObject().put("token", token.toString())
+						.put("id", user.getId().toHexString())
+						.put("mfa", user.isMfa())
+						.toBuffer());
+	}
+
+	private void handleSubmitMfa(final RoutingContext ctx) {
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final Token mfaToken;
+		try {
+			mfaToken = this.srv.getTokenize()
+					.validateToken(ctx.request().getHeader("Authorization"), this::fetchAccount);
+		} catch (SignatureException e) {
+			this.error(ctx, 401, "Invalid token");
+			return;
+		}
+
+		if (mfaToken == null) {
+			this.error(ctx, 401, "Invalid token");
+			return;
+		}
+
+		final User user = (User) mfaToken.getAccount();
+
+		final boolean match;
+		try {
+			match = this.srv.getMfaManager().passwordMatches(user, obj.getInteger("pass"));
+		} catch (final InvalidKeyException e) {
+			this.log.error("Invalid MFA key for user " + user.toString(), e);
+			this.error(ctx, 500, "Invalid MFA key");
+			return;
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "User does not have MFA set");
+			return;
+		}
+
+		if (match) {
+			final Token token = this.srv.getTokenize().generateToken(user);
+			ctx.response().end(new JsonObject().put("token", token.toString()).toBuffer());
+		} else {
+			this.error(ctx, 401, "Invalid MFA password");
+		}
+	}
+
+	private void handleActivateMfa(final RoutingContext ctx) {
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		if (user.isMfa()) {
+			this.error(ctx, 400, "MFA already setup");
+			return;
+		}
+
+		if (user.getMfaKey() == null) { // MFA not setup at all
+			final MFAKey key = this.srv.getMfaManager().setupMFA(user);
+			ctx.response().end(new JsonObject().put("keyUri", key.toURI("GMCServer " + user.getUsername())).toBuffer());
+		} else { // Complete MFA setup
+			final JsonObject obj = ctx.getBodyAsJson();
+			boolean matches;
+			try {
+				matches = this.srv.getMfaManager().completeMfaSetup(user, obj.getInteger("pass"));
+			} catch (final InvalidKeyException e) {
+				this.log.error("Invalid MFA key for user " + user.toString(), e);
+				this.error(ctx, 500, "Invalid MFA key");
+				return;
+			}
+			if (matches) {
+				this.error(ctx, 200, "MFA now setup");
+			} else {
+				this.error(ctx, 401, "Invalid MFA password");
+			}
+		}
+	}
+
+	private IAccount fetchAccount(final String id) {
+		return this.srv.getColUsers().find(Filters.eq(new ObjectId(id))).first();
 	}
 }

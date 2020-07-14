@@ -4,8 +4,16 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import me.vinceh121.gmcserver.mfa.MFAKey;
 import xyz.bowser65.tokenize.IAccount;
 
+/**
+ * MFA:
+ * When settings up MFA, the key will be set, however the boolean mfa will be
+ * false, once the confirmation password has been sent, it will be true and MFA
+ * setup is complete
+ *
+ */
 public class User extends AbstractEntity implements IAccount {
 	private String username, password;
 	/**
@@ -14,6 +22,8 @@ public class User extends AbstractEntity implements IAccount {
 	private int deviceLimit = -1;
 	private long gmcId;
 	private boolean admin;
+	private MFAKey mfaKey;
+	private boolean mfa;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -53,6 +63,22 @@ public class User extends AbstractEntity implements IAccount {
 
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
+	}
+
+	public MFAKey getMfaKey() {
+		return mfaKey;
+	}
+
+	public void setMfaKey(MFAKey key) {
+		this.mfaKey = key;
+	}
+
+	public boolean isMfa() {
+		return mfa;
+	}
+
+	public void setMfa(boolean mfa) {
+		this.mfa = mfa;
 	}
 
 	@Override
