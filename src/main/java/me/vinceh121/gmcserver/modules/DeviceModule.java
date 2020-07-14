@@ -155,16 +155,19 @@ public class DeviceModule extends AbstractModule {
 		final List<Bson> updates = new Vector<>();
 
 		final String name = obj.getString("name");
-		if (name != null)
+		if (name != null) {
 			updates.add(Updates.set("name", name));
+		}
 
 		final String model = obj.getString("model");
-		if (model != null)
+		if (model != null) {
 			updates.add(Updates.set("model", model));
+		}
 
 		final JsonArray location = obj.getJsonArray("location");
-		if (location != null)
+		if (location != null) {
 			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
+		}
 
 		this.srv.getColDevices().updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
 
@@ -197,7 +200,7 @@ public class DeviceModule extends AbstractModule {
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
-		boolean own = user != null && user.getId().equals(dev.getOwner());
+		final boolean own = user != null && user.getId().equals(dev.getOwner());
 
 		ctx.response().end((own ? dev.toJson() : dev.toPublicJson()).put("own", own).toBuffer());
 	}
@@ -249,14 +252,16 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final Collection<Bson> filters = new Vector<>();
-		
+
 		filters.add(Filters.eq("deviceId", dev.getId()));
 
-		if (start != null)
+		if (start != null) {
 			filters.add(Filters.gte("date", start));
+		}
 
-		if (end != null)
+		if (end != null) {
 			filters.add(Filters.lte("date", end));
+		}
 
 		final FindIterable<Record> it = this.srv.getColRecords().find(Filters.and(filters));
 		it.sort(Sorts.ascending("date"));

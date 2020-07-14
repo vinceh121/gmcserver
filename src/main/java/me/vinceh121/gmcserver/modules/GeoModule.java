@@ -33,7 +33,7 @@ public class GeoModule extends AbstractModule {
 		final JsonArray bb;
 		try {
 			bb = new JsonArray(rawBB);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			this.error(ctx, 400, "Invalid BB");
 			return;
 		}

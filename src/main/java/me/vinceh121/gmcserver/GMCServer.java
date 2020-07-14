@@ -168,7 +168,7 @@ public class GMCServer {
 		}
 
 		if (deviceIndexCount <= 1) {
-			LOG.warn("Device collection does not have index, generating");
+			GMCServer.LOG.warn("Device collection does not have index, generating");
 			this.colDevices.createIndex(Indexes.geo2dsphere("location"));
 		}
 	}
@@ -230,7 +230,7 @@ public class GMCServer {
 	}
 
 	public MFAManager getMfaManager() {
-		return mfaManager;
+		return this.mfaManager;
 	}
 
 	public Properties getConfig() {

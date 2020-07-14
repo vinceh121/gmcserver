@@ -54,10 +54,10 @@ public class Device extends AbstractEntity {
 	}
 
 	public boolean isDisabled() {
-		return disabled;
+		return this.disabled;
 	}
 
-	public void setDisabled(boolean disabled) {
+	public void setDisabled(final boolean disabled) {
 		this.disabled = disabled;
 	}
 
@@ -81,7 +81,7 @@ public class Device extends AbstractEntity {
 	public JsonObject toMapJson() {
 		final JsonObject obj = new JsonObject();
 		obj.put("id", this.getId().toHexString());
-		obj.put("location", location.getCoordinates().getValues());
+		obj.put("location", this.location.getCoordinates().getValues());
 		return obj;
 	}
 

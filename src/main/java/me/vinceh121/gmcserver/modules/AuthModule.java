@@ -118,7 +118,7 @@ public class AuthModule extends AbstractModule {
 		try {
 			mfaToken = this.srv.getTokenize()
 					.validateToken(ctx.request().getHeader("Authorization"), this::fetchAccount);
-		} catch (SignatureException e) {
+		} catch (final SignatureException e) {
 			this.error(ctx, 401, "Invalid token");
 			return;
 		}

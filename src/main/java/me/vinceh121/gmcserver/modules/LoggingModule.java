@@ -88,7 +88,7 @@ public class LoggingModule extends AbstractModule {
 		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
 			build.withIp(ctx.request().remoteAddress().host());
 		}
-		
+
 		final Record rec = build.build();
 
 		this.log.debug("Inserting record {}", rec);

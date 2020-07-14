@@ -58,26 +58,26 @@ public class User extends AbstractEntity implements IAccount {
 	}
 
 	public boolean isAdmin() {
-		return admin;
+		return this.admin;
 	}
 
-	public void setAdmin(boolean admin) {
+	public void setAdmin(final boolean admin) {
 		this.admin = admin;
 	}
 
 	public MFAKey getMfaKey() {
-		return mfaKey;
+		return this.mfaKey;
 	}
 
-	public void setMfaKey(MFAKey key) {
+	public void setMfaKey(final MFAKey key) {
 		this.mfaKey = key;
 	}
 
 	public boolean isMfa() {
-		return mfa;
+		return this.mfa;
 	}
 
-	public void setMfa(boolean mfa) {
+	public void setMfa(final boolean mfa) {
 		this.mfa = mfa;
 	}
 

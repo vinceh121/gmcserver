@@ -57,7 +57,7 @@ public class MFAManager {
 	}
 
 	public MFAKey setupMFA(final User user) {
-		final MFAKey key = generateKey();
+		final MFAKey key = this.generateKey();
 		this.srv.getColUsers().updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
 		user.setMfaKey(key);
 		return key;

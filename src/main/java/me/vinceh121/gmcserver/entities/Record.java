@@ -383,7 +383,7 @@ public class Record extends AbstractEntity {
 		}
 
 		public Record build() {
-			return record;
+			return this.record;
 		}
 
 		private void buildDoubleParameter(final String name) {

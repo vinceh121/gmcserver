@@ -11,34 +11,34 @@ public class MFAKey {
 	private int digits, period;
 
 	public byte[] getKey() {
-		return key;
+		return this.key;
 	}
 
-	public void setKey(byte[] key) {
+	public void setKey(final byte[] key) {
 		this.key = key;
 	}
 
 	public String getAlgorithm() {
-		return algorithm;
+		return this.algorithm;
 	}
 
-	public void setAlgorithm(String algorithm) {
+	public void setAlgorithm(final String algorithm) {
 		this.algorithm = algorithm;
 	}
 
 	public int getDigits() {
-		return digits;
+		return this.digits;
 	}
 
-	public void setDigits(int digits) {
+	public void setDigits(final int digits) {
 		this.digits = digits;
 	}
 
 	public int getPeriod() {
-		return period;
+		return this.period;
 	}
 
-	public void setPeriod(int period) {
+	public void setPeriod(final int period) {
 		this.period = period;
 	}
 
@@ -47,13 +47,13 @@ public class MFAKey {
 			return "otpauth://totp/"
 					+ URLEncoder.encode(accountName, "UTF-8")
 					+ "?algorith="
-					+ algorithm
+					+ this.algorithm
 					+ "&digits="
-					+ digits
+					+ this.digits
 					+ "&period="
-					+ period
+					+ this.period
 					+ "&secret="
-					+ new Base32().encodeToString(key);
+					+ new Base32().encodeToString(this.key);
 		} catch (final UnsupportedEncodingException e) {
 			throw new IllegalStateException(e);
 		}
