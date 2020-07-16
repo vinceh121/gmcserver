@@ -29,11 +29,11 @@ $gmcserver-web-theme: mat-dark-theme($gmcserver-web-primary, $gmcserver-web-acce
 /* You can add global styles to this file, and also import other style files */
 
 html, body, app-root {
-  height: 100%;
+	height: 100%;
 }
 
 app-root {
-  display: grid;
+	display: grid;
 }
 
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #303030; }

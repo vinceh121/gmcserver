@@ -8,15 +8,15 @@ import { MapComponent } from './map/map.component';
 
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'device/:id', component: DeviceComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'map', component: MapComponent },
-  { path: '**', component: NotfoundComponent }
+	{ path: '', component: HomeComponent },
+	{ path: 'device/:id', component: DeviceComponent },
+	{ path: 'login', component: LoginComponent },
+	{ path: 'map', component: MapComponent },
+	{ path: '**', component: NotfoundComponent }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+	imports: [RouterModule.forRoot(routes)],
+	exports: [RouterModule]
 })
 export class AppRoutingModule { }

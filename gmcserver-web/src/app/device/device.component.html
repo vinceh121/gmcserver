@@ -1,60 +1,62 @@
 <mat-card *ngIf="device != null && this.errorMsg == null">
-  <mat-card-header>
-    <mat-card-title>{{device.name}}</mat-card-title>
-    <mat-card-subtitle>{{device.id}}<span *ngIf="device.own"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
-  </mat-card-header>
-  <mat-card-content>
-    <mat-tab-group>
-      <mat-tab label="Chart">
-        <canvas baseChart [datasets]="chartData" [labels]="chartLabels" [options]="chartOptions" chartType="line" legend="true"></canvas>
-      </mat-tab>
-      <mat-tab label="Table">
-        <table mat-table [dataSource]="tableData" matSort>
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-            <td mat-cell *matCellDef="let element">{{element.date.toLocaleString()}}</td>
-          </ng-container>
-          <ng-container matColumnDef="cpm">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>CPM</th>
-            <td mat-cell *matCellDef="let element">{{element.cpm}}</td>
-          </ng-container>
-          <ng-container matColumnDef="acpm">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>ACPM</th>
-            <td mat-cell *matCellDef="let element">{{element.acpm}}</td>
-          </ng-container>
-          <ng-container matColumnDef="usv">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>µSv</th>
-            <td mat-cell *matCellDef="let element">{{element.usv}}</td>
-          </ng-container>
-          <ng-container matColumnDef="ip">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>IP</th>
-            <td mat-cell *matCellDef="let element">{{element.ip}}</td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </mat-tab>
-    </mat-tab-group>
-  </mat-card-content>
-  <mat-card-actions>
-    <mat-slide-toggle
-        [disabled]="!device.own"
-        (change)="fetchTimeline()"
-        [(ngModel)]="fullTimeline">Full timeline</mat-slide-toggle>
-    <mat-form-field>
-      <mat-label>Date range</mat-label>
-      <mat-date-range-input [rangePicker]="picker">
-        <input matStartDate placeholder="Start date" (dateChange)="startChange($event)">
-        <input matEndDate placeholder="End date" (dateChange)="endChange($event)">
-      </mat-date-range-input>
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-  </mat-card-actions>
+	<mat-card-header>
+		<mat-card-title>{{device.name}}</mat-card-title>
+		<mat-card-subtitle>{{device.id}}<span *ngIf="device.own"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
+	</mat-card-header>
+	<mat-card-content>
+		<mat-tab-group>
+			<mat-tab label="Chart">
+				<canvas baseChart [datasets]="chartData" [labels]="chartLabels" [options]="chartOptions" chartType="line" legend="true"></canvas>
+			</mat-tab>
+			<mat-tab label="Table">
+				<table mat-table [dataSource]="tableData" matSort>
+					<ng-container matColumnDef="date">
+						<th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+						<td mat-cell *matCellDef="let element">{{element.date.toLocaleString()}}</td>
+					</ng-container>
+					<ng-container matColumnDef="cpm">
+						<th mat-header-cell *matHeaderCellDef mat-sort-header>CPM</th>
+						<td mat-cell *matCellDef="let element">{{element.cpm}}</td>
+					</ng-container>
+					<ng-container matColumnDef="acpm">
+						<th mat-header-cell *matHeaderCellDef mat-sort-header>ACPM</th>
+						<td mat-cell *matCellDef="let element">{{element.acpm}}</td>
+					</ng-container>
+					<ng-container matColumnDef="usv">
+						<th mat-header-cell *matHeaderCellDef mat-sort-header>µSv</th>
+						<td mat-cell *matCellDef="let element">{{element.usv}}</td>
+					</ng-container>
+					<ng-container matColumnDef="ip">
+						<th mat-header-cell *matHeaderCellDef mat-sort-header>IP</th>
+						<td mat-cell *matCellDef="let element">{{element.ip}}</td>
+					</ng-container>
+					<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+					<tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+				</table>
+			</mat-tab>
+		</mat-tab-group>
+	</mat-card-content>
+	<mat-card-actions>
+		<mat-slide-toggle
+			[disabled]="!device.own"
+			(change)="fetchTimeline()"
+			[(ngModel)]="fullTimeline">Full timeline</mat-slide-toggle>
+		<mat-form-field>
+			<mat-label>Date range</mat-label>
+			<mat-date-range-input [rangePicker]="picker">
+				<input matStartDate placeholder="Start date" (dateChange)="startChange($event)">
+				<input matEndDate placeholder="End date" (dateChange)="endChange($event)">
+			</mat-date-range-input>
+			<mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+			<mat-date-range-picker #picker></mat-date-range-picker>
+		</mat-form-field>
+	</mat-card-actions>
 </mat-card>
 <mat-card *ngIf="device == null">
-  <mat-spinner></mat-spinner>
+	<mat-spinner></mat-spinner>
 </mat-card>
 <mat-card *ngIf="this.errorMsg != null">
-  <mat-card-title><mat-error>{{errorMsg}}</mat-error></mat-card-title>
+	<mat-card-title>
+		<mat-error>{{errorMsg}}</mat-error>
+	</mat-card-title>
 </mat-card>

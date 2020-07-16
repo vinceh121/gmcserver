@@ -1,12 +1,12 @@
 {
-  "files": [],
-  "experimentalDecorators": true,
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ]
+	"files": [],
+	"experimentalDecorators": true,
+	"references": [
+		{
+			"path": "./tsconfig.app.json"
+		},
+		{
+			"path": "./tsconfig.spec.json"
+		}
+	]
 }

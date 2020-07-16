@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http'
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -25,7 +25,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 
 import { ChartsModule } from 'ng2-charts';
-import { LockerModule } from 'angular-safeguard'
+import { LockerModule } from 'angular-safeguard';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
 import { DeviceComponent } from './device/device.component';
@@ -35,51 +35,51 @@ import { LoginComponent } from './login/login.component';
 import { MapComponent } from './map/map.component';
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        DeviceComponent,
-        HomeComponent,
-        NotfoundComponent,
-        LoginComponent,
-        MapComponent
-    ],
-    imports: [
-        BrowserModule,
-        AppRoutingModule,
-        HttpClientModule,
-        BrowserAnimationsModule,
-        FormsModule,
-        MatSidenavModule,
-        MatCardModule,
-        MatSlideToggleModule,
-        MatTabsModule,
-        MatProgressSpinnerModule,
-        MatInputModule,
-        MatButtonModule,
-        MatSortModule,
-        MatTableModule,
-        MatIconModule,
-        MatToolbarModule,
-        MatListModule,
-        MatMenuModule,
-        MatBadgeModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatRippleModule,
-        ChartsModule,
-        LockerModule,
-        LeafletModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
+	declarations: [
+		AppComponent,
+		DeviceComponent,
+		HomeComponent,
+		NotfoundComponent,
+		LoginComponent,
+		MapComponent
+	],
+	imports: [
+		BrowserModule,
+		AppRoutingModule,
+		HttpClientModule,
+		BrowserAnimationsModule,
+		FormsModule,
+		MatSidenavModule,
+		MatCardModule,
+		MatSlideToggleModule,
+		MatTabsModule,
+		MatProgressSpinnerModule,
+		MatInputModule,
+		MatButtonModule,
+		MatSortModule,
+		MatTableModule,
+		MatIconModule,
+		MatToolbarModule,
+		MatListModule,
+		MatMenuModule,
+		MatBadgeModule,
+		MatDatepickerModule,
+		MatNativeDateModule,
+		MatRippleModule,
+		ChartsModule,
+		LockerModule,
+		LeafletModule
+	],
+	providers: [],
+	bootstrap: [AppComponent]
 })
 export class AppModule {
-    constructor() {
-    }
+	constructor() {
+	}
 }
 
 export interface DrawerTab {
-    name: string;
-    routerLink: string;
-    color?: string;
+	name: string;
+	routerLink: string;
+	color?: string;
 }

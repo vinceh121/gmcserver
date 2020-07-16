@@ -1,10 +1,10 @@
 <mat-card>
-  <div style="height: 400px;"
-    leaflet
-    [leafletOptions]="options"
-    (leafletMapReady)="onMapReady($event)"
-    (leafletMapMoveEnd)="onMove()"
-    [leafletLayers]="markers"
-    #map>
-  </div>
+	<div style="height: 400px;"
+		leaflet
+		[leafletOptions]="options"
+		(leafletMapReady)="onMapReady($event)"
+		(leafletMapMoveEnd)="onMove()"
+		[leafletLayers]="markers"
+		#map>
+	</div>
 </mat-card>
