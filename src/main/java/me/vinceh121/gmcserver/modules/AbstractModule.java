@@ -30,7 +30,7 @@ public abstract class AbstractModule {
 	}
 
 	protected Route registerRoute(final HttpMethod method, final String path, final Handler<RoutingContext> handler) {
-		return this.srv.getRouter()
+		return this.srv.getApiRouter()
 				.route(method, path)
 				.handler(this.srv.getApiHandler())
 				.handler(this.srv.getBodyHandler())
