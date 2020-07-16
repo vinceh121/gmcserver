@@ -8,6 +8,8 @@
 
 A simple, lightweight GMC logger server supporting multiple users and devices.
 
+Icon is by Lorc under the CC BY 3.0 license from game-icons.net
+
 ## Note on IDs
 
 The Mongo IDs are used for public operations.
