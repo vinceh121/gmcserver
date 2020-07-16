@@ -4,6 +4,12 @@ import { Observable } from 'rxjs';
 import { Device, Record, MapDevice, Intent } from './types';
 import { DRIVERS, Locker } from 'angular-safeguard'
 
+export interface LoginRequest {
+    id: string;
+    token: string;
+    mfa?: boolean;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -11,7 +17,7 @@ export class RequestService {
     host: string = '127.0.0.1:80'
     baseUrl: string = 'http://' + this.host + '/';
     websocketUrl: string = 'ws://' + this.host + '/ws';
-    headers: HttpHeaders;
+    headers: HttpHeaders = new HttpHeaders();
     websocket: WebSocket;
     websocketObs: Observable<Intent>;
 
@@ -20,16 +26,20 @@ export class RequestService {
     }
 
     public updateHeaders(): void {
-        const tok = this.getToken(); // find out why dynamic setting isn't working
+        const tok = this.getToken();
         console.log('token: ' + tok);
-        if (tok != null)
-            this.headers = new HttpHeaders({ Authorization: tok });
-        else
-            this.headers = new HttpHeaders();
+        this.headers = this.headers.set('Authorization', tok);
     }
 
-    public login(username: string, password: string): Observable<any> {
-        let obs: Observable<any> = this.http.post(this.getPath('auth/login'), { username: username, password: password }, { headers: this.headers });
+    public login(username: string, password: string): Observable<LoginRequest> {
+        let obs: Observable<LoginRequest> = this.http.post<LoginRequest>(this.getPath('auth/login'),
+            { username: username, password: password }, { headers: this.headers });
+        return obs;
+    }
+
+    public submitMfa(code: number): Observable<LoginRequest> {
+        let obs: Observable<LoginRequest> = this.http.post<LoginRequest>(this.getPath('auth/mfa'), { pass: code },
+            { headers: this.headers });
         return obs;
     }
 
@@ -61,7 +71,8 @@ export class RequestService {
     }
 
     public checkAuth(): boolean {
-        return this.getToken() != null;
+        const token = this.getToken();
+        return token != null && !token.startsWith('mfa.');
     }
 
     public getDevice(id: string): Observable<Device> {
@@ -89,6 +100,6 @@ export class RequestService {
     }
 
     private get<T>(path: string, params?: HttpParams): Observable<T> {
-        return this.http.get<T>(this.baseUrl + path, { headers: this.headers, params: params });
+        return this.http.get<T>(this.getPath(path), { headers: this.headers, params: params });
     }
 }

@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card *ngIf="!showMfa">
   <form (ngSubmit)="executeLogin()">
     <mat-card-header>
       <mat-card-title>Login</mat-card-title>
@@ -10,6 +10,22 @@
       </p>
       <p>
         <mat-form-field><mat-label>Password</mat-label><input name="password" type="password" [(ngModel)]="this.password" required matInput></mat-form-field>
+      </p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button type="submit" mat-raised-button color="accent">Login</button>
+    </mat-card-actions>
+  </form>
+</mat-card>
+<mat-card *ngIf="showMfa">
+  <form (ngSubmit)="executeMfa()">
+    <mat-card-header>
+      <mat-card-title>2FA</mat-card-title>
+      <mat-card-subtitle><mat-error *ngIf="errorMsg != null">{{this.errorMsg}}</mat-error></mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        <mat-form-field><mat-label>2FA Code</mat-label><input name="mfa" type="number" [(ngModel)]="this.mfaCode" required matInput></mat-form-field>
       </p>
     </mat-card-content>
     <mat-card-actions>

@@ -113,7 +113,7 @@ public class AuthModule extends AbstractModule {
 		ctx.response()
 				// .setStatusCode(user.isMfa() ? 100 : 200)
 				.end(new JsonObject().put("token", token.toString())
-						.put("id", user.getId().toHexString())
+						.put("id", user.getId().toString())
 						.put("mfa", user.isMfa())
 						.toBuffer());
 	}
@@ -121,10 +121,16 @@ public class AuthModule extends AbstractModule {
 	private void handleSubmitMfa(final RoutingContext ctx) {
 		final JsonObject obj = ctx.getBodyAsJson();
 
+		final String rawToken = ctx.request().getHeader("Authorization");
+
+		if (rawToken == null) {
+			this.error(ctx, 400, "Missing token");
+			return;
+		}
+
 		final Token mfaToken;
 		try {
-			mfaToken = this.srv.getTokenize()
-					.validateToken(ctx.request().getHeader("Authorization"), this::fetchAccount);
+			mfaToken = this.srv.getTokenize().validateToken(rawToken, this::fetchAccount);
 		} catch (final SignatureException e) {
 			this.error(ctx, 401, "Invalid token");
 			return;
@@ -151,7 +157,8 @@ public class AuthModule extends AbstractModule {
 
 		if (match) {
 			final Token token = this.srv.getTokenize().generateToken(user);
-			ctx.response().end(new JsonObject().put("token", token.toString()).toBuffer());
+			ctx.response()
+					.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
 		} else {
 			this.error(ctx, 401, "Invalid MFA password");
 		}
@@ -187,9 +194,6 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private IAccount fetchAccount(final String id) {
-		return this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.find(Filters.eq(new ObjectId(id)))
-				.first();
+		return this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(new ObjectId(id))).first();
 	}
 }
