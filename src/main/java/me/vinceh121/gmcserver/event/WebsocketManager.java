@@ -34,7 +34,7 @@ public class WebsocketManager implements Handler<ServerWebSocket> {
 
 	@Override
 	public void handle(final ServerWebSocket socket) {
-		if (!socket.path().equals("/ws")) {
+		if (!socket.path().equals("/api/v1/ws")) {
 			socket.close((short) 404);
 			return;
 		}

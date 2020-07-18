@@ -14,10 +14,11 @@ export interface LoginRequest {
 	providedIn: 'root'
 })
 export class RequestService {
-	host = '127.0.0.1:80';
+	/*host = '127.0.0.1:80';*/
+	host = window.location.host;
 	/*baseUrl: string = 'http://' + this.host + '/api/v1/';*/
 	baseUrl: string = '/api/v1/';
-	websocketUrl: string = 'ws://' + this.host + '/ws';
+	websocketUrl: string = 'ws://' + this.host + '/api/v1/ws';
 	headers: HttpHeaders = new HttpHeaders();
 	websocket: WebSocket;
 	websocketObs: Observable<Intent>;

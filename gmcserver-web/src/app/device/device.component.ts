@@ -81,7 +81,7 @@ export class DeviceComponent implements OnInit {
 				if (err.error instanceof ErrorEvent) {
 					this.errorMsg = err.error.error;
 				} else {
-					this.errorMsg = err.status + ': ' + err.error.description;
+					this.errorMsg = err.status + ': ' + err.error;
 				}
 			});
 		});
