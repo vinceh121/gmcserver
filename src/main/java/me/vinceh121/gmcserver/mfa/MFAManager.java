@@ -18,7 +18,6 @@ import com.mongodb.client.model.Updates;
 
 import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
-
 import me.vinceh121.gmcserver.entities.User;
 
 public class MFAManager {
@@ -46,8 +45,7 @@ public class MFAManager {
 
 	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
 		return this.passwordMatches(
-				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(),
-				pass);
+				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(), pass);
 	}
 
 	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {

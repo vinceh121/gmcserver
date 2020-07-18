@@ -13,7 +13,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
-
 import me.vinceh121.gmcserver.entities.Device;
 
 public class GeoModule extends AbstractModule {

@@ -27,15 +27,15 @@ public class WebHandler implements Handler<RoutingContext> {
 	@Override
 	public void handle(final RoutingContext ctx) {
 		final String path = ctx.normalisedPath();
-		final Path filePath = webRoot.resolve(path.substring(1));
+		final Path filePath = this.webRoot.resolve(path.substring(1));
 		final File file = filePath.toFile();
 
 		if (!file.exists() || file.isDirectory()) {
-			this.supplyFile(ctx, indexFile);
+			this.supplyFile(ctx, this.indexFile);
 			return;
 		}
 
-		supplyFile(ctx, file);
+		this.supplyFile(ctx, file);
 	}
 
 	private void supplyFile(final RoutingContext ctx, final File file) {
@@ -51,16 +51,16 @@ public class WebHandler implements Handler<RoutingContext> {
 		try {
 			int available;
 			while ((available = fin.available()) != 0) {
-				final byte[] inBuf = new byte[available < BUFFER_SIZE ? BUFFER_SIZE : available];
+				final byte[] inBuf = new byte[available < WebHandler.BUFFER_SIZE ? WebHandler.BUFFER_SIZE : available];
 				fin.read(inBuf);
 				buf.appendBytes(inBuf);
 			}
 			fin.close();
 		} catch (final IOException e1) {
-			LOG.error("Error while reading file ", e1);
+			WebHandler.LOG.error("Error while reading file ", e1);
 		}
 
-		ctx.response().putHeader("Content-Type", getContentType(file)).end(buf);
+		ctx.response().putHeader("Content-Type", this.getContentType(file)).end(buf);
 	}
 
 	private String getContentType(final File file) {

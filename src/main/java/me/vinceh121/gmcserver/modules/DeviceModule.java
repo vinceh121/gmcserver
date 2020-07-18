@@ -22,7 +22,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
-
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
@@ -98,10 +97,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
+		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -124,9 +120,7 @@ public class DeviceModule extends AbstractModule {
 					.getCollection(Device.class)
 					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
 		} else {
-			this.srv.getDatabaseManager()
-					.getCollection(Record.class)
-					.deleteMany(Filters.eq("deviceId", dev.getId()));
+			this.srv.getDatabaseManager().getCollection(Record.class).deleteMany(Filters.eq("deviceId", dev.getId()));
 			this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
 		}
 
@@ -144,10 +138,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
+		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -204,10 +195,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
+		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -232,10 +220,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
+		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");

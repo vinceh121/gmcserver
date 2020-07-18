@@ -178,7 +178,7 @@ public class GMCServer {
 	}
 
 	public DatabaseManager getDatabaseManager() {
-		return databaseManager;
+		return this.databaseManager;
 	}
 
 	public Properties getConfig() {

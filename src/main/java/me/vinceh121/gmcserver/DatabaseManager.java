@@ -40,8 +40,7 @@ public class DatabaseManager {
 		this.pojoCodecProvider = PojoCodecProvider.builder()
 				.automatic(true)
 				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
-						Conventions.ANNOTATION_CONVENTION,
-						Conventions.CLASS_AND_PROPERTY_CONVENTION,
+						Conventions.ANNOTATION_CONVENTION, Conventions.CLASS_AND_PROPERTY_CONVENTION,
 						Conventions.OBJECT_ID_GENERATORS))
 				.build();
 		this.codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -55,10 +54,10 @@ public class DatabaseManager {
 		this.client = MongoClients.create(set);
 		this.database = this.client.getDatabase(this.srv.getConfig().getProperty("mongo.database"));
 
-		collections = new Hashtable<>();
+		this.collections = new Hashtable<>();
 
 		for (final GMCCol col : GMCCol.values()) {
-			collections.put(col.getClazz(), database.getCollection(col.getName(), col.getClazz()));
+			this.collections.put(col.getClazz(), this.database.getCollection(col.getName(), col.getClazz()));
 		}
 		this.checkIndexes();
 	}
@@ -73,13 +72,13 @@ public class DatabaseManager {
 		}
 
 		if (deviceIndexCount <= 1) {
-			LOG.warn("Device collection does not have index, generating");
+			DatabaseManager.LOG.warn("Device collection does not have index, generating");
 			this.getCollection(Device.class).createIndex(Indexes.geo2dsphere("location"));
 		}
 	}
 
 	public MongoDatabase getDatabase() {
-		return database;
+		return this.database;
 	}
 
 	public <T> MongoCollection<T> getCollection(final Class<T> clazz) {
@@ -101,11 +100,11 @@ public class DatabaseManager {
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		public Class<?> getClazz() {
-			return clazz;
+			return this.clazz;
 		}
 	}
 }
