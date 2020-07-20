@@ -4,6 +4,7 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.mfa.MFAKey;
 import xyz.bowser65.tokenize.IAccount;
 
@@ -89,9 +90,26 @@ public class User extends AbstractEntity implements IAccount {
 	}
 
 	@Override
+	@JsonIgnore
 	public long tokensValidSince() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public JsonObject toJson() {
+		final JsonObject obj = super.toJson();
+		obj.remove("mfaKey");
+		obj.remove("password");
+		return obj;
+	}
+
+	@Override
+	public JsonObject toPublicJson() {
+		final JsonObject obj = super.toPublicJson();
+		obj.remove("mfa");
+		obj.remove("gmcId");
+		return obj;
 	}
 
 	@Override

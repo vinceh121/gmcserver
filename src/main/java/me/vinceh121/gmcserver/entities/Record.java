@@ -1,6 +1,8 @@
 package me.vinceh121.gmcserver.entities;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +19,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 public class Record extends AbstractEntity {
+	public static final Collection<String> STAT_FIELDS
+			= Arrays.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy", "date");
 	private ObjectId userId, deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
@@ -370,10 +374,14 @@ public class Record extends AbstractEntity {
 		}
 
 		public Builder buildParameters() {
-			for (final Field f : this.record.getClass().getDeclaredFields()) {
-				if (f.getType().equals(double.class)) {
-					this.buildDoubleParameter(f.getName());
-				}
+			// for (final Field f : this.record.getClass().getDeclaredFields()) {
+			// if (f.getType().equals(double.class)) {
+			// this.buildDoubleParameter(f.getName());
+			// }
+			// }
+
+			for (final String s : Record.STAT_FIELDS) {
+				this.buildDoubleParameter(s);
 			}
 
 			if (this.params.contains("type")) {
@@ -400,7 +408,8 @@ public class Record extends AbstractEntity {
 				final Field f = this.record.getClass().getDeclaredField(name);
 				f.setAccessible(true);
 				f.set(this.record, value);
-			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			} catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+					| SecurityException e) {
 				throw new IllegalStateException(e);
 			}
 		}

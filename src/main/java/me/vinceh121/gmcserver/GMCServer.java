@@ -29,6 +29,7 @@ import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
 import me.vinceh121.gmcserver.modules.GeoModule;
 import me.vinceh121.gmcserver.modules.LoggingModule;
+import me.vinceh121.gmcserver.modules.UserModule;
 import xyz.bowser65.tokenize.Tokenize;
 
 public class GMCServer {
@@ -134,6 +135,7 @@ public class GMCServer {
 		new DeviceModule(this);
 		new AuthModule(this);
 		new GeoModule(this);
+		new UserModule(this);
 	}
 
 	public void start() {

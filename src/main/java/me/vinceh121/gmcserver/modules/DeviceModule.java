@@ -1,16 +1,21 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import org.bson.BsonNull;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
@@ -37,6 +42,7 @@ public class DeviceModule extends AbstractModule {
 		this.registerStrictAuthedRoute(HttpMethod.PUT, "/device/:deviceId", this::handleUpdateDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
+		this.registerRoute(HttpMethod.GET, "/device/:deviceId/stats/:field", this::handleStats);
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
@@ -287,4 +293,47 @@ public class DeviceModule extends AbstractModule {
 		ctx.response().end(obj.toBuffer());
 	}
 
+	private void handleStats(final RoutingContext ctx) {
+		final String rawDevId = ctx.pathParam("deviceId");
+
+		final ObjectId devId;
+		try {
+			devId = new ObjectId(rawDevId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid ID");
+			return;
+		}
+
+		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(devId)).first();
+
+		if (dev == null) {
+			this.error(ctx, 404, "Device not found");
+			return;
+		}
+
+		final String field = ctx.pathParam("field");
+		if (!Record.STAT_FIELDS.contains(field)) {
+			this.error(ctx, 400, "Invalid field");
+			return;
+		}
+
+		final Document doc = this.srv.getDatabaseManager()
+				.getCollection(Record.class)
+				.aggregate(this.getStatsAggregation(field, devId), Document.class)
+				.first();
+
+		final JsonObject obj = new JsonObject(doc);
+		obj.remove("_id");
+		obj.put("device", dev.getId().toHexString());
+		obj.put("field", field);
+
+		ctx.response().end(obj.toBuffer());
+	}
+
+	private List<Bson> getStatsAggregation(final String field, final ObjectId devId) {
+		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)),
+				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
+						Accumulators.min("min", "$" + field), Accumulators.max("max", "$" + field),
+						Accumulators.stdDevPop("stdDev", "$" + field)));
+	}
 }
