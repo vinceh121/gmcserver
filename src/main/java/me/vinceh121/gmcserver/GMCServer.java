@@ -2,6 +2,7 @@ package me.vinceh121.gmcserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Properties;
@@ -16,6 +17,7 @@ import de.mkammerer.argon2.Argon2Factory;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import me.vinceh121.gmcserver.event.WebsocketManager;
@@ -34,7 +36,7 @@ import xyz.bowser65.tokenize.Tokenize;
 
 public class GMCServer {
 	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
-	public static final String CONFIG_PATH = "./config.properties";
+	public static final String CONFIG_PATH = "./config.properties", VERTX_CONFIG_PATH = "./vertx.json";
 	private final Properties config = new Properties();
 
 	private final HttpServer srv;
@@ -89,9 +91,15 @@ public class GMCServer {
 		this.tokenize = new Tokenize(secret);
 		this.argon = Argon2Factory.create();
 
-		final VertxOptions options = new VertxOptions();
-		options.setBlockedThreadCheckInterval(1000 * 60 * 60); // XXX debug
-
+		final VertxOptions options;
+		try {
+			options = new VertxOptions(new JsonObject(new String(Files.readAllBytes(Paths.get(VERTX_CONFIG_PATH)))));
+		} catch (final IOException e) {
+			LOG.error("Failed to read vertx config", e);
+			System.exit(-2);
+			throw new IllegalStateException(e);
+		}
+		
 		final Vertx vertx = Vertx.factory.vertx(options);
 		this.srv = vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
