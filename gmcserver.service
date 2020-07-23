@@ -6,5 +6,5 @@ After=networking
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/gmcserver
+ExecStart=java -jar /usr/bin/gmcserver
 

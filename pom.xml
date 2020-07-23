@@ -8,12 +8,14 @@
 	<name>GMC Server</name>
 	<description>A lightweight service to store and analyze data from Geiger counters</description>
 	<url>https://gmcserver.vinceh121.me</url>
+	
 	<licenses>
 		<license>
 			<name>GNU General Public License v3.0 or later</name>
 			<url>http://www.spdx.org/licenses/GPL-3.0+</url>
 		</license>
 	</licenses>
+	
 	<developers>
 		<developer>
 			<id>vinceh121</id>
@@ -22,20 +24,27 @@
 			<url>https://vinceh121.me</url>
 		</developer>
 	</developers>
+	
 	<scm>
 		<url>https://github.com/vinceh121/gmcserver</url>
 	</scm>
+	
 	<properties>
 		<java.version>1.8</java.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		
+		<gmc.config.path>./config.properties</gmc.config.path>
+		<gmc.vertx.config.path>./vertx.json</gmc.vertx.config.path>
 	</properties>
+	
 	<repositories>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>io.vertx</groupId>
@@ -128,6 +137,45 @@
 						<version>1.7.0-M1</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>templating-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<id>filter-src</id>
+						<goals>
+							<goal>filter-sources</goal>
+						</goals>
+						<configuration>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.basedir}/target/me/vinceh121/gmcserver/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>
+										${project.basedir}/src/main/java-templates/me/vinceh121/gmcserver/
+									</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

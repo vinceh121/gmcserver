@@ -1,18 +1,19 @@
 all: | web server
 
 server:
-	mvn compile assembly:single
-
+	mvn -Dgmc.config.path=/etc/gmcserver/config.properties -Dgmc.vertx.config.path=/etc/gmcserver/vertx.json compile assembly:single
 
 web:
 	$(MAKE) -C gmcserver-web
 
-
 DEST_BIN = $(DESTDIR)/usr/bin
 DEST_WEB = $(DESTDIR)/var/www/html
+DEST_CONF = $(DESTDIR)/etc/gmcserver
 
 install-server:
 	install -T -D target/*-jar-with-dependencies.jar $(DEST_BIN)/gmcserver
+	install -T -D config.example.properties $(DEST_CONF)/config.properties
+	install -T -D vertx.json $(DEST_CONF)/vertx.json
 
 install-web:
 	install -d gmcserver-web/dist/gmcserver-web $(DEST_WEB)/gmcserver

@@ -36,7 +36,6 @@ import xyz.bowser65.tokenize.Tokenize;
 
 public class GMCServer {
 	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
-	public static final String CONFIG_PATH = "./config.properties", VERTX_CONFIG_PATH = "./vertx.json";
 	private final Properties config = new Properties();
 
 	private final HttpServer srv;
@@ -56,13 +55,14 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	public static void main(final String[] args) {
+		LOG.debug("Build options: " + GMCBuild.buildOptions());
 		final GMCServer srv = new GMCServer();
 		srv.start();
 	}
 
 	public GMCServer() {
 		try {
-			final FileInputStream configInput = new FileInputStream(GMCServer.CONFIG_PATH);
+			final FileInputStream configInput = new FileInputStream(GMCBuild.CONFIG_PATH);
 			this.config.load(configInput);
 			configInput.close();
 		} catch (final IOException e) {
@@ -93,13 +93,14 @@ public class GMCServer {
 
 		final VertxOptions options;
 		try {
-			options = new VertxOptions(new JsonObject(new String(Files.readAllBytes(Paths.get(VERTX_CONFIG_PATH)))));
+			options = new VertxOptions(
+					new JsonObject(new String(Files.readAllBytes(Paths.get(GMCBuild.VERTX_CONFIG_PATH)))));
 		} catch (final IOException e) {
 			LOG.error("Failed to read vertx config", e);
 			System.exit(-2);
 			throw new IllegalStateException(e);
 		}
-		
+
 		final Vertx vertx = Vertx.factory.vertx(options);
 		this.srv = vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
