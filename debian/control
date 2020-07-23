@@ -1,0 +1,17 @@
+Source: gmcserver
+Section: net
+Priority: optional
+Maintainer: Vincent Hyvert <vincent.hyvert@sfr.fr>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0
+Homepage: https://gmcserver.vinceh121.me
+Vcs-Browser: https://github.com/vinceh121/gmcserver
+Vcs-Git: https://github.com/vinceh121/gmcserver.git
+
+Package: gmcserver
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A lightweight service to store and analyze data from Geiger counters
+ GMCServer (name subject to change) is a service to store
+ and analyze data from Geiger counters, potentially
+ geollocated on a worldmap.

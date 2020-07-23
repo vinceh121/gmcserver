@@ -1,0 +1,5 @@
+gmcserver (0.0.0-1) unstable; urgency=medium
+
+  * Initial release for debian
+
+ -- Vincent Hyvert <vincent.hyvert@sfr.fr>  Tue, 21 Jul 2020 22:05:38 +0200

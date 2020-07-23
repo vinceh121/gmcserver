@@ -1,0 +1,10 @@
+[Unit]
+Description=GMCServer, service to store and analyze GMCServer data
+Documentation=https://github.com/vinceh121/gmcserver
+Wants=networking
+After=networking
+
+[Service]
+Type=simple
+ExecStart=java -jar /usr/bin/gmcserver
+
