@@ -9,11 +9,13 @@ web:
 DEST_BIN = $(DESTDIR)/usr/bin
 DEST_WEB = $(DESTDIR)/var/www/html
 DEST_CONF = $(DESTDIR)/etc/gmcserver
+DEST_SERVICE = $(DESTDIR)/lib/systemd/system
 
 install-server:
 	install -T -D target/*-jar-with-dependencies.jar $(DEST_BIN)/gmcserver
 	install -T -D config.example.properties $(DEST_CONF)/config.properties
 	install -T -D vertx.json $(DEST_CONF)/vertx.json
+	install -T -D gmcserver.service $(DEST_SERVICE)/gmcserver.service
 
 install-web:
 	install -d gmcserver-web/dist/gmcserver-web $(DEST_WEB)/gmcserver
