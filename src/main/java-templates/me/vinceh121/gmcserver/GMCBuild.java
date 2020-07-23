@@ -4,7 +4,8 @@ import java.lang.reflect.Field;
 
 public final class GMCBuild {
 	public static final String CONFIG_PATH = "${gmc.config.path}", VERTX_CONFIG_PATH = "${gmc.vertx.config.path}",
-			VERSION = "${project.version}";
+			VERSION = "${project.version}", GIT_COMMIT = "${git.commit.id.abbrev}",
+			GIT_COMMIT_DATE = "${git.commit.time}";
 
 	public static String buildOptions() {
 		final StringBuilder sb = new StringBuilder();

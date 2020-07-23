@@ -55,7 +55,7 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	public static void main(final String[] args) {
-		LOG.debug("Build options: " + GMCBuild.buildOptions());
+		LOG.debug("Build options:\n" + GMCBuild.buildOptions());
 		final GMCServer srv = new GMCServer();
 		srv.start();
 	}
