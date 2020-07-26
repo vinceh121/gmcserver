@@ -5,6 +5,7 @@ import { DeviceComponent } from './device/device.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { LoginComponent } from './login/login.component';
 import { MapComponent } from './map/map.component';
+import { UserComponent } from './user/user.component';
 
 
 const routes: Routes = [
@@ -12,6 +13,7 @@ const routes: Routes = [
 	{ path: 'device/:id', component: DeviceComponent },
 	{ path: 'login', component: LoginComponent },
 	{ path: 'map', component: MapComponent },
+	{ path: 'user/:id', component: UserComponent },
 	{ path: '**', component: NotfoundComponent }
 ];
 

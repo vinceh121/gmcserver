@@ -70,7 +70,7 @@ export class DeviceComponent implements OnInit {
 	ngOnInit(): void {
 		this.route.paramMap.subscribe((params: ParamMap) => {
 			const id: string = params.get('id');
-			this.req.getDevice(id).subscribe((dev: Device) => {
+			this.req.getDevice(id).subscribe(dev => {
 				this.device = dev;
 				if (this.device.own) {
 					this.displayedColumns.push('ip');
@@ -90,6 +90,9 @@ export class DeviceComponent implements OnInit {
 	public fetchTimeline(): void {
 		this.req.getDeviceTimeline(this.device.id, this.fullTimeline, this.startDate, this.endDate).subscribe((records: any) => {
 			this.device.timeline = records.records;
+			for (let r of this.device.timeline) { // come on ts you should cast that easly
+				r.date = new Date(r.date);
+			}
 			this.tableData.data = this.device.timeline;
 			this.tableData.sort = this.sort;
 			this.buildChart();
@@ -107,7 +110,7 @@ export class DeviceComponent implements OnInit {
 		this.chartData[0].data = this.device.timeline.map(r => r.cpm);
 		this.chartData[1].data = this.device.timeline.map(r => r.acpm);
 		this.chartData[2].data = this.device.timeline.map(r => r.usv);
-		this.chartLabels = this.device.timeline.map(r => new Date(r.date));
+		this.chartLabels = this.device.timeline.map(r => r.date);
 	}
 
 	startChange(event: MatDatepickerInputEvent<Date>) {

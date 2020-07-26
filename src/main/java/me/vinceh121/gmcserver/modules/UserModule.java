@@ -57,6 +57,7 @@ public class UserModule extends AbstractModule {
 		final JsonObject obj;
 		if (authUser != null && requestedId.equals(authUser.getId())) {
 			obj = user.toJson();
+			obj.put("self", true);
 		} else {
 			obj = user.toPublicJson();
 		}

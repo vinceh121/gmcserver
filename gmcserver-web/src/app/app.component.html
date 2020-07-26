@@ -23,7 +23,8 @@
 						<span>Register</span>
 					</button>
 				</mat-menu>
-				<button mat-icon-button [mat-menu-trigger-for]="authMenu">
+				<button mat-icon-button [mat-menu-trigger-for]="authMenu"
+					matTooltip="Authentication" matTooltipPosition="below">
 					<mat-icon>person_outline</mat-icon>
 				</button>
 			</span>
@@ -31,10 +32,11 @@
 				<mat-menu #notifMenu="matMenu">
 					<button mat-menu-item *ngFor="let notif of notifications">{{notif.name}}</button>
 				</mat-menu>
-				<button mat-icon-button [mat-menu-trigger-for]="notifMenu">
-				<mat-icon [matBadge]="getDisplayNotifNumber()"
-				matBadgeColor="accent"
-				[matBadgeHidden]="notifications.length == 0">notifications</mat-icon>
+				<button mat-icon-button [mat-menu-trigger-for]="notifMenu"
+					matTooltip="Notifications" matTooltipPosition="below">
+					<mat-icon [matBadge]="getDisplayNotifNumber()"
+						matBadgeColor="accent"
+						[matBadgeHidden]="notifications.length == 0">notifications</mat-icon>
 				</button>
 				<mat-menu #profileMenu="matMenu">
 					<button mat-menu-item routerLink="/profile">
@@ -46,7 +48,8 @@
 						<span>Logout</span>
 					</button>
 				</mat-menu>
-				<button mat-icon-button [mat-menu-trigger-for]="profileMenu">
+				<button mat-icon-button [mat-menu-trigger-for]="profileMenu"
+					matTooltip="Profile" matTooltipPosition="below">
 					<mat-icon>person</mat-icon>
 				</button>
 			</span>

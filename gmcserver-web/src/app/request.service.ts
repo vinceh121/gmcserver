@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Device, Record, MapDevice, Intent } from './types';
+import { Device, Record, MapDevice, Intent, User } from './types';
 import { DRIVERS, Locker } from 'angular-safeguard';
 
 export interface LoginRequest {
@@ -14,10 +14,10 @@ export interface LoginRequest {
 	providedIn: 'root'
 })
 export class RequestService {
-	/*host = '127.0.0.1:80';*/
-	host = window.location.host;
-	/*baseUrl: string = 'http://' + this.host + '/api/v1/';*/
-	baseUrl = '/api/v1/';
+	host = '127.0.0.1:80';
+	/*host = window.location.host;*/
+	baseUrl: string = 'http://' + this.host + '/api/v1/';
+	/*baseUrl = '/api/v1/';*/
 	websocketUrl: string = 'ws://' + this.host + '/api/v1/ws';
 	headers: HttpHeaders = new HttpHeaders();
 	websocket: WebSocket;
@@ -77,6 +77,10 @@ export class RequestService {
 		return token != null && !token.startsWith('mfa.');
 	}
 
+	public getUser(id: string): Observable<User> {
+		return this.get<User>('user/' + id);
+	}
+
 	public getDevice(id: string): Observable<Device> {
 		return this.get<Device>('device/' + id);
 	}
@@ -96,6 +100,10 @@ export class RequestService {
 		return this.get<Record[]>('device/' + id + '/timeline', params);
 	}
 
+	public updateDevice(id: string, update: any): Observable<any> {
+		return this.put('device/' + id, update);
+	}
+
 	public getMap(rect: number[][]): Observable<MapDevice[]> {
 		return this.get<MapDevice[]>('map/' + JSON.stringify(rect));
 	}
@@ -106,5 +114,9 @@ export class RequestService {
 
 	private get<T>(path: string, params?: HttpParams): Observable<T> {
 		return this.http.get<T>(this.getPath(path), { headers: this.headers, params });
+	}
+
+	private put<T>(path: string, body: any): Observable<T> {
+		return this.http.put<T>(this.getPath(path), body, { headers: this.headers });
 	}
 }

@@ -1,7 +1,12 @@
 <mat-card *ngIf="device != null && this.errorMsg == null">
 	<mat-card-header>
 		<mat-card-title>{{device.name}}</mat-card-title>
-		<mat-card-subtitle>{{device.id}}<span *ngIf="device.own"> &middot; {{device.gmcId}}</span></mat-card-subtitle>
+		<mat-card-subtitle>
+			<a mat-button [routerLink]="['/user', device.owner.id]">{{device.owner.username}} <mat-icon color="accent" *ngIf="device.owner.admin" matTooltip="Admin">admin_panel_settings</mat-icon></a>
+			<span *ngIf="device.own"> &middot; {{device.gmcId}}</span>
+		</mat-card-subtitle>
+		<app-disabled-button [device]="device">
+		</app-disabled-button>
 	</mat-card-header>
 	<mat-card-content>
 		<mat-tab-group>

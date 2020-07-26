@@ -13,8 +13,9 @@ export interface MapDevice {
 
 export interface Device extends MapDevice {
 	name?: string;
-	owner: string;
-	own: boolean;
+	owner: User;
+	own?: boolean;
+	disabled: boolean;
 	gmcId?: number;
 	model?: string;
 	timeline?: Record[];
@@ -23,4 +24,15 @@ export interface Device extends MapDevice {
 export interface Intent {
 	name: string;
 	extras: any;
+}
+
+export interface User {
+	id: string;
+	username: string;
+	admin: boolean;
+	deviceLimit: number;
+	devices?: Device[];
+	gmcId?: number;
+	mfa?: boolean;
+	self?: boolean;
 }

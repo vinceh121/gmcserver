@@ -1,0 +1,26 @@
+<mat-card *ngIf="user != null">
+	<mat-card-header>
+		<mat-icon mat-card-avatar>account_circle</mat-icon>
+		<mat-card-title>{{user.username}}</mat-card-title>
+		<mat-card-subtitle>{{user.id}}</mat-card-subtitle>
+	</mat-card-header>
+	<mat-card-content>
+		<mat-nav-list>
+			<mat-list-item *ngFor="let d of user.devices">
+				<a matLine [routerLink]="['/device/', d.id]">{{d.model}} {{d.name}}</a>
+				<app-disabled-button [device]="d">
+				</app-disabled-button>
+			</mat-list-item>
+		</mat-nav-list>
+	</mat-card-content>
+	<mat-card-actions>
+	</mat-card-actions>
+</mat-card>
+<mat-card *ngIf="user == null">
+	<mat-spinner></mat-spinner>
+</mat-card>
+<mat-card *ngIf="this.errorMsg != null">
+	<mat-card-title>
+		<mat-error>{{errorMsg}}</mat-error>
+	</mat-card-title>
+</mat-card>

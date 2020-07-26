@@ -19,8 +19,9 @@ public class CorsHandler implements Handler<RoutingContext> {
 	@Override
 	public void handle(final RoutingContext ctx) {
 		ctx.response().putHeader("Access-Control-Allow-Origin", this.webHost);
-		ctx.response().putHeader("Access-Control-Request-Method", String.join(", ", this.cordsMethods));
+		ctx.response().putHeader("Access-Control-Allow-Methods", String.join(", ", this.cordsMethods));
 		ctx.response().putHeader("Access-Control-Allow-Headers", String.join(", ", this.corsHeaders));
+		
 		if (ctx.request().method().equals(HttpMethod.OPTIONS)) {
 			ctx.response().setStatusCode(204).end();
 		} else {

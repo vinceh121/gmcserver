@@ -1,0 +1,5 @@
+<button mat-icon-button [matTooltip]="device.disabled ? 'Disabled' : 'Enabled'" matTooltipPosition="right" *ngIf="device != null"
+	(click)="submitToggle()">
+	<mat-icon color="warn" *ngIf="device.disabled">blocked</mat-icon>
+	<mat-icon color="primary" *ngIf="!device.disabled">done</mat-icon>
+</button>

@@ -177,6 +177,11 @@ public class DeviceModule extends AbstractModule {
 			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
 		}
 
+		final Boolean disabled = obj.getBoolean("disabled");
+		if (disabled != null) {
+			updates.add(Updates.set("disabled", disabled.booleanValue()));
+		}
+
 		this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
@@ -207,12 +212,18 @@ public class DeviceModule extends AbstractModule {
 			this.error(ctx, 404, "Device not found");
 			return;
 		}
+		
+		final User owner = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(dev.getOwner())).first();
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
 		final boolean own = user != null && user.getId().equals(dev.getOwner());
 
-		ctx.response().end((own ? dev.toJson() : dev.toPublicJson()).put("own", own).toBuffer());
+		final JsonObject obj = (own ? dev.toJson() : dev.toPublicJson());
+		obj.put("own", own);
+		obj.put("owner", owner.toPublicJson());
+		
+		ctx.response().end(obj.toBuffer());
 	}
 
 	private void handleDeviceHistory(final RoutingContext ctx) {

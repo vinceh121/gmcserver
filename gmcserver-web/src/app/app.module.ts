@@ -23,6 +23,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ChartsModule } from 'ng2-charts';
 import { LockerModule } from 'angular-safeguard';
@@ -33,6 +35,8 @@ import { HomeComponent } from './home/home.component';
 import { NotfoundComponent } from './notfound/notfound.component';
 import { LoginComponent } from './login/login.component';
 import { MapComponent } from './map/map.component';
+import { UserComponent } from './user/user.component';
+import { DisabledButtonComponent } from './disabled-button/disabled-button.component';
 
 @NgModule({
 	declarations: [
@@ -41,7 +45,9 @@ import { MapComponent } from './map/map.component';
 		HomeComponent,
 		NotfoundComponent,
 		LoginComponent,
-		MapComponent
+		MapComponent,
+		UserComponent,
+		DisabledButtonComponent
 	],
 	imports: [
 		BrowserModule,
@@ -66,6 +72,8 @@ import { MapComponent } from './map/map.component';
 		MatDatepickerModule,
 		MatNativeDateModule,
 		MatRippleModule,
+		MatTooltipModule,
+		MatSnackBarModule,
 		ChartsModule,
 		LockerModule,
 		LeafletModule
