@@ -90,7 +90,7 @@ export class DeviceComponent implements OnInit {
 	public fetchTimeline(): void {
 		this.req.getDeviceTimeline(this.device.id, this.fullTimeline, this.startDate, this.endDate).subscribe((records: any) => {
 			this.device.timeline = records.records;
-			for (let r of this.device.timeline) { // come on ts you should cast that easly
+			for (const r of this.device.timeline) { // come on ts you should cast that easly
 				r.date = new Date(r.date);
 			}
 			this.tableData.data = this.device.timeline;
