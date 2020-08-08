@@ -56,7 +56,9 @@ public class DeviceModule extends AbstractModule {
 			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 		}
 
-		if (deviceLimit == 0) {
+		if (deviceLimit >= this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.countDocuments(Filters.eq("ownerId", user.getId()))) {
 			this.error(ctx, 403, "Device limit reached");
 			return;
 		}
@@ -212,8 +214,9 @@ public class DeviceModule extends AbstractModule {
 			this.error(ctx, 404, "Device not found");
 			return;
 		}
-		
-		final User owner = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(dev.getOwner())).first();
+
+		final User owner
+				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(dev.getOwner())).first();
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
@@ -222,7 +225,7 @@ public class DeviceModule extends AbstractModule {
 		final JsonObject obj = (own ? dev.toJson() : dev.toPublicJson());
 		obj.put("own", own);
 		obj.put("owner", owner.toPublicJson());
-		
+
 		ctx.response().end(obj.toBuffer());
 	}
 

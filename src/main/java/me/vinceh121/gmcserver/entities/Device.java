@@ -7,7 +7,7 @@ import com.mongodb.client.model.geojson.Point;
 import io.vertx.core.json.JsonObject;
 
 public class Device extends AbstractEntity {
-	private String model, name;
+	private String model, name, importedFrom;
 	private Point location;
 	private ObjectId owner;
 	private long gmcId;
@@ -59,6 +59,14 @@ public class Device extends AbstractEntity {
 
 	public void setDisabled(final boolean disabled) {
 		this.disabled = disabled;
+	}
+
+	public String getImportedFrom() {
+		return importedFrom;
+	}
+
+	public void setImportedFrom(String importedFrom) {
+		this.importedFrom = importedFrom;
 	}
 
 	@Override

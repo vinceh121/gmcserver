@@ -19,6 +19,8 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 import me.vinceh121.gmcserver.event.WebsocketManager;
 import me.vinceh121.gmcserver.handlers.APIHandler;
@@ -30,6 +32,7 @@ import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
 import me.vinceh121.gmcserver.modules.GeoModule;
+import me.vinceh121.gmcserver.modules.ImportExportModule;
 import me.vinceh121.gmcserver.modules.LoggingModule;
 import me.vinceh121.gmcserver.modules.UserModule;
 import xyz.bowser65.tokenize.Tokenize;
@@ -38,8 +41,11 @@ public class GMCServer {
 	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
 	private final Properties config = new Properties();
 
+	private final Vertx vertx;
+
 	private final HttpServer srv;
 	private final Router baseRouter, apiRouter;
+	private final WebClient webClient;
 
 	private final WebsocketManager wsManager;
 	private final MFAManager mfaManager;
@@ -101,7 +107,7 @@ public class GMCServer {
 			throw new IllegalStateException(e);
 		}
 
-		final Vertx vertx = Vertx.factory.vertx(options);
+		this.vertx = Vertx.factory.vertx(options);
 		this.srv = vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
 
@@ -118,6 +124,10 @@ public class GMCServer {
 		this.corsHandler = new CorsHandler(this.getConfig().getProperty("cors.web-host"));
 
 		this.apiRouter.route().handler(this.corsHandler);
+
+		final WebClientOptions opts = new WebClientOptions();
+		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (VertX Web Client) - https://gmcserver.vinceh121.me");
+		this.webClient = WebClient.create(vertx, opts);
 
 		this.registerModules();
 
@@ -145,6 +155,7 @@ public class GMCServer {
 		new AuthModule(this);
 		new GeoModule(this);
 		new UserModule(this);
+		new ImportExportModule(this);
 	}
 
 	public void start() {
@@ -194,6 +205,14 @@ public class GMCServer {
 
 	public Properties getConfig() {
 		return this.config;
+	}
+
+	public WebClient getWebClient() {
+		return webClient;
+	}
+
+	public Vertx getVertx() {
+		return vertx;
 	}
 
 }

@@ -21,20 +21,12 @@ import io.vertx.core.json.JsonObject;
 public class Record extends AbstractEntity {
 	public static final Collection<String> STAT_FIELDS
 			= Arrays.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy", "date");
-	private ObjectId userId, deviceId;
+	private ObjectId deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
 	private Date date;
 	private String ip, type;
 	private Point location;
-
-	public ObjectId getUserId() {
-		return this.userId;
-	}
-
-	public void setUserId(final ObjectId userId) {
-		this.userId = userId;
-	}
 
 	public ObjectId getDeviceId() {
 		return this.deviceId;
@@ -174,7 +166,6 @@ public class Record extends AbstractEntity {
 		temp = Double.doubleToLongBits(this.tmp);
 		result = prime * result + (int) (temp ^ temp >>> 32);
 		result = prime * result + (this.type == null ? 0 : this.type.hashCode());
-		result = prime * result + (this.userId == null ? 0 : this.userId.hashCode());
 		temp = Double.doubleToLongBits(this.usv);
 		result = prime * result + (int) (temp ^ temp >>> 32);
 		return result;
@@ -248,13 +239,6 @@ public class Record extends AbstractEntity {
 		} else if (!this.type.equals(other.type)) {
 			return false;
 		}
-		if (this.userId == null) {
-			if (other.userId != null) {
-				return false;
-			}
-		} else if (!this.userId.equals(other.userId)) {
-			return false;
-		}
 		if (Double.doubleToLongBits(this.usv) != Double.doubleToLongBits(other.usv)) {
 			return false;
 		}
@@ -267,7 +251,6 @@ public class Record extends AbstractEntity {
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
 		obj.put("deviceId", Objects.toString(this.deviceId));
-		obj.put("userId", Objects.toString(this.userId));
 		return obj;
 	}
 
@@ -285,9 +268,7 @@ public class Record extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "Record [userId="
-				+ this.userId
-				+ ", deviceId="
+		return "Record [deviceId="
 				+ this.deviceId
 				+ ", cpm="
 				+ this.cpm
@@ -324,11 +305,6 @@ public class Record extends AbstractEntity {
 
 		public Builder(final MultiMap params) {
 			this.params = params;
-		}
-
-		public Builder withUser(final ObjectId id) {
-			this.record.setUserId(id);
-			return this;
 		}
 
 		public Builder withDevice(final ObjectId id) {

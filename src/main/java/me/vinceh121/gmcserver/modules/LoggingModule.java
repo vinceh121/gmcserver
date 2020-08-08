@@ -87,7 +87,7 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		final Builder build = new Record.Builder(ctx.request().params());
-		build.buildParameters().buildPosition().withCurrentDate().withDevice(device.getId()).withUser(user.getId());
+		build.buildParameters().buildPosition().withCurrentDate().withDevice(device.getId());
 
 		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
 			build.withIp(ctx.request().remoteAddress().host());
@@ -198,7 +198,6 @@ public class LoggingModule extends AbstractModule {
 		rec.setAcpm(acpm);
 		rec.setCpm(cpm);
 		rec.setDeviceId(device.getId());
-		rec.setUserId(user.getId());
 		rec.setUsv(usv);
 
 		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
