@@ -1,11 +1,9 @@
 package me.vinceh121.gmcserver.modules;
 
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 
 import org.bson.BsonNull;
@@ -19,8 +17,6 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -32,9 +28,11 @@ import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
+import me.vinceh121.gmcserver.managers.DeviceManager;
+import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
 
 public class DeviceModule extends AbstractModule {
-	private final Random rng = new SecureRandom();
 
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
@@ -50,49 +48,31 @@ public class DeviceModule extends AbstractModule {
 		final JsonObject obj = ctx.getBodyAsJson();
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
-		final int deviceLimit;
-		if (user.getDeviceLimit() != -1) {
-			deviceLimit = user.getDeviceLimit();
-		} else {
-			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
-		}
 
-		if (deviceLimit >= this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.countDocuments(Filters.eq("ownerId", user.getId()))) {
-			this.error(ctx, 403, "Device limit reached");
-			return;
-		}
-
-		final JsonArray arrLoc = obj.getJsonArray("position");
-		final Point location;
-		if (arrLoc != null && arrLoc.size() == 2) {
-			location = this.jsonArrToPoint(arrLoc);
-		} else if (arrLoc != null && arrLoc.size() != 2) {
-			this.error(ctx, 400, "Invalid location");
-			return;
-		} else {
-			location = null;
-		}
-
-		final String deviceName = obj.getString("name");
-		if (deviceName == null) {
+		final String name = obj.getString("name");
+		if (name == null) {
 			this.error(ctx, 400, "Missing parameter name");
 			return;
 		}
 
-		final String deviceModel = obj.getString("model");
+		final JsonArray arrLoc = obj.getJsonArray("position");
+		if (arrLoc == null) {
+			this.error(ctx, 400, "Missing parameter position");
+			return;
+		}
 
-		final long gmcId = this.rng.nextLong();
-
-		final Device dev = new Device();
-		dev.setOwner(user.getId());
-		dev.setName(deviceName);
-		dev.setModel(deviceModel);
-		dev.setGmcId(gmcId);
-		dev.setLocation(location);
-
-		ctx.response().end(dev.toJson().toBuffer());
+		final CreateDeviceAction action = this.srv.getManager(DeviceManager.class)
+				.createDevice()
+				.setUser(user)
+				.setArrLocation(arrLoc)
+				.setName(name);
+		action.execute().onComplete(res -> {
+			if (res.failed()) {
+				this.error(ctx, 400, res.cause().getMessage());
+				return;
+			}
+			ctx.response().end(res.result().toJson().toBuffer());
+		});
 	}
 
 	private void handleRemoveDevice(final RoutingContext ctx) {
@@ -106,43 +86,29 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
-
-		if (dev == null) {
-			this.error(ctx, 404, "Device not found");
-			return;
-		}
-
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
-		if (!user.getId().equals(dev.getId()) || user.isAdmin()) {
-			this.error(ctx, 403, "Not owner of device");
-			return;
-		}
-
 		final JsonObject obj = ctx.getBodyAsJson();
-
 		final boolean delete = obj.getBoolean("delete");
 
-		if (!delete) {
-			this.srv.getManager(DatabaseManager.class)
-					.getCollection(Device.class)
-					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
-		} else {
-			this.srv.getManager(DatabaseManager.class)
-					.getCollection(Record.class)
-					.deleteMany(Filters.eq("deviceId", dev.getId()));
-			this.srv.getManager(DatabaseManager.class).getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
-		}
+		final DeleteDeviceAction action = this.srv.getManager(DeviceManager.class)
+				.deleteDevice()
+				.setDelete(delete)
+				.setDeviceId(deviceId)
+				.setUser(user);
 
-		ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+		action.execute().onComplete(res -> {
+			if (res.failed()) {
+				this.error(ctx, 400, res.cause().getMessage());
+				return;
+			}
+
+			ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+		});
 	}
 
 	private void handleUpdateDevice(final RoutingContext ctx) {
-		final String rawDeviceId = ctx.pathParam("deviceId");
+		final String rawDeviceId = ctx.pathParam("deviceId"); // TODO make action somehow
 
 		final ObjectId deviceId;
 		try {
@@ -183,10 +149,10 @@ public class DeviceModule extends AbstractModule {
 			updates.add(Updates.set("model", model));
 		}
 
-		final JsonArray location = obj.getJsonArray("location");
-		if (location != null) {
-			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
-		}
+//		final JsonArray location = obj.getJsonArray("location"); // XXX to include but i want it to compile in the meantime
+//		if (location != null) {
+//			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
+//		}
 
 		final Boolean disabled = obj.getBoolean("disabled");
 		if (disabled != null) {
@@ -198,12 +164,6 @@ public class DeviceModule extends AbstractModule {
 				.updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
 
 		ctx.response().end(new JsonObject().put("changed", updates.size()).toBuffer());
-	}
-
-	private Point jsonArrToPoint(final JsonArray arr) { // standard lat lon in array -> lon lat for mongo
-		final Position pos = new Position(arr.getDouble(1), arr.getDouble(0));
-		final Point point = new Point(pos);
-		return point;
 	}
 
 	private void handleDevice(final RoutingContext ctx) {

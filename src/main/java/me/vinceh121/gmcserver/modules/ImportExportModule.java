@@ -77,7 +77,7 @@ public class ImportExportModule extends AbstractModule {
 
 		this.getRecords(gmcmapId, 0, dev.getId()).onComplete(res -> {
 			if (res.failed()) {
-				this.error(ctx, 502, "Failure: " + res.cause());
+				this.error(ctx, 502, "Failure: " + res.cause().getMessage());
 				return;
 			}
 
@@ -121,7 +121,7 @@ public class ImportExportModule extends AbstractModule {
 					.setQueryParam("curpage", String.valueOf(page))
 					.send(a -> {
 						if (a.failed()) {
-							p.fail("Http request failed: " + a.cause());
+							p.fail("Http request failed: " + a.cause().getMessage());
 							return;
 						}
 

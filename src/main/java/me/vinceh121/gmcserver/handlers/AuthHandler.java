@@ -1,18 +1,12 @@
 package me.vinceh121.gmcserver.handlers;
 
-import java.security.SignatureException;
-
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.model.Filters;
-
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
-import xyz.bowser65.tokenize.IAccount;
+import me.vinceh121.gmcserver.managers.UserManager;
+import me.vinceh121.gmcserver.managers.UserManager.VerifyTokenAction;
 import xyz.bowser65.tokenize.Token;
 
 public class AuthHandler implements Handler<RoutingContext> {
@@ -32,39 +26,26 @@ public class AuthHandler implements Handler<RoutingContext> {
 			return;
 		}
 
-		final Token token;
-		try {
-			token = this.srv.getTokenize().validateToken(auth, this::fetchAccount);
-		} catch (final SignatureException e) {
-			ctx.next(); // non strict auth
-			return;
-		}
+		final VerifyTokenAction action = this.srv.getManager(UserManager.class).verifyToken().setTokenString(auth);
 
-		if (token == null) {
-			ctx.response()
-					.setStatusCode(401)
-					.end(new JsonObject().put("status", 401).put("msg", "Invalid token").toBuffer());
-			return;
-		}
+		action.execute().onComplete(res -> {
 
-		if ("mfa".equals(token.getPrefix())) {
-			ctx.response()
-					.setStatusCode(401)
-					.end(new JsonObject().put("status", 401).put("msg", "MFA auth not complete").toBuffer());
-			return;
-		}
+			if (res.failed()) {
+				ctx.response()
+						.setStatusCode(401)
+						.end(new JsonObject().put("status", 401).put("msg", res.cause().getMessage()).toBuffer());
+				return;
+			}
 
-		final User user = (User) token.getAccount();
-		ctx.put(AuthHandler.TOKEN_KEY, token);
-		ctx.put(AuthHandler.USER_KEY, user);
+			final Token token = res.result();
+			if (token != null) {
+				final User user = (User) token.getAccount();
+				ctx.put(AuthHandler.TOKEN_KEY, token);
+				ctx.put(AuthHandler.USER_KEY, user);
+			}
+			ctx.next();
+		});
 
-		ctx.next();
 	}
 
-	private IAccount fetchAccount(final String id) {
-		return this.srv.getManager(DatabaseManager.class)
-				.getCollection(User.class)
-				.find(Filters.eq(new ObjectId(id)))
-				.first();
-	}
 }

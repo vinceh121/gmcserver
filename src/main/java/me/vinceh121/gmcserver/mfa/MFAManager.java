@@ -16,9 +16,10 @@ import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
+import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
@@ -83,8 +84,6 @@ public class MFAManager extends AbstractManager {
 
 	public MFAKey generateKey() {
 		final SecretKey key = this.keyGen.generateKey();
-		final JsonObject obj = JsonObject.mapFrom(key);
-		System.out.println(obj.put("_t", key.getClass().getCanonicalName()).encodePrettily());
 		final MFAKey mfa = new MFAKey();
 		mfa.setAlgorithm(this.algorithm);
 		mfa.setDigits(this.passwordLength);
@@ -104,5 +103,102 @@ public class MFAManager extends AbstractManager {
 	public SecretKey mfaKeyToSecretKey(final MFAKey key) {
 		final SecretKey secKey = new SecretKeySpec(key.getKey(), key.getAlgorithm());
 		return secKey;
+	}
+
+	public SetupMFAAction setupMFA() {
+		return new SetupMFAAction(srv);
+	}
+
+	public VerifyCodeAction verifyCode() {
+		return new VerifyCodeAction(srv);
+	}
+
+	public class SetupMFAAction extends AbstractAction<String> {
+		private User user;
+		private int pass;
+
+		public SetupMFAAction(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<String> promise) {
+			if (user.getMfaKey() == null) { // MFA not setup at all
+				final MFAKey key = this.srv.getManager(MFAManager.class).setupMFA(user);
+				promise.complete(key.toURI("GMCServer " + user.getUsername()));
+			} else { // Complete MFA setup
+				boolean matches;
+				try {
+					matches = this.srv.getManager(MFAManager.class).completeMfaSetup(user, pass);
+				} catch (final InvalidKeyException e) {
+					promise.fail("Invalid MFA key");
+					return;
+				}
+				if (matches) {
+					promise.complete();
+				} else {
+					promise.fail("Invalid pass");
+				}
+			}
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public SetupMFAAction setUser(User user) {
+			this.user = user;
+			return this;
+		}
+
+		public int getPass() {
+			return pass;
+		}
+
+		public SetupMFAAction setPass(int pass) {
+			this.pass = pass;
+			return this;
+		}
+
+	}
+
+	public class VerifyCodeAction extends AbstractAction<Void> {
+		private User user;
+		private int pass;
+
+		private VerifyCodeAction(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<Void> promise) {
+			try {
+				if (this.srv.getManager(MFAManager.class).passwordMatches(user, pass)) {
+					promise.complete();
+				}
+			} catch (final InvalidKeyException e) {
+				promise.fail("Invalid MFA key");
+			} catch (final IllegalArgumentException e) {
+				promise.fail("User does not have MFA set");
+			}
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public VerifyCodeAction setUser(User user) {
+			this.user = user;
+			return this;
+		}
+
+		public int getPass() {
+			return pass;
+		}
+
+		public VerifyCodeAction setPass(int pass) {
+			this.pass = pass;
+			return this;
+		}
 	}
 }
