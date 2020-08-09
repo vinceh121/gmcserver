@@ -17,10 +17,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
 import io.vertx.core.json.JsonObject;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.managers.AbstractManager;
 
-public class MFAManager {
+public class MFAManager extends AbstractManager {
 	private GMCServer srv;
 	private final TimeBasedOneTimePasswordGenerator generator;
 	private final KeyGenerator keyGen;
@@ -29,7 +31,7 @@ public class MFAManager {
 	private final String algorithm;
 
 	public MFAManager(final GMCServer srv) {
-		this.srv = srv;
+		super(srv);
 		this.passwordLength = Integer.parseInt(srv.getConfig().getProperty("totp.length"));
 		this.timeStep = Duration.ofSeconds(Long.parseLong(srv.getConfig().getProperty("totp.duration")));
 		this.algorithm = srv.getConfig().getProperty("totp.algo");
@@ -45,7 +47,8 @@ public class MFAManager {
 
 	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
 		return this.passwordMatches(
-				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(), pass);
+				this.srv.getManager(DatabaseManager.class).getCollection(User.class).find(Filters.eq(id)).first(),
+				pass);
 	}
 
 	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {
@@ -59,7 +62,7 @@ public class MFAManager {
 
 	public MFAKey setupMFA(final User user) {
 		final MFAKey key = this.generateKey();
-		this.srv.getDatabaseManager()
+		this.srv.getManager(DatabaseManager.class)
 				.getCollection(User.class)
 				.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
 		user.setMfaKey(key);
@@ -70,7 +73,7 @@ public class MFAManager {
 		final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
 		final boolean matches = actualPassword == pass;
 		if (matches) {
-			this.srv.getDatabaseManager()
+			this.srv.getManager(DatabaseManager.class)
 					.getCollection(User.class)
 					.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
 			user.setMfa(true);

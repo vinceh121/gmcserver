@@ -10,7 +10,7 @@ import xyz.bowser65.tokenize.IAccount;
 
 /**
  * MFA:
- * When settings up MFA, the key will be set, however the boolean mfa will be
+ * When setting up MFA, the key will be set, however the boolean mfa will be
  * false, once the confirmation password has been sent, it will be true and MFA
  * setup is complete
  *

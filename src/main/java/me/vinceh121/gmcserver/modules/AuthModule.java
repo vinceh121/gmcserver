@@ -10,10 +10,12 @@ import com.mongodb.client.model.Filters;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.mfa.MFAKey;
+import me.vinceh121.gmcserver.mfa.MFAManager;
 import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
 
@@ -53,7 +55,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (this.srv.getDatabaseManager()
+		if (this.srv.getManager(DatabaseManager.class)
 				.getCollection(User.class)
 				.find(Filters.eq("username", username))
 				.first() != null) {
@@ -65,7 +67,7 @@ public class AuthModule extends AbstractModule {
 		user.setUsername(username);
 		user.setPassword(this.srv.getArgon().hash(10, 65536, 1, password.toCharArray()));
 
-		this.srv.getDatabaseManager().getCollection(User.class).insertOne(user);
+		this.srv.getManager(DatabaseManager.class).getCollection(User.class).insertOne(user);
 		ctx.response()
 				.end(new JsonObject().put("username", user.getUsername())
 						.put("id", user.getId().toHexString())
@@ -87,7 +89,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getDatabaseManager()
+		final User user = this.srv.getManager(DatabaseManager.class)
 				.getCollection(User.class)
 				.find(Filters.eq("username", username))
 				.first();
@@ -144,7 +146,7 @@ public class AuthModule extends AbstractModule {
 
 		final boolean match;
 		try {
-			match = this.srv.getMfaManager().passwordMatches(user, obj.getInteger("pass"));
+			match = this.srv.getManager(MFAManager.class).passwordMatches(user, obj.getInteger("pass"));
 		} catch (final InvalidKeyException e) {
 			this.log.error("Invalid MFA key for user " + user.toString(), e);
 			this.error(ctx, 500, "Invalid MFA key");
@@ -172,13 +174,13 @@ public class AuthModule extends AbstractModule {
 		}
 
 		if (user.getMfaKey() == null) { // MFA not setup at all
-			final MFAKey key = this.srv.getMfaManager().setupMFA(user);
+			final MFAKey key = this.srv.getManager(MFAManager.class).setupMFA(user);
 			ctx.response().end(new JsonObject().put("keyUri", key.toURI("GMCServer " + user.getUsername())).toBuffer());
 		} else { // Complete MFA setup
 			final JsonObject obj = ctx.getBodyAsJson();
 			boolean matches;
 			try {
-				matches = this.srv.getMfaManager().completeMfaSetup(user, obj.getInteger("pass"));
+				matches = this.srv.getManager(MFAManager.class).completeMfaSetup(user, obj.getInteger("pass"));
 			} catch (final InvalidKeyException e) {
 				this.log.error("Invalid MFA key for user " + user.toString(), e);
 				this.error(ctx, 500, "Invalid MFA key");
@@ -193,6 +195,9 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private IAccount fetchAccount(final String id) {
-		return this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(new ObjectId(id))).first();
+		return this.srv.getManager(DatabaseManager.class)
+				.getCollection(User.class)
+				.find(Filters.eq(new ObjectId(id)))
+				.first();
 	}
 }

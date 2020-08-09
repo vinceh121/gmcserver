@@ -9,6 +9,7 @@ import com.mongodb.client.model.Filters;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import xyz.bowser65.tokenize.IAccount;
@@ -61,6 +62,9 @@ public class AuthHandler implements Handler<RoutingContext> {
 	}
 
 	private IAccount fetchAccount(final String id) {
-		return this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(new ObjectId(id))).first();
+		return this.srv.getManager(DatabaseManager.class)
+				.getCollection(User.class)
+				.find(Filters.eq(new ObjectId(id)))
+				.first();
 	}
 }

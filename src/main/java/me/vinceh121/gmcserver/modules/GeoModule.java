@@ -12,6 +12,7 @@ import com.mongodb.client.model.geojson.Position;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 
@@ -57,8 +58,9 @@ public class GeoModule extends AbstractModule {
 
 		final Polygon poly = new Polygon(coords);
 
-		final FindIterable<Device> it
-				= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.geoWithin("location", poly));
+		final FindIterable<Device> it = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.geoWithin("location", poly));
 
 		final JsonArray res = new JsonArray();
 		it.forEach(d -> {

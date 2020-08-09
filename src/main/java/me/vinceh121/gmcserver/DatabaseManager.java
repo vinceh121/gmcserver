@@ -25,10 +25,10 @@ import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.managers.AbstractManager;
 
-public class DatabaseManager {
+public class DatabaseManager extends AbstractManager {
 	private static Logger LOG = LoggerFactory.getLogger(DatabaseManager.class);
-	private final GMCServer srv;
 	private final MongoClient client;
 	private final MongoDatabase database;
 	private final PojoCodecProvider pojoCodecProvider;
@@ -36,7 +36,7 @@ public class DatabaseManager {
 	private final Hashtable<Class<?>, MongoCollection<?>> collections;
 
 	public DatabaseManager(final GMCServer srv) {
-		this.srv = srv;
+		super(srv);
 		this.pojoCodecProvider = PojoCodecProvider.builder()
 				.automatic(true)
 				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.DecoderException;
@@ -28,6 +30,8 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
+import me.vinceh121.gmcserver.managers.AbstractManager;
+import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
@@ -47,9 +51,7 @@ public class GMCServer {
 	private final Router baseRouter, apiRouter;
 	private final WebClient webClient;
 
-	private final WebsocketManager wsManager;
-	private final MFAManager mfaManager;
-	private final DatabaseManager databaseManager;
+	private final Map<Class<? extends AbstractManager>, AbstractManager> managerTable = new Hashtable<>();
 
 	private final Tokenize tokenize;
 	private final Argon2 argon;
@@ -76,7 +78,7 @@ public class GMCServer {
 			System.exit(-1);
 		}
 
-		this.databaseManager = new DatabaseManager(this);
+		this.registerManagers();
 
 		byte[] secret;
 		try {
@@ -126,15 +128,12 @@ public class GMCServer {
 		this.apiRouter.route().handler(this.corsHandler);
 
 		final WebClientOptions opts = new WebClientOptions();
-		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (VertX Web Client) - https://gmcserver.vinceh121.me");
+		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://gmcserver.vinceh121.me");
 		this.webClient = WebClient.create(vertx, opts);
 
 		this.registerModules();
 
-		this.wsManager = new WebsocketManager(this);
-		this.srv.webSocketHandler(this.wsManager);
-
-		this.mfaManager = new MFAManager(this);
+		this.srv.webSocketHandler(this.getManager(WebsocketManager.class));
 
 		if (Boolean.parseBoolean(this.config.getProperty("web.enabled"))) {
 			this.setupWebRouter(vertx);
@@ -149,6 +148,17 @@ public class GMCServer {
 		this.baseRouter.mountSubRouter("/", webRouter);
 	}
 
+	private void registerManagers() {
+		this.addManager(new DatabaseManager(this));
+		this.addManager(new MFAManager(this));
+		this.addManager(new WebsocketManager(this));
+		this.addManager(new UserManager(this));
+	}
+
+	private void addManager(final AbstractManager mng) {
+		this.managerTable.put(mng.getClass(), mng);
+	}
+
 	private void registerModules() {
 		new LoggingModule(this);
 		new DeviceModule(this);
@@ -161,6 +171,11 @@ public class GMCServer {
 	public void start() {
 		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")));
 		GMCServer.LOG.info("Listening on port {}", this.srv.actualPort());
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends AbstractManager> T getManager(final Class<T> cls) {
+		return (T) this.managerTable.get(cls);
 	}
 
 	public Router getApiRouter() {
@@ -189,18 +204,6 @@ public class GMCServer {
 
 	public Argon2 getArgon() {
 		return this.argon;
-	}
-
-	public WebsocketManager getWebsocketManager() {
-		return this.wsManager;
-	}
-
-	public MFAManager getMfaManager() {
-		return this.mfaManager;
-	}
-
-	public DatabaseManager getDatabaseManager() {
-		return this.databaseManager;
 	}
 
 	public Properties getConfig() {

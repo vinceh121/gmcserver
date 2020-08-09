@@ -26,6 +26,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -56,7 +57,7 @@ public class DeviceModule extends AbstractModule {
 			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 		}
 
-		if (deviceLimit >= this.srv.getDatabaseManager()
+		if (deviceLimit >= this.srv.getManager(DatabaseManager.class)
 				.getCollection(Device.class)
 				.countDocuments(Filters.eq("ownerId", user.getId()))) {
 			this.error(ctx, 403, "Device limit reached");
@@ -105,7 +106,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -124,12 +128,14 @@ public class DeviceModule extends AbstractModule {
 		final boolean delete = obj.getBoolean("delete");
 
 		if (!delete) {
-			this.srv.getDatabaseManager()
+			this.srv.getManager(DatabaseManager.class)
 					.getCollection(Device.class)
 					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
 		} else {
-			this.srv.getDatabaseManager().getCollection(Record.class).deleteMany(Filters.eq("deviceId", dev.getId()));
-			this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
+			this.srv.getManager(DatabaseManager.class)
+					.getCollection(Record.class)
+					.deleteMany(Filters.eq("deviceId", dev.getId()));
+			this.srv.getManager(DatabaseManager.class).getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
 		}
 
 		ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
@@ -146,7 +152,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -184,7 +193,7 @@ public class DeviceModule extends AbstractModule {
 			updates.add(Updates.set("disabled", disabled.booleanValue()));
 		}
 
-		this.srv.getDatabaseManager()
+		this.srv.getManager(DatabaseManager.class)
 				.getCollection(Device.class)
 				.updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
 
@@ -208,15 +217,20 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
 			return;
 		}
 
-		final User owner
-				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(dev.getOwner())).first();
+		final User owner = this.srv.getManager(DatabaseManager.class)
+				.getCollection(User.class)
+				.find(Filters.eq(dev.getOwner()))
+				.first();
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
@@ -240,7 +254,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(deviceId)).first();
+		final Device dev = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.eq(deviceId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -288,7 +305,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final FindIterable<Record> it
-				= this.srv.getDatabaseManager().getCollection(Record.class).find(Filters.and(filters));
+				= this.srv.getManager(DatabaseManager.class).getCollection(Record.class).find(Filters.and(filters));
 		it.sort(Sorts.ascending("date"));
 		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
@@ -318,7 +335,10 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(devId)).first();
+		final Device dev = this.srv.getManager(DatabaseManager.class)
+				.getCollection(Device.class)
+				.find(Filters.eq(devId))
+				.first();
 
 		if (dev == null) {
 			this.error(ctx, 404, "Device not found");
@@ -331,7 +351,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Document doc = this.srv.getDatabaseManager()
+		final Document doc = this.srv.getManager(DatabaseManager.class)
 				.getCollection(Record.class)
 				.aggregate(this.getStatsAggregation(field, devId), Document.class)
 				.first();
