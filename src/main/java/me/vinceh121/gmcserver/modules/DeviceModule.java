@@ -1,28 +1,14 @@
 package me.vinceh121.gmcserver.modules;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
 
-import org.bson.BsonNull;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.Updates;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -31,6 +17,12 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceHistoryAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
+import me.vinceh121.gmcserver.managers.UserManager;
+import me.vinceh121.gmcserver.managers.UserManager.GetUserAction;
 
 public class DeviceModule extends AbstractModule {
 
@@ -118,52 +110,39 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
-
-		if (dev == null) {
-			this.error(ctx, 404, "Device not found");
-			return;
-		}
-
-		final User user = ctx.get(AuthHandler.USER_KEY);
-
-		if (!user.getId().equals(dev.getOwner())) {
-			this.error(ctx, 403, "Not owner of the device");
-			return;
-		}
-
 		final JsonObject obj = ctx.getBodyAsJson();
 
-		final List<Bson> updates = new Vector<>();
+		final GetDeviceAction getAction = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
+		getAction.execute().onComplete(res -> {
+			if (res.failed()) {
+				this.error(ctx, 404, res.cause().getMessage());
+				return;
+			}
 
-		final String name = obj.getString("name");
-		if (name != null) {
-			updates.add(Updates.set("name", name));
-		}
+			final Device dev = res.result();
+			final User user = ctx.get(AuthHandler.USER_KEY);
 
-		final String model = obj.getString("model");
-		if (model != null) {
-			updates.add(Updates.set("model", model));
-		}
+			if (!user.getId().equals(dev.getOwner())) {
+				this.error(ctx, 403, "Not owner of the device");
+				return;
+			}
 
-//		final JsonArray location = obj.getJsonArray("location"); // XXX to include but i want it to compile in the meantime
-//		if (location != null) {
-//			updates.add(Updates.set("location", this.jsonArrToPoint(location)));
-//		}
+			final UpdateDeviceAction action = this.srv.getManager(DeviceManager.class)
+					.updateDevice()
+					.setDevice(dev)
+					.setArrLocation(obj.getJsonArray("location"))
+					.setModel(obj.getString("model"))
+					.setName(obj.getString("name"));
+			action.execute().onComplete(upRes -> {
+				if (upRes.failed()) {
+					this.error(ctx, 500, upRes.cause().getMessage());
+					return;
+				}
 
-		final Boolean disabled = obj.getBoolean("disabled");
-		if (disabled != null) {
-			updates.add(Updates.set("disabled", disabled.booleanValue()));
-		}
+				ctx.response().end(new JsonObject().put("changed", upRes.result()).toBuffer());
+			});
+		});
 
-		this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.updateOne(Filters.eq(dev.getId()), Updates.combine(updates));
-
-		ctx.response().end(new JsonObject().put("changed", updates.size()).toBuffer());
 	}
 
 	private void handleDevice(final RoutingContext ctx) {
@@ -177,33 +156,33 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
+		final GetDeviceAction action = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
 
-		if (dev == null) {
-			this.error(ctx, 404, "Device not found");
-			return;
-		}
+		action.execute().onComplete(res -> {
+			if (res.failed()) {
+				this.error(ctx, 404, res.cause().getMessage());
+				return;
+			}
 
-		final User owner = this.srv.getManager(DatabaseManager.class)
-				.getCollection(User.class)
-				.find(Filters.eq(dev.getOwner()))
-				.first();
+			final Device dev = res.result();
 
-		final User user = ctx.get(AuthHandler.USER_KEY);
+			final User user = ctx.get(AuthHandler.USER_KEY);
 
-		final boolean own = user != null && user.getId().equals(dev.getOwner());
+			final GetUserAction getOwnerAction = this.srv.getManager(UserManager.class).getUser().setId(dev.getOwner());
+			getOwnerAction.execute().onComplete(ures -> {
+				final boolean own = user != null && user.getId().equals(dev.getOwner());
 
-		final JsonObject obj = (own ? dev.toJson() : dev.toPublicJson());
-		obj.put("own", own);
-		obj.put("owner", owner.toPublicJson());
+				final JsonObject obj = (own ? dev.toJson() : dev.toPublicJson());
+				obj.put("own", own);
+				obj.put("owner", ures.result().toPublicJson());
 
-		ctx.response().end(obj.toBuffer());
+				ctx.response().end(obj.toBuffer());
+			});
+		});
 	}
 
 	private void handleDeviceHistory(final RoutingContext ctx) {
+		final User user = ctx.get(AuthHandler.USER_KEY);
 		final String rawDeviceId = ctx.pathParam("deviceId");
 
 		final ObjectId deviceId;
@@ -214,74 +193,70 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq(deviceId))
-				.first();
-
-		if (dev == null) {
-			this.error(ctx, 404, "Device not found");
-			return;
-		}
-
-		final JsonObject obj = new JsonObject();
-		final JsonArray arr = new JsonArray();
-		obj.put("records", arr);
-
-		final Date start, end;
-
-		if (ctx.request().params().contains("start")) {
-			try {
-				start = new Date(Long.parseLong(ctx.request().getParam("start")));
-			} catch (final NumberFormatException e) {
-				this.error(ctx, 400, "Format error in start date");
+		final GetDeviceAction getAction = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
+		getAction.execute().onComplete(getRes -> {
+			if (getRes.failed()) {
+				this.error(ctx, 404, "Device not found");
 				return;
 			}
-		} else {
-			start = null;
-		}
 
-		if (ctx.request().params().contains("end")) {
-			try {
-				end = new Date(Long.parseLong(ctx.request().getParam("end")));
-			} catch (final NumberFormatException e) {
-				this.error(ctx, 400, "Format error in end date");
-				return;
+			final Device dev = getRes.result();
+
+			final Date start, end;
+
+			if (ctx.request().params().contains("start")) {
+				try {
+					start = new Date(Long.parseLong(ctx.request().getParam("start")));
+				} catch (final NumberFormatException e) {
+					this.error(ctx, 400, "Format error in start date");
+					return;
+				}
+			} else {
+				start = null;
 			}
-		} else {
-			end = null;
-		}
 
-		final Collection<Bson> filters = new Vector<>();
+			if (ctx.request().params().contains("end")) {
+				try {
+					end = new Date(Long.parseLong(ctx.request().getParam("end")));
+				} catch (final NumberFormatException e) {
+					this.error(ctx, 400, "Format error in end date");
+					return;
+				}
+			} else {
+				end = null;
+			}
 
-		filters.add(Filters.eq("deviceId", dev.getId()));
+			final boolean full = "y".equals(ctx.request().getParam("full"));
 
-		if (start != null) {
-			filters.add(Filters.gte("date", start));
-		}
+			final DeviceHistoryAction histAction = this.srv.getManager(DeviceManager.class)
+					.deviceHistory()
+					.setStart(start)
+					.setEnd(end)
+					.setFull(full)
+					.setRequester(user)
+					.setDev(dev);
+			histAction.execute().onComplete(histRes -> {
+				if (histRes.failed()) {
+					this.error(ctx, 500, histRes.cause().getMessage());
+					return;
+				}
 
-		if (end != null) {
-			filters.add(Filters.lte("date", end));
-		}
+				final JsonObject obj = new JsonObject();
+				final JsonArray arr = new JsonArray();
+				obj.put("records", arr);
 
-		final FindIterable<Record> it
-				= this.srv.getManager(DatabaseManager.class).getCollection(Record.class).find(Filters.and(filters));
-		it.sort(Sorts.ascending("date"));
-		it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
+				final List<Record> recs = histRes.result();
 
-		final User user = ctx.get(AuthHandler.USER_KEY);
-		final String full = ctx.request().getParam("full");
-		if ("y".equals(full) && user != null && user.getId().equals(dev.getOwner())) {
-			it.limit(0);
-		}
+				if (user != null && user.getId().equals(dev.getOwner())) {
+					recs.forEach(r -> arr.add(r.toJson()));
+				} else {
+					recs.forEach(r -> arr.add(r.toPublicJson()));
+				}
 
-		if (user != null && user.getId().equals(dev.getOwner())) {
-			it.forEach(r -> arr.add(r.toJson()));
-		} else {
-			it.forEach(r -> arr.add(r.toPublicJson()));
-		}
+				ctx.response().end(obj.toBuffer());
+			});
+		});
 
-		ctx.response().end(obj.toBuffer());
 	}
 
 	private void handleStats(final RoutingContext ctx) {
@@ -295,39 +270,31 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final Device dev = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq(devId))
-				.first();
-
-		if (dev == null) {
-			this.error(ctx, 404, "Device not found");
-			return;
-		}
-
 		final String field = ctx.pathParam("field");
 		if (!Record.STAT_FIELDS.contains(field)) {
 			this.error(ctx, 400, "Invalid field");
 			return;
 		}
 
-		final Document doc = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Record.class)
-				.aggregate(this.getStatsAggregation(field, devId), Document.class)
-				.first();
+		final GetDeviceAction getDevAction = this.srv.getManager(DeviceManager.class).getDevice().setId(devId);
+		getDevAction.execute().onComplete(getRes -> {
+			if (getRes.failed()) {
+				this.error(ctx, 404, "Device not found");
+				return;
+			}
 
-		final JsonObject obj = new JsonObject(doc);
-		obj.remove("_id");
-		obj.put("device", dev.getId().toHexString());
-		obj.put("field", field);
+			final DeviceStatsAction action = this.srv.getManager(DeviceManager.class)
+					.deviceStats()
+					.setDevId(getRes.result().getId())
+					.setField(field);
 
-		ctx.response().end(obj.toBuffer());
+			action.execute().onComplete(res -> {
+				final JsonObject obj = res.result().toJson();
+				obj.remove("_id");
+
+				ctx.response().end(obj.toBuffer());
+			});
+		});
 	}
 
-	private List<Bson> getStatsAggregation(final String field, final ObjectId devId) {
-		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)),
-				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
-						Accumulators.min("min", "$" + field), Accumulators.max("max", "$" + field),
-						Accumulators.stdDevPop("stdDev", "$" + field)));
-	}
 }

@@ -22,6 +22,10 @@ public class UserManager extends AbstractManager {
 		super(srv);
 	}
 
+	public GetUserAction getUser() {
+		return new GetUserAction(srv);
+	}
+
 	public VerifyTokenAction verifyToken() {
 		return new VerifyTokenAction(this.srv);
 	}
@@ -32,6 +36,33 @@ public class UserManager extends AbstractManager {
 
 	public CreateUserAction createUser() {
 		return new CreateUserAction(this.srv);
+	}
+
+	public class GetUserAction extends AbstractAction<User> {
+		private ObjectId id;
+
+		public GetUserAction(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<User> promise) {
+			final User user
+					= this.srv.getManager(DatabaseManager.class).getCollection(User.class).find(Filters.eq(id)).first();
+			if (user != null)
+				promise.complete(user);
+			else
+				promise.fail("Failed to get user");
+		}
+
+		public ObjectId getId() {
+			return id;
+		}
+
+		public GetUserAction setId(ObjectId id) {
+			this.id = id;
+			return this;
+		}
 	}
 
 	public class VerifyTokenAction extends AbstractAction<Token> {
@@ -56,11 +87,11 @@ public class UserManager extends AbstractManager {
 				return;
 			}
 
-//			if ("mfa".equals(token.getPrefix())) { // XXX need to think about that
-//				promise.fail("MFA auth not complete");
-//				return;
-//			}
-			
+			// if ("mfa".equals(token.getPrefix())) { // XXX need to think about that
+			// promise.fail("MFA auth not complete");
+			// return;
+			// }
+
 			promise.complete(token);
 		}
 

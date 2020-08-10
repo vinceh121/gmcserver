@@ -31,6 +31,7 @@ import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
 import me.vinceh121.gmcserver.managers.AbstractManager;
+import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AuthModule;
@@ -153,6 +154,7 @@ public class GMCServer {
 		this.addManager(new MFAManager(this));
 		this.addManager(new WebsocketManager(this));
 		this.addManager(new UserManager(this));
+		this.addManager(new DeviceManager(this));
 	}
 
 	private void addManager(final AbstractManager mng) {
