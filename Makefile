@@ -19,7 +19,7 @@ install-server:
 
 install-web:
 	install -d $(DEST_WEB)/gmcserver
-	cp -r gmcserver-web/dist/gmcserver-web $(DEST_WEB)/gmcserver # try to find why install isn't behaving
+	cp -r gmcserver-web/dist/gmcserver-web/* $(DEST_WEB)/gmcserver # try to find why install isn't behaving
 
 install: | install-server install-web
 
