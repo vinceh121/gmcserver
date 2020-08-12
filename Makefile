@@ -18,7 +18,8 @@ install-server:
 	install -T -D gmcserver.service $(DEST_SERVICE)/gmcserver.service
 
 install-web:
-	install -d gmcserver-web/dist/gmcserver-web $(DEST_WEB)/gmcserver
+	install -d $(DEST_WEB)/gmcserver
+	cp -r gmcserver-web/dist/gmcserver-web $(DEST_WEB)/gmcserver # try to find why install isn't behaving
 
 install: | install-server install-web
 

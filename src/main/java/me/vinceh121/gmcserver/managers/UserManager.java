@@ -74,6 +74,11 @@ public class UserManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(Promise<Token> promise) {
+			if (tokenString == null) {
+				promise.fail("Token not specified");
+				return;
+			}
+			
 			final Token token;
 			try {
 				token = this.srv.getTokenize().validateToken(tokenString, this::fetchAccount);

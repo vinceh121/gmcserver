@@ -5,6 +5,10 @@ import io.vertx.core.json.JsonObject;
 public enum StandardIntent {
 	HANDSHAKE_COMPLETE, LOG2_RECORD, LOG_CLASSIC_RECORD;
 
+	public Intent create() {
+		return this.create(new JsonObject());
+	}
+
 	public Intent create(final JsonObject extras) {
 		return new Intent(this.name(), extras);
 	}
