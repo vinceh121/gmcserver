@@ -29,7 +29,6 @@ export class RequestService {
 
 	public updateHeaders(): void {
 		const tok = this.getToken();
-		console.log('token: ' + tok);
 		this.headers = this.headers.set('Authorization', tok);
 	}
 
@@ -49,6 +48,10 @@ export class RequestService {
 		this.locker.set(DRIVERS.LOCAL, 'user-id', id);
 		this.locker.set(DRIVERS.LOCAL, 'token', token);
 		this.updateHeaders();
+	}
+	
+	public logout() {
+		this.locker.clear(DRIVERS.LOCAL);
 	}
 
 	public connectWebsocket() {
@@ -96,7 +99,6 @@ export class RequestService {
 		if (end) {
 			params = params.append('end', String(end.getTime()));
 		}
-		console.log('params: ' + params);
 		return this.get<Record[]>('device/' + id + '/timeline', params);
 	}
 

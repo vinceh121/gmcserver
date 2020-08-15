@@ -71,7 +71,6 @@ export class MapComponent implements OnInit {
 	onMarkerClick(event: any) {
 		this.ngZone.run(() => {
 			const id: string = event.target.options.deviceId;
-			console.log('router: ' + this.router);
 			this.router.navigate(['/device/', id]);
 		});
 	}

@@ -1,0 +1,7 @@
+<mat-card *ngIf="!loggedout">
+	<mat-spinner></mat-spinner>
+</mat-card>
+<mat-card *ngIf="loggedout">
+	<h1>Successfully logged out</h1>
+	Redirecting you to home page...
+</mat-card>

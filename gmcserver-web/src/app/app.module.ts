@@ -37,6 +37,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { MapComponent } from './pages/map/map.component';
 import { UserComponent } from './pages/user/user.component';
 import { DisabledButtonComponent } from './components/disabled-button/disabled-button.component';
+import { LogoutComponent } from './pages/logout/logout.component';
 
 @NgModule({
 	declarations: [
@@ -47,7 +48,8 @@ import { DisabledButtonComponent } from './components/disabled-button/disabled-b
 		LoginComponent,
 		MapComponent,
 		UserComponent,
-		DisabledButtonComponent
+		DisabledButtonComponent,
+		LogoutComponent
 	],
 	imports: [
 		BrowserModule,
