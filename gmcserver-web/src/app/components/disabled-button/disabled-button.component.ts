@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Device } from '../types';
-import { RequestService } from '../request.service';
+import { Device } from '../../types';
+import { RequestService } from '../../request.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({

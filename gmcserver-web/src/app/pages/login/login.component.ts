@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RequestService } from '../request.service';
+import { RequestService } from '../../request.service';
 import { Router } from '@angular/router';
 /*import { HttpErrorResponse } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';

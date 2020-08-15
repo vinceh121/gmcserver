@@ -1,7 +1,7 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { tileLayer, latLng, Map, Layer, LatLngBounds, marker, LatLngTuple, icon, MarkerOptions } from 'leaflet';
-import { RequestService } from '../request.service';
-import { MapDevice } from '../types';
+import { RequestService } from '../../request.service';
+import { MapDevice } from '../../types';
 import { Router } from '@angular/router';
 
 interface DeviceMarkerOptions extends MarkerOptions {

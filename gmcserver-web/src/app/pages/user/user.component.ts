@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { RequestService } from '../request.service';
+import { RequestService } from '../../request.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { User } from '../types';
+import { User } from '../../types';
 @Component({
 	selector: 'app-user',
 	templateUrl: './user.component.html',
