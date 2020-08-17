@@ -171,8 +171,9 @@ public class GMCServer {
 	}
 
 	public void start() {
-		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")));
-		GMCServer.LOG.info("Listening on port {}", this.srv.actualPort());
+		final String host = this.config.getProperty("server.host", "127.0.0.1");
+		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host);
+		GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
 	}
 
 	@SuppressWarnings("unchecked")

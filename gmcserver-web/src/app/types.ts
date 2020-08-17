@@ -9,6 +9,7 @@ export interface Record {
 export interface MapDevice {
 	id: string;
 	location?: number[];
+	cpm: number;
 }
 
 export interface Device extends MapDevice {
