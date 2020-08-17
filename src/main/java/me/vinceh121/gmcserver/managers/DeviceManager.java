@@ -56,8 +56,8 @@ public class DeviceManager extends AbstractManager {
 		return new DeviceStatsAction(srv);
 	}
 
-	public DeviceHistoryAction deviceHistory() {
-		return new DeviceHistoryAction(srv);
+	public DeviceTimelineAction deviceTimeline() {
+		return new DeviceTimelineAction(srv);
 	}
 
 	public UpdateDeviceAction updateDevice() {
@@ -117,13 +117,13 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
-	public class DeviceHistoryAction extends AbstractAction<List<Record>> {
+	public class DeviceTimelineAction extends AbstractAction<List<Record>> {
 		private User requester;
 		private Device dev;
 		private Date start, end;
 		private boolean full;
 
-		public DeviceHistoryAction(GMCServer srv) {
+		public DeviceTimelineAction(GMCServer srv) {
 			super(srv);
 		}
 
@@ -161,7 +161,7 @@ public class DeviceManager extends AbstractManager {
 			return requester;
 		}
 
-		public DeviceHistoryAction setRequester(User requester) {
+		public DeviceTimelineAction setRequester(User requester) {
 			this.requester = requester;
 			return this;
 		}
@@ -170,7 +170,7 @@ public class DeviceManager extends AbstractManager {
 			return dev;
 		}
 
-		public DeviceHistoryAction setDev(Device dev) {
+		public DeviceTimelineAction setDev(Device dev) {
 			this.dev = dev;
 			return this;
 		}
@@ -179,7 +179,7 @@ public class DeviceManager extends AbstractManager {
 			return start;
 		}
 
-		public DeviceHistoryAction setStart(Date start) {
+		public DeviceTimelineAction setStart(Date start) {
 			this.start = start;
 			return this;
 		}
@@ -188,7 +188,7 @@ public class DeviceManager extends AbstractManager {
 			return end;
 		}
 
-		public DeviceHistoryAction setEnd(Date end) {
+		public DeviceTimelineAction setEnd(Date end) {
 			this.end = end;
 			return this;
 		}
@@ -197,7 +197,7 @@ public class DeviceManager extends AbstractManager {
 			return full;
 		}
 
-		public DeviceHistoryAction setFull(boolean full) {
+		public DeviceTimelineAction setFull(boolean full) {
 			this.full = full;
 			return this;
 		}

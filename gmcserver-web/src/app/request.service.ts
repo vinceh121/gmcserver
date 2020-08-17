@@ -14,8 +14,8 @@ export interface LoginRequest {
 	providedIn: 'root'
 })
 export class RequestService {
-	/*host = '127.0.0.1:80';*/
-	host = window.location.host;
+	host = '127.0.0.1:80';
+	/*host = window.location.host;*/
 	baseUrl: string = '//' + this.host + '/api/v1/';
 	/*baseUrl = '/api/v1/';*/
 	websocketUrl: string = 'ws://' + this.host + '/api/v1/ws';
@@ -106,7 +106,7 @@ export class RequestService {
 		return this.put('device/' + id, update);
 	}
 
-	public getMap(rect: number[][]): Observable<MapDevice[]> {
+	public getMap(rect: number[]): Observable<MapDevice[]> {
 		return this.get<MapDevice[]>('map/' + JSON.stringify(rect));
 	}
 

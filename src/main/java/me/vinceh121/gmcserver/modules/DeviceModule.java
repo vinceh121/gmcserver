@@ -17,7 +17,7 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
-import me.vinceh121.gmcserver.managers.DeviceManager.DeviceHistoryAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
@@ -228,8 +228,8 @@ public class DeviceModule extends AbstractModule {
 
 			final boolean full = "y".equals(ctx.request().getParam("full"));
 
-			final DeviceHistoryAction histAction = this.srv.getManager(DeviceManager.class)
-					.deviceHistory()
+			final DeviceTimelineAction histAction = this.srv.getManager(DeviceManager.class)
+					.deviceTimeline()
 					.setStart(start)
 					.setEnd(end)
 					.setFull(full)
