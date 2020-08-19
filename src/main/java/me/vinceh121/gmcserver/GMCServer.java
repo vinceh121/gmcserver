@@ -40,6 +40,7 @@ import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
 import me.vinceh121.gmcserver.modules.GeoModule;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
+import me.vinceh121.gmcserver.modules.InstanceModule;
 import me.vinceh121.gmcserver.modules.LoggingModule;
 import me.vinceh121.gmcserver.modules.UserModule;
 import xyz.bowser65.tokenize.Tokenize;
@@ -47,6 +48,7 @@ import xyz.bowser65.tokenize.Tokenize;
 public class GMCServer {
 	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
 	private final Properties config = new Properties();
+	private final InstanceInfo instanceInfo = new InstanceInfo();
 
 	private final Vertx vertx;
 
@@ -80,6 +82,8 @@ public class GMCServer {
 			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
 		}
+		
+		this.instanceInfo.fromProperties(this.config);
 
 		byte[] secret;
 		try {
@@ -172,6 +176,7 @@ public class GMCServer {
 		new GeoModule(this);
 		new UserModule(this);
 		new ImportExportModule(this);
+		new InstanceModule(this);
 	}
 
 	public void start() {
@@ -223,6 +228,10 @@ public class GMCServer {
 
 	public Vertx getVertx() {
 		return vertx;
+	}
+
+	public InstanceInfo getInstanceInfo() {
+		return instanceInfo;
 	}
 
 }

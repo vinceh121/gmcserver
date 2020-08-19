@@ -61,11 +61,8 @@ public class EmailManager extends AbstractManager {
 	}
 
 	private void fillStandardContext(final JsonObject obj) {
-		final JsonObject instance = new JsonObject();
-		obj.put("instance", instance);
+		obj.put("instance", JsonObject.mapFrom(this.srv.getInstanceInfo()));
 
-		instance.put("name", "TODODODODODOOD"); // TODO
-		instance.put("host", "TODODODODODOOD"); // TODO
 	}
 
 	public Future<String> buildEmail(final String template, final JsonObject context) {
