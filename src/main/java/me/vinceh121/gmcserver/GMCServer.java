@@ -31,8 +31,10 @@ import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
 import me.vinceh121.gmcserver.managers.AbstractManager;
+import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.UserManager;
+import me.vinceh121.gmcserver.managers.email.EmailManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
@@ -79,8 +81,6 @@ public class GMCServer {
 			System.exit(-1);
 		}
 
-		this.registerManagers();
-
 		byte[] secret;
 		try {
 			final String strSecret = this.config.getProperty("auth.secret");
@@ -113,6 +113,8 @@ public class GMCServer {
 		this.vertx = Vertx.factory.vertx(options);
 		this.srv = vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
+
+		this.registerManagers();
 
 		this.baseRouter = Router.router(vertx);
 		this.srv.requestHandler(this.baseRouter);
@@ -155,6 +157,8 @@ public class GMCServer {
 		this.addManager(new WebsocketManager(this));
 		this.addManager(new UserManager(this));
 		this.addManager(new DeviceManager(this));
+		this.addManager(new EmailManager(this));
+		this.addManager(new AlertManager(this));
 	}
 
 	private void addManager(final AbstractManager mng) {

@@ -1,0 +1,22 @@
+<mjml>
+    <mj-include path="./fragments/head.mjml"/>
+    <mj-body>
+        <mj-include path="./fragments/header.mjml" />
+
+        <mj-hero height="460px" padding="150px 0px" background-url="https://images.unsplash.com/photo-1578995511335-b54ca0772e83?auto=format&fit=crop&w=360&q=80">
+            <mj-text align="center" font-size="42px">
+                Welcome to GMCServer!
+            </mj-text>
+        </mj-hero>
+        <mj-section background-color="#424242" border-radius="4px">
+            <mj-column>
+                <mj-text>
+                    <h2>Thanks for using GMCServer!</h2>
+                    Your account '{{user/username}}' creating has been validated, you can now log data with your geiger counter.
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="./fragments/footer.mjml" />
+    </mj-body>
+</mjml>

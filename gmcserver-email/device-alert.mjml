@@ -1,0 +1,19 @@
+<mjml>
+    <mj-include path="./fragments/head.mjml" />
+    <mj-body>
+        <mj-include path="./fragments/header.mjml" />
+        <mj-section background-color="#424242" border-radius="4px">
+            <mj-column>
+                <mj-text>
+                    <h2>Your device “{{device/name}}” is showing abnormal readings</h2>
+                    Your device {{device/name}} has exceeded normal readings of {{fieldname}}.<br>
+                    The latest value was {{value}}.
+                </mj-text>
+                <mj-button href="https://{{instance/host}}/device/{{device/id}}">
+                    Device info
+                </mj-button>
+            </mj-column>
+        </mj-section>
+        <mj-include path="./fragments/footer.mjml" />
+    </mj-body>
+</mjml>

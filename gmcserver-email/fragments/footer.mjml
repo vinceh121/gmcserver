@@ -1,0 +1,25 @@
+<!-- <mj-spacer height="16px" /> -->
+<mj-section>
+    <mj-column>
+        <mj-text align="center">
+            <a href="http://{{instance/host}}/profile/emails">Unsubscribe from emails</a>
+        </mj-text>
+    </mj-column>
+    <mj-column>
+        <mj-text align="center">
+            <a class="footer-a" href="http://{{instance/host}}/about">About this instance</a>
+        </mj-text>
+    </mj-column>
+    <mj-column>
+        <mj-text align="center">
+            <a class="footer-a" href="https://gmcserver.vinceh121.me">About GMCServer</a>
+        </mj-text>
+    </mj-column>
+</mj-section>
+<mj-section>
+    <mj-column>
+        <mj-text align="center">
+            GMCServer &copy; 2020 vinceh121 &amp; contributors
+        </mj-text>
+    </mj-column>
+</mj-section>

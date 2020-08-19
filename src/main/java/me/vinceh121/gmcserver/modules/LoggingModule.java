@@ -15,6 +15,7 @@ import me.vinceh121.gmcserver.entities.Record.Builder;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.event.StandardIntent;
 import me.vinceh121.gmcserver.event.WebsocketManager;
+import me.vinceh121.gmcserver.managers.AlertManager;
 
 public class LoggingModule extends AbstractModule {
 	public static final String ERROR_SYNTAX = "The syntax of one of the logging parameters is incorrect";
@@ -107,6 +108,18 @@ public class LoggingModule extends AbstractModule {
 		this.srv.getManager(WebsocketManager.class)
 				.sendIntent(user.getId(),
 						StandardIntent.LOG2_RECORD.create(new JsonObject().put("record", rec.toJson())));
+
+		this.srv.getManager(AlertManager.class)
+				.checkAlert()
+				.setDev(device)
+				.setOwner(user)
+				.setLatestRecord(rec)
+				.execute()
+				.onComplete(emailRes -> {
+					if (emailRes.failed()) {
+						log.error("Failed to check alert email");
+					}
+				});
 	}
 
 	private void handleClassicLog(final RoutingContext ctx) {

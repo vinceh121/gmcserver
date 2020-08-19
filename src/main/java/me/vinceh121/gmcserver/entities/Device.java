@@ -1,5 +1,7 @@
 package me.vinceh121.gmcserver.entities;
 
+import java.util.Date;
+
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.model.geojson.Point;
@@ -12,6 +14,7 @@ public class Device extends AbstractEntity {
 	private ObjectId owner;
 	private long gmcId;
 	private boolean disabled;
+	private Date lastEmailAlert = new Date(0L);
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -67,6 +70,14 @@ public class Device extends AbstractEntity {
 
 	public void setImportedFrom(String importedFrom) {
 		this.importedFrom = importedFrom;
+	}
+
+	public Date getLastEmailAlert() {
+		return lastEmailAlert;
+	}
+
+	public void setLastEmailAlert(Date lastEmailAlert) {
+		this.lastEmailAlert = lastEmailAlert;
 	}
 
 	@Override

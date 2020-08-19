@@ -36,6 +36,10 @@
 
 		<gmc.config.path>./config.properties</gmc.config.path>
 		<gmc.vertx.config.path>./vertx.json</gmc.vertx.config.path>
+		<gmc.vertx.mail.config.path>./mail.json</gmc.vertx.mail.config.path>
+		<gmc.vertx.mail.templates.path>./gmcserver-email/out/</gmc.vertx.mail.templates.path>
+
+		<vertx.version>3.9.2</vertx.version>
 	</properties>
 
 	<repositories>
@@ -49,12 +53,17 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
-			<version>3.9.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web-client</artifactId>
-			<version>3.9.2</version>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-mail-client</artifactId>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>xyz.bowser65</groupId>

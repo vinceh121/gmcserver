@@ -1,0 +1,13 @@
+{
+  "name": "gmcserver-email",
+  "version": "0.0.0",
+  "description": "The email templates for GMCServer",
+  "main": "index.js",
+  "repository": "https://github.com/vinceh121/gmcserver",
+  "author": "vinceh121",
+  "license": "GNU GPL V3",
+  "private": true,
+  "dependencies": {
+    "mjml": "^4.6.3"
+  }
+}

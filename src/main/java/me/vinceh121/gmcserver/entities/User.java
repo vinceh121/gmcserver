@@ -16,7 +16,7 @@ import xyz.bowser65.tokenize.IAccount;
  *
  */
 public class User extends AbstractEntity implements IAccount {
-	private String username, password;
+	private String username, password, email;
 	/**
 	 * -1 = instance default
 	 */
@@ -82,6 +82,14 @@ public class User extends AbstractEntity implements IAccount {
 		this.mfa = mfa;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	@Override
 	@JsonIgnore
 	@BsonIgnore
@@ -109,6 +117,8 @@ public class User extends AbstractEntity implements IAccount {
 		final JsonObject obj = super.toPublicJson();
 		obj.remove("mfa");
 		obj.remove("gmcId");
+		obj.remove("email");
+		obj.remove("deviceLimit");
 		return obj;
 	}
 

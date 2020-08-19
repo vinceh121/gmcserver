@@ -1,0 +1,8 @@
+<mj-head>
+    <mj-attributes>
+        <mj-body background-color="#303030" />
+        <mj-text color="#fff" />
+        <mj-button background-color="#ff5722" />
+        <mj-navbar-link color="#fff" />
+    </mj-atributes>
+</mj-head>
