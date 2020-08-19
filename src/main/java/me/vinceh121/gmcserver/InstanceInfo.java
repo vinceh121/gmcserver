@@ -6,26 +6,26 @@ public class InstanceInfo {
 	private String host, name, about;
 
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
-	public void setHost(String host) {
+	public void setHost(final String host) {
 		this.host = host;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
 	public String getAbout() {
-		return about;
+		return this.about;
 	}
 
-	public void setAbout(String about) {
+	public void setAbout(final String about) {
 		this.about = about;
 	}
 

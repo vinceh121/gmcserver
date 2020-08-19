@@ -15,12 +15,12 @@ import me.vinceh121.gmcserver.managers.email.EmailManager;
 public class AlertManager extends AbstractManager {
 	public static final long ALERT_EMAIL_DELAY = 24 * 60 * 60 * 1000; // 1 day
 
-	public AlertManager(GMCServer srv) {
+	public AlertManager(final GMCServer srv) {
 		super(srv);
 	}
 
 	public CheckAlertAction checkAlert() {
-		return new CheckAlertAction(srv);
+		return new CheckAlertAction(this.srv);
 	}
 
 	public class CheckAlertAction extends AbstractAction<Boolean> {
@@ -34,18 +34,18 @@ public class AlertManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Boolean> promise) {
-			if (new Date().getTime() - dev.getLastEmailAlert().getTime() < ALERT_EMAIL_DELAY) {
+			if (new Date().getTime() - this.dev.getLastEmailAlert().getTime() < AlertManager.ALERT_EMAIL_DELAY) {
 				promise.complete(false);
 				return;
 			}
 			this.srv.getManager(DeviceManager.class)
 					.deviceStats()
 					.setField("cpm")
-					.setDevId(dev.getId())
+					.setDevId(this.dev.getId())
 					.execute()
 					.onComplete(statsRes -> {
 						if (statsRes.failed()) {
-							log.error("Failed to get stats for device {}", dev);
+							AlertManager.this.log.error("Failed to get stats for device {}", this.dev);
 							promise.fail("Failed to get stats");
 							return;
 						}
@@ -56,12 +56,12 @@ public class AlertManager extends AbstractManager {
 
 						if (this.latestRecord.getCpm() > upperBound) { // too high
 							final Email email = new Email();
-							email.setTo(owner);
+							email.setTo(this.owner);
 							email.setTemplate("device-alert");
-							email.setSubject("[ " + dev.getName() + " ] Abnormal CPM readings for device");
+							email.setSubject("[ " + this.dev.getName() + " ] Abnormal CPM readings for device");
 							email.getContext().put("fieldname", "CPM");
-							email.getContext().put("value", latestRecord.getCpm());
-							email.getContext().put("device", dev.toPublicJson());
+							email.getContext().put("value", this.latestRecord.getCpm());
+							email.getContext().put("device", this.dev.toPublicJson());
 							this.srv.getManager(EmailManager.class).sendEmail(email);
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
@@ -70,28 +70,28 @@ public class AlertManager extends AbstractManager {
 		}
 
 		public Device getDev() {
-			return dev;
+			return this.dev;
 		}
 
-		public CheckAlertAction setDev(Device dev) {
+		public CheckAlertAction setDev(final Device dev) {
 			this.dev = dev;
 			return this;
 		}
 
 		public User getOwner() {
-			return owner;
+			return this.owner;
 		}
 
-		public CheckAlertAction setOwner(User owner) {
+		public CheckAlertAction setOwner(final User owner) {
 			this.owner = owner;
 			return this;
 		}
 
 		public Record getLatestRecord() {
-			return latestRecord;
+			return this.latestRecord;
 		}
 
-		public CheckAlertAction setLatestRecord(Record latestRecord) {
+		public CheckAlertAction setLatestRecord(final Record latestRecord) {
 			this.latestRecord = latestRecord;
 			return this;
 		}

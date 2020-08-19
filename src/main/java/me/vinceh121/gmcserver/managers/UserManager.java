@@ -23,7 +23,7 @@ public class UserManager extends AbstractManager {
 	}
 
 	public GetUserAction getUser() {
-		return new GetUserAction(srv);
+		return new GetUserAction(this.srv);
 	}
 
 	public VerifyTokenAction verifyToken() {
@@ -41,25 +41,28 @@ public class UserManager extends AbstractManager {
 	public class GetUserAction extends AbstractAction<User> {
 		private ObjectId id;
 
-		public GetUserAction(GMCServer srv) {
+		public GetUserAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<User> promise) {
-			final User user
-					= this.srv.getManager(DatabaseManager.class).getCollection(User.class).find(Filters.eq(id)).first();
-			if (user != null)
+		protected void executeSync(final Promise<User> promise) {
+			final User user = this.srv.getManager(DatabaseManager.class)
+					.getCollection(User.class)
+					.find(Filters.eq(this.id))
+					.first();
+			if (user != null) {
 				promise.complete(user);
-			else
+			} else {
 				promise.fail("Failed to get user");
+			}
 		}
 
 		public ObjectId getId() {
-			return id;
+			return this.id;
 		}
 
-		public GetUserAction setId(ObjectId id) {
+		public GetUserAction setId(final ObjectId id) {
 			this.id = id;
 			return this;
 		}
@@ -68,20 +71,20 @@ public class UserManager extends AbstractManager {
 	public class VerifyTokenAction extends AbstractAction<Token> {
 		private String tokenString;
 
-		private VerifyTokenAction(GMCServer srv) {
+		private VerifyTokenAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Token> promise) {
-			if (tokenString == null) {
+		protected void executeSync(final Promise<Token> promise) {
+			if (this.tokenString == null) {
 				promise.fail("Token not specified");
 				return;
 			}
-			
+
 			final Token token;
 			try {
-				token = this.srv.getTokenize().validateToken(tokenString, this::fetchAccount);
+				token = this.srv.getTokenize().validateToken(this.tokenString, this::fetchAccount);
 			} catch (final SignatureException e) {
 				promise.fail("Couldn't validate token");
 				return;
@@ -101,10 +104,10 @@ public class UserManager extends AbstractManager {
 		}
 
 		public String getTokenString() {
-			return tokenString;
+			return this.tokenString;
 		}
 
-		public VerifyTokenAction setTokenString(String tokenString) {
+		public VerifyTokenAction setTokenString(final String tokenString) {
 			this.tokenString = tokenString;
 			return this;
 		}
@@ -121,7 +124,7 @@ public class UserManager extends AbstractManager {
 	public class UserLoginAction extends AbstractAction<Token> {
 		private String username, password;
 
-		public UserLoginAction(GMCServer srv) {
+		public UserLoginAction(final GMCServer srv) {
 			super(srv);
 		}
 
@@ -129,7 +132,7 @@ public class UserManager extends AbstractManager {
 		protected void executeSync(final Promise<Token> promise) {
 			final User user = this.srv.getManager(DatabaseManager.class)
 					.getCollection(User.class)
-					.find(Filters.eq("username", username))
+					.find(Filters.eq("username", this.username))
 					.first();
 
 			if (user == null) {
@@ -137,7 +140,7 @@ public class UserManager extends AbstractManager {
 				return;
 			}
 
-			if (!this.srv.getArgon().verify(user.getPassword(), password.toCharArray())) {
+			if (!this.srv.getArgon().verify(user.getPassword(), this.password.toCharArray())) {
 				promise.fail("Could not verify auth");
 				return;
 			}
@@ -152,19 +155,19 @@ public class UserManager extends AbstractManager {
 		}
 
 		public String getUsername() {
-			return username;
+			return this.username;
 		}
 
-		public UserLoginAction setUsername(String username) {
+		public UserLoginAction setUsername(final String username) {
 			this.username = username;
 			return this;
 		}
 
 		public String getPassword() {
-			return password;
+			return this.password;
 		}
 
-		public UserLoginAction setPassword(String password) {
+		public UserLoginAction setPassword(final String password) {
 			this.password = password;
 			return this;
 		}
@@ -172,7 +175,8 @@ public class UserManager extends AbstractManager {
 
 	public class CreateUserAction extends AbstractAction<User> {
 		private String username, password;
-		private boolean admin, generateGmcId, insertInDb = true, checkUsernameAvailable = true;
+		private boolean admin, generateGmcId, insertInDb = true;
+		private final boolean checkUsernameAvailable = true;
 		private long gmcId;
 
 		private CreateUserAction(final GMCServer srv) {
@@ -183,17 +187,17 @@ public class UserManager extends AbstractManager {
 		protected void executeSync(final Promise<User> promise) {
 			final User user = new User();
 			user.setUsername(this.username);
-			user.setPassword(this.srv.getArgon().hash(10, 65536, 1, password.toCharArray()));
-			user.setAdmin(admin);
+			user.setPassword(this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
+			user.setAdmin(this.admin);
 
-			if (generateGmcId) {
-				user.setGmcId(Math.abs(USER_RANDOM.nextLong()));
+			if (this.generateGmcId) {
+				user.setGmcId(Math.abs(UserManager.USER_RANDOM.nextLong()));
 			}
 			user.setGmcId(this.gmcId);
 
-			if (checkUsernameAvailable && this.srv.getManager(DatabaseManager.class)
+			if (this.checkUsernameAvailable && this.srv.getManager(DatabaseManager.class)
 					.getCollection(User.class)
-					.find(Filters.eq("username", username))
+					.find(Filters.eq("username", this.username))
 					.first() != null) {
 				promise.fail("Username taken");
 				return;
@@ -201,61 +205,61 @@ public class UserManager extends AbstractManager {
 
 			promise.complete(user);
 
-			if (insertInDb) {
+			if (this.insertInDb) {
 				this.srv.getManager(DatabaseManager.class).getCollection(User.class).insertOne(user);
 			}
 		}
 
 		public String getUsername() {
-			return username;
+			return this.username;
 		}
 
-		public CreateUserAction setUsername(String username) {
+		public CreateUserAction setUsername(final String username) {
 			this.username = username;
 			return this;
 		}
 
 		public String getPassword() {
-			return password;
+			return this.password;
 		}
 
-		public CreateUserAction setPassword(String password) {
+		public CreateUserAction setPassword(final String password) {
 			this.password = password;
 			return this;
 		}
 
 		public boolean isAdmin() {
-			return admin;
+			return this.admin;
 		}
 
-		public CreateUserAction setAdmin(boolean admin) {
+		public CreateUserAction setAdmin(final boolean admin) {
 			this.admin = admin;
 			return this;
 		}
 
 		public boolean isGenerateGmcId() {
-			return generateGmcId;
+			return this.generateGmcId;
 		}
 
-		public CreateUserAction setGenerateGmcId(boolean generateGmcId) {
+		public CreateUserAction setGenerateGmcId(final boolean generateGmcId) {
 			this.generateGmcId = generateGmcId;
 			return this;
 		}
 
 		public boolean isInsertInDb() {
-			return insertInDb;
+			return this.insertInDb;
 		}
 
-		public CreateUserAction setInsertInDb(boolean insertInDb) {
+		public CreateUserAction setInsertInDb(final boolean insertInDb) {
 			this.insertInDb = insertInDb;
 			return this;
 		}
 
 		public long getGmcId() {
-			return gmcId;
+			return this.gmcId;
 		}
 
-		public CreateUserAction setGmcId(long gmcId) {
+		public CreateUserAction setGmcId(final long gmcId) {
 			this.gmcId = gmcId;
 			return this;
 		}

@@ -7,7 +7,7 @@ import me.vinceh121.gmcserver.GMCServer;
 
 public class InstanceModule extends AbstractModule {
 
-	public InstanceModule(GMCServer srv) {
+	public InstanceModule(final GMCServer srv) {
 		super(srv);
 		this.registerRoute(HttpMethod.GET, "/instance/info", this::handleInstanceInfo);
 	}

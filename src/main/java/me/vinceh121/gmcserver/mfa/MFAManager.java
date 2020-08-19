@@ -106,30 +106,30 @@ public class MFAManager extends AbstractManager {
 	}
 
 	public SetupMFAAction setupMFA() {
-		return new SetupMFAAction(srv);
+		return new SetupMFAAction(this.srv);
 	}
 
 	public VerifyCodeAction verifyCode() {
-		return new VerifyCodeAction(srv);
+		return new VerifyCodeAction(this.srv);
 	}
 
 	public class SetupMFAAction extends AbstractAction<String> {
 		private User user;
 		private int pass;
 
-		public SetupMFAAction(GMCServer srv) {
+		public SetupMFAAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
 		protected void executeSync(final Promise<String> promise) {
-			if (user.getMfaKey() == null) { // MFA not setup at all
-				final MFAKey key = this.srv.getManager(MFAManager.class).setupMFA(user);
-				promise.complete(key.toURI("GMCServer " + user.getUsername()));
+			if (this.user.getMfaKey() == null) { // MFA not setup at all
+				final MFAKey key = this.srv.getManager(MFAManager.class).setupMFA(this.user);
+				promise.complete(key.toURI("GMCServer " + this.user.getUsername()));
 			} else { // Complete MFA setup
 				boolean matches;
 				try {
-					matches = this.srv.getManager(MFAManager.class).completeMfaSetup(user, pass);
+					matches = this.srv.getManager(MFAManager.class).completeMfaSetup(this.user, this.pass);
 				} catch (final InvalidKeyException e) {
 					promise.fail("Invalid MFA key");
 					return;
@@ -143,19 +143,19 @@ public class MFAManager extends AbstractManager {
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public SetupMFAAction setUser(User user) {
+		public SetupMFAAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
 
 		public int getPass() {
-			return pass;
+			return this.pass;
 		}
 
-		public SetupMFAAction setPass(int pass) {
+		public SetupMFAAction setPass(final int pass) {
 			this.pass = pass;
 			return this;
 		}
@@ -166,14 +166,14 @@ public class MFAManager extends AbstractManager {
 		private User user;
 		private int pass;
 
-		private VerifyCodeAction(GMCServer srv) {
+		private VerifyCodeAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Void> promise) {
+		protected void executeSync(final Promise<Void> promise) {
 			try {
-				if (this.srv.getManager(MFAManager.class).passwordMatches(user, pass)) {
+				if (this.srv.getManager(MFAManager.class).passwordMatches(this.user, this.pass)) {
 					promise.complete();
 				}
 			} catch (final InvalidKeyException e) {
@@ -184,19 +184,19 @@ public class MFAManager extends AbstractManager {
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public VerifyCodeAction setUser(User user) {
+		public VerifyCodeAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
 
 		public int getPass() {
-			return pass;
+			return this.pass;
 		}
 
-		public VerifyCodeAction setPass(int pass) {
+		public VerifyCodeAction setPass(final int pass) {
 			this.pass = pass;
 			return this;
 		}

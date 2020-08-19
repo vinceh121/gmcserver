@@ -32,7 +32,7 @@ public class ImportExportModule extends AbstractModule {
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
 	private static final SecureRandom DEV_RANDOM = new SecureRandom();
 
-	public ImportExportModule(GMCServer srv) {
+	public ImportExportModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::importGmcMap);
 	}
@@ -71,7 +71,7 @@ public class ImportExportModule extends AbstractModule {
 		dev.setImportedFrom(gmcmapId);
 		dev.setOwner(user.getId());
 		dev.setName("Imported from gmcmap ID " + gmcmapId);
-		dev.setGmcId(DEV_RANDOM.nextLong());
+		dev.setGmcId(ImportExportModule.DEV_RANDOM.nextLong());
 
 		this.srv.getManager(DatabaseManager.class).getCollection(Device.class).insertOne(dev);
 
@@ -88,7 +88,7 @@ public class ImportExportModule extends AbstractModule {
 
 			ctx.response().end();
 
-			List<Record> recs = res.result();
+			final List<Record> recs = res.result();
 			this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertMany(recs);
 
 			this.importPageRecurse(gmcmapId, 1, dev.getId());
@@ -116,7 +116,7 @@ public class ImportExportModule extends AbstractModule {
 	private Future<List<Record>> getRecords(final String gmcmapId, final int page, final ObjectId deviceId) {
 		return Future.future(p -> {
 			this.srv.getWebClient()
-					.get(GMCMAP_HOST, GMCMAP_HISTORY_URI)
+					.get(ImportExportModule.GMCMAP_HOST, ImportExportModule.GMCMAP_HISTORY_URI)
 					.setQueryParam("param_ID", gmcmapId)
 					.setQueryParam("curpage", String.valueOf(page))
 					.send(a -> {
@@ -153,7 +153,7 @@ public class ImportExportModule extends AbstractModule {
 							final Record r = new Record();
 							r.setDeviceId(deviceId);
 							try {
-								r.setDate(GMCMAP_DATE_FMT.parse(elmDate.text()));
+								r.setDate(ImportExportModule.GMCMAP_DATE_FMT.parse(elmDate.text()));
 							} catch (final ParseException e) {
 								this.log.error("Error while parsing date for record during import", e);
 								return;

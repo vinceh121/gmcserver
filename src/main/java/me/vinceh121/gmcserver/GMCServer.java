@@ -68,7 +68,7 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	public static void main(final String[] args) {
-		LOG.debug("Build options:\n" + GMCBuild.buildOptions());
+		GMCServer.LOG.debug("Build options:\n" + GMCBuild.buildOptions());
 		final GMCServer srv = new GMCServer();
 		srv.start();
 	}
@@ -82,7 +82,7 @@ public class GMCServer {
 			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
 		}
-		
+
 		this.instanceInfo.fromProperties(this.config);
 
 		byte[] secret;
@@ -109,21 +109,21 @@ public class GMCServer {
 			options = new VertxOptions(
 					new JsonObject(new String(Files.readAllBytes(Paths.get(GMCBuild.VERTX_CONFIG_PATH)))));
 		} catch (final IOException e) {
-			LOG.error("Failed to read vertx config", e);
+			GMCServer.LOG.error("Failed to read vertx config", e);
 			System.exit(-2);
 			throw new IllegalStateException(e);
 		}
 
 		this.vertx = Vertx.factory.vertx(options);
-		this.srv = vertx.createHttpServer();
+		this.srv = this.vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
 
 		this.registerManagers();
 
-		this.baseRouter = Router.router(vertx);
+		this.baseRouter = Router.router(this.vertx);
 		this.srv.requestHandler(this.baseRouter);
 
-		this.apiRouter = Router.router(vertx);
+		this.apiRouter = Router.router(this.vertx);
 		this.baseRouter.mountSubRouter("/api/v1/", this.apiRouter);
 
 		this.bodyHandler = BodyHandler.create();
@@ -136,14 +136,14 @@ public class GMCServer {
 
 		final WebClientOptions opts = new WebClientOptions();
 		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://gmcserver.vinceh121.me");
-		this.webClient = WebClient.create(vertx, opts);
+		this.webClient = WebClient.create(this.vertx, opts);
 
 		this.registerModules();
 
 		this.srv.webSocketHandler(this.getManager(WebsocketManager.class));
 
 		if (Boolean.parseBoolean(this.config.getProperty("web.enabled"))) {
-			this.setupWebRouter(vertx);
+			this.setupWebRouter(this.vertx);
 		}
 	}
 
@@ -223,15 +223,15 @@ public class GMCServer {
 	}
 
 	public WebClient getWebClient() {
-		return webClient;
+		return this.webClient;
 	}
 
 	public Vertx getVertx() {
-		return vertx;
+		return this.vertx;
 	}
 
 	public InstanceInfo getInstanceInfo() {
-		return instanceInfo;
+		return this.instanceInfo;
 	}
 
 }

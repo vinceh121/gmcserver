@@ -117,7 +117,7 @@ public class LoggingModule extends AbstractModule {
 				.execute()
 				.onComplete(emailRes -> {
 					if (emailRes.failed()) {
-						log.error("Failed to check alert email");
+						this.log.error("Failed to check alert email");
 					}
 				});
 	}

@@ -21,12 +21,12 @@ public class EmailManager extends AbstractManager {
 	private final MailClient client;
 	private final String from;
 
-	public EmailManager(GMCServer srv) {
+	public EmailManager(final GMCServer srv) {
 		super(srv);
 		try {
 			this.client = MailClient.create(srv.getVertx(), new MailConfig(
 					new JsonObject(new String(Files.readAllBytes(Paths.get(GMCBuild.VERTX_MAIL_CONFIG_PATH))))));
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			this.log.error("Failed to read mail config", e);
 			throw new RuntimeException(e);
 		}
@@ -80,8 +80,8 @@ public class EmailManager extends AbstractManager {
 	private String resolveVariables(final String rawHtml, final JsonObject context) throws IllegalArgumentException {
 		final StringBuilder sb = new StringBuilder(rawHtml);
 		Matcher matcher;
-		while ((matcher = VAR_PATTERN.matcher(sb)).find()) {
-			final String path = matcher.group().substring(2, (matcher.end() - matcher.start()) - 2); // strip {{ & }}
+		while ((matcher = EmailManager.VAR_PATTERN.matcher(sb)).find()) {
+			final String path = matcher.group().substring(2, matcher.end() - matcher.start() - 2); // strip {{ & }}
 			final JsonPointer pointer = JsonPointer.from("/" + path);
 			final String value = String.valueOf(pointer.queryJson(context));
 

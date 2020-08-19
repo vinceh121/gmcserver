@@ -1,5 +1,7 @@
 package me.vinceh121.gmcserver.event;
 
+import java.util.Objects;
+
 import io.vertx.core.json.JsonObject;
 
 public class Intent {
@@ -41,18 +43,10 @@ public class Intent {
 			return false;
 		}
 		final Intent other = (Intent) obj;
-		if (this.extras == null) {
-			if (other.extras != null) {
-				return false;
-			}
-		} else if (!this.extras.equals(other.extras)) {
+		if (!Objects.equals(this.extras, other.extras)) {
 			return false;
 		}
-		if (this.name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!this.name.equals(other.name)) {
+		if (!Objects.equals(this.name, other.name)) {
 			return false;
 		}
 		return true;

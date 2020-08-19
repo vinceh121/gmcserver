@@ -65,18 +65,18 @@ public class Device extends AbstractEntity {
 	}
 
 	public String getImportedFrom() {
-		return importedFrom;
+		return this.importedFrom;
 	}
 
-	public void setImportedFrom(String importedFrom) {
+	public void setImportedFrom(final String importedFrom) {
 		this.importedFrom = importedFrom;
 	}
 
 	public Date getLastEmailAlert() {
-		return lastEmailAlert;
+		return this.lastEmailAlert;
 	}
 
-	public void setLastEmailAlert(Date lastEmailAlert) {
+	public void setLastEmailAlert(final Date lastEmailAlert) {
 		this.lastEmailAlert = lastEmailAlert;
 	}
 

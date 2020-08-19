@@ -195,18 +195,10 @@ public class Record extends AbstractEntity {
 		if (Double.doubleToLongBits(this.cpm) != Double.doubleToLongBits(other.cpm)) {
 			return false;
 		}
-		if (this.date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!this.date.equals(other.date)) {
+		if (!Objects.equals(this.date, other.date)) {
 			return false;
 		}
-		if (this.deviceId == null) {
-			if (other.deviceId != null) {
-				return false;
-			}
-		} else if (!this.deviceId.equals(other.deviceId)) {
+		if (!Objects.equals(this.deviceId, other.deviceId)) {
 			return false;
 		}
 		if (Double.doubleToLongBits(this.hcho) != Double.doubleToLongBits(other.hcho)) {
@@ -215,28 +207,16 @@ public class Record extends AbstractEntity {
 		if (Double.doubleToLongBits(this.hmdt) != Double.doubleToLongBits(other.hmdt)) {
 			return false;
 		}
-		if (this.ip == null) {
-			if (other.ip != null) {
-				return false;
-			}
-		} else if (!this.ip.equals(other.ip)) {
+		if (!Objects.equals(this.ip, other.ip)) {
 			return false;
 		}
-		if (this.location == null) {
-			if (other.location != null) {
-				return false;
-			}
-		} else if (!this.location.equals(other.location)) {
+		if (!Objects.equals(this.location, other.location)) {
 			return false;
 		}
 		if (Double.doubleToLongBits(this.tmp) != Double.doubleToLongBits(other.tmp)) {
 			return false;
 		}
-		if (this.type == null) {
-			if (other.type != null) {
-				return false;
-			}
-		} else if (!this.type.equals(other.type)) {
+		if (!Objects.equals(this.type, other.type)) {
 			return false;
 		}
 		if (Double.doubleToLongBits(this.usv) != Double.doubleToLongBits(other.usv)) {

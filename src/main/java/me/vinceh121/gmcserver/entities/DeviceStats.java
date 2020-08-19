@@ -8,50 +8,50 @@ public class DeviceStats extends AbstractEntity {
 	private double avg, min, max, stdDev;
 
 	public String getField() {
-		return field;
+		return this.field;
 	}
 
-	public void setField(String field) {
+	public void setField(final String field) {
 		this.field = field;
 	}
 
 	public ObjectId getDevice() {
-		return device;
+		return this.device;
 	}
 
-	public void setDevice(ObjectId device) {
+	public void setDevice(final ObjectId device) {
 		this.device = device;
 	}
 
 	public double getAvg() {
-		return avg;
+		return this.avg;
 	}
 
-	public void setAvg(double avg) {
+	public void setAvg(final double avg) {
 		this.avg = avg;
 	}
 
 	public double getMin() {
-		return min;
+		return this.min;
 	}
 
-	public void setMin(double min) {
+	public void setMin(final double min) {
 		this.min = min;
 	}
 
 	public double getMax() {
-		return max;
+		return this.max;
 	}
 
-	public void setMax(double max) {
+	public void setMax(final double max) {
 		this.max = max;
 	}
 
 	public double getStdDev() {
-		return stdDev;
+		return this.stdDev;
 	}
 
-	public void setStdDev(double stdDev) {
+	public void setStdDev(final double stdDev) {
 		this.stdDev = stdDev;
 	}
 }

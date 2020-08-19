@@ -9,35 +9,35 @@ public class Email {
 	private User to;
 
 	public JsonObject getContext() {
-		return context;
+		return this.context;
 	}
 
-	public void setContext(JsonObject context) {
+	public void setContext(final JsonObject context) {
 		this.context = context;
 	}
 
 	public String getTemplate() {
-		return template;
+		return this.template;
 	}
 
-	public void setTemplate(String template) {
+	public void setTemplate(final String template) {
 		this.template = template;
 	}
 
 	public User getTo() {
-		return to;
+		return this.to;
 	}
 
-	public void setTo(User to) {
+	public void setTo(final User to) {
 		this.to = to;
 		this.context.put("user", to.toPublicJson());
 	}
 
 	public String getSubject() {
-		return subject;
+		return this.subject;
 	}
 
-	public void setSubject(String subject) {
+	public void setSubject(final String subject) {
 		this.subject = subject;
 	}
 

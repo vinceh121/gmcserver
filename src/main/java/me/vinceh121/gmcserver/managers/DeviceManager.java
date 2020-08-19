@@ -35,7 +35,7 @@ import me.vinceh121.gmcserver.entities.User;
 public class DeviceManager extends AbstractManager {
 	private static final Random DEVICE_RNG = new SecureRandom();
 
-	public DeviceManager(GMCServer srv) {
+	public DeviceManager(final GMCServer srv) {
 		super(srv);
 	}
 
@@ -53,65 +53,66 @@ public class DeviceManager extends AbstractManager {
 	}
 
 	public DeviceStatsAction deviceStats() {
-		return new DeviceStatsAction(srv);
+		return new DeviceStatsAction(this.srv);
 	}
 
 	public DeviceTimelineAction deviceTimeline() {
-		return new DeviceTimelineAction(srv);
+		return new DeviceTimelineAction(this.srv);
 	}
 
 	public UpdateDeviceAction updateDevice() {
-		return new UpdateDeviceAction(srv);
+		return new UpdateDeviceAction(this.srv);
 	}
 
 	public GetDeviceAction getDevice() {
-		return new GetDeviceAction(srv);
+		return new GetDeviceAction(this.srv);
 	}
 
 	public DeleteDeviceAction deleteDevice() {
-		return new DeleteDeviceAction(srv);
+		return new DeleteDeviceAction(this.srv);
 	}
 
 	public CreateDeviceAction createDevice() {
-		return new CreateDeviceAction(srv);
+		return new CreateDeviceAction(this.srv);
 	}
 
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
 		private ObjectId devId;
 
-		public DeviceStatsAction(GMCServer srv) {
+		public DeviceStatsAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<DeviceStats> promise) {
+		protected void executeSync(final Promise<DeviceStats> promise) {
 			final DeviceStats stats = this.srv.getManager(DatabaseManager.class)
 					.getCollection(Record.class)
-					.aggregate(getStatsAggregation(field, devId), DeviceStats.class)
+					.aggregate(DeviceManager.this.getStatsAggregation(this.field, this.devId), DeviceStats.class)
 					.first();
 			if (stats != null) {
-				stats.setDevice(devId);
-				stats.setField(field);
+				stats.setDevice(this.devId);
+				stats.setField(this.field);
 				promise.complete(stats);
-			} else
+			} else {
 				promise.fail("Could not get stats");
+			}
 		}
 
 		public String getField() {
-			return field;
+			return this.field;
 		}
 
-		public DeviceStatsAction setField(String field) {
+		public DeviceStatsAction setField(final String field) {
 			this.field = field;
 			return this;
 		}
 
 		public ObjectId getDevId() {
-			return devId;
+			return this.devId;
 		}
 
-		public DeviceStatsAction setDevId(ObjectId devId) {
+		public DeviceStatsAction setDevId(final ObjectId devId) {
 			this.devId = devId;
 			return this;
 		}
@@ -123,23 +124,23 @@ public class DeviceManager extends AbstractManager {
 		private Date start, end;
 		private boolean full;
 
-		public DeviceTimelineAction(GMCServer srv) {
+		public DeviceTimelineAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<List<Record>> promise) {
+		protected void executeSync(final Promise<List<Record>> promise) {
 
 			final Collection<Bson> filters = new Vector<>();
 
-			filters.add(Filters.eq("deviceId", dev.getId()));
+			filters.add(Filters.eq("deviceId", this.dev.getId()));
 
-			if (start != null) {
-				filters.add(Filters.gte("date", start));
+			if (this.start != null) {
+				filters.add(Filters.gte("date", this.start));
 			}
 
-			if (end != null) {
-				filters.add(Filters.lte("date", end));
+			if (this.end != null) {
+				filters.add(Filters.lte("date", this.end));
 			}
 
 			final FindIterable<Record> it
@@ -147,7 +148,7 @@ public class DeviceManager extends AbstractManager {
 			it.sort(Sorts.ascending("date"));
 			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
-			if (full && requester != null && requester.getId().equals(dev.getOwner())) {
+			if (this.full && this.requester != null && this.requester.getId().equals(this.dev.getOwner())) {
 				it.limit(0);
 			}
 
@@ -158,46 +159,46 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		public User getRequester() {
-			return requester;
+			return this.requester;
 		}
 
-		public DeviceTimelineAction setRequester(User requester) {
+		public DeviceTimelineAction setRequester(final User requester) {
 			this.requester = requester;
 			return this;
 		}
 
 		public Device getDev() {
-			return dev;
+			return this.dev;
 		}
 
-		public DeviceTimelineAction setDev(Device dev) {
+		public DeviceTimelineAction setDev(final Device dev) {
 			this.dev = dev;
 			return this;
 		}
 
 		public Date getStart() {
-			return start;
+			return this.start;
 		}
 
-		public DeviceTimelineAction setStart(Date start) {
+		public DeviceTimelineAction setStart(final Date start) {
 			this.start = start;
 			return this;
 		}
 
 		public Date getEnd() {
-			return end;
+			return this.end;
 		}
 
-		public DeviceTimelineAction setEnd(Date end) {
+		public DeviceTimelineAction setEnd(final Date end) {
 			this.end = end;
 			return this;
 		}
 
 		public boolean isFull() {
-			return full;
+			return this.full;
 		}
 
-		public DeviceTimelineAction setFull(boolean full) {
+		public DeviceTimelineAction setFull(final boolean full) {
 			this.full = full;
 			return this;
 		}
@@ -209,68 +210,69 @@ public class DeviceManager extends AbstractManager {
 		private String name, model;
 		private JsonArray arrLocation;
 
-		public UpdateDeviceAction(GMCServer srv) {
+		public UpdateDeviceAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Long> promise) {
+		protected void executeSync(final Promise<Long> promise) {
 			final List<Bson> updates = new Vector<>();
 
-			if (name != null) {
-				updates.add(Updates.set("name", name));
+			if (this.name != null) {
+				updates.add(Updates.set("name", this.name));
 			}
 
-			if (model != null) {
-				updates.add(Updates.set("model", model));
+			if (this.model != null) {
+				updates.add(Updates.set("model", this.model));
 			}
 
-			if (arrLocation != null) {
-				updates.add(Updates.set("location", jsonArrToPoint(arrLocation)));
+			if (this.arrLocation != null) {
+				updates.add(Updates.set("location", DeviceManager.this.jsonArrToPoint(this.arrLocation)));
 			}
 
 			final UpdateResult res = this.srv.getManager(DatabaseManager.class)
 					.getCollection(Device.class)
-					.updateOne(Filters.eq(device.getId()), Updates.combine(updates));
+					.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
 
-			if (res.wasAcknowledged())
+			if (res.wasAcknowledged()) {
 				promise.complete(res.getModifiedCount());
-			else
+			} else {
 				promise.fail("Failed to save changes");
+			}
 		}
 
 		public Device getDevice() {
-			return device;
+			return this.device;
 		}
 
-		public UpdateDeviceAction setDevice(Device device) {
+		public UpdateDeviceAction setDevice(final Device device) {
 			this.device = device;
 			return this;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
-		public UpdateDeviceAction setName(String name) {
+		public UpdateDeviceAction setName(final String name) {
 			this.name = name;
 			return this;
 		}
 
 		public String getModel() {
-			return model;
+			return this.model;
 		}
 
-		public UpdateDeviceAction setModel(String model) {
+		public UpdateDeviceAction setModel(final String model) {
 			this.model = model;
 			return this;
 		}
 
 		public JsonArray getArrLocation() {
-			return arrLocation;
+			return this.arrLocation;
 		}
 
-		public UpdateDeviceAction setArrLocation(JsonArray arrLocation) {
+		public UpdateDeviceAction setArrLocation(final JsonArray arrLocation) {
 			this.arrLocation = arrLocation;
 			return this;
 		}
@@ -280,15 +282,15 @@ public class DeviceManager extends AbstractManager {
 	public class GetDeviceAction extends AbstractAction<Device> {
 		private ObjectId id;
 
-		public GetDeviceAction(GMCServer srv) {
+		public GetDeviceAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Device> promise) {
+		protected void executeSync(final Promise<Device> promise) {
 			final Device dev = this.srv.getManager(DatabaseManager.class)
 					.getCollection(Device.class)
-					.find(Filters.eq(id))
+					.find(Filters.eq(this.id))
 					.first();
 
 			if (dev == null) {
@@ -300,10 +302,10 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		public ObjectId getId() {
-			return id;
+			return this.id;
 		}
 
-		public GetDeviceAction setId(ObjectId id) {
+		public GetDeviceAction setId(final ObjectId id) {
 			this.id = id;
 			return this;
 		}
@@ -314,15 +316,15 @@ public class DeviceManager extends AbstractManager {
 		private User user;
 		private boolean delete;
 
-		public DeleteDeviceAction(GMCServer srv) {
+		public DeleteDeviceAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Void> promise) {
+		protected void executeSync(final Promise<Void> promise) {
 			final Device dev = this.srv.getManager(DatabaseManager.class)
 					.getCollection(Device.class)
-					.find(Filters.eq(deviceId))
+					.find(Filters.eq(this.deviceId))
 					.first();
 
 			if (dev == null) {
@@ -330,12 +332,12 @@ public class DeviceManager extends AbstractManager {
 				return;
 			}
 
-			if (!user.getId().equals(dev.getId()) || user.isAdmin()) {
+			if (!this.user.getId().equals(dev.getId()) || this.user.isAdmin()) {
 				promise.fail("Not owner of device");
 				return;
 			}
 
-			if (!delete) {
+			if (!this.delete) {
 				this.srv.getManager(DatabaseManager.class)
 						.getCollection(Device.class)
 						.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
@@ -352,28 +354,28 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		public ObjectId getDeviceId() {
-			return deviceId;
+			return this.deviceId;
 		}
 
-		public DeleteDeviceAction setDeviceId(ObjectId deviceId) {
+		public DeleteDeviceAction setDeviceId(final ObjectId deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public DeleteDeviceAction setUser(User user) {
+		public DeleteDeviceAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
 
 		public boolean isDelete() {
-			return delete;
+			return this.delete;
 		}
 
-		public DeleteDeviceAction setDelete(boolean delete) {
+		public DeleteDeviceAction setDelete(final boolean delete) {
 			this.delete = delete;
 			return this;
 		}
@@ -385,35 +387,35 @@ public class DeviceManager extends AbstractManager {
 		private JsonArray arrLocation;
 		private String name;
 
-		public CreateDeviceAction(GMCServer srv) {
+		public CreateDeviceAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
-		protected void executeSync(Promise<Device> promise) {
-			if (name == null) {
+		protected void executeSync(final Promise<Device> promise) {
+			if (this.name == null) {
 				promise.fail("Parameter name missing");
 				return;
 			}
 
 			final int deviceLimit;
-			if (user.getDeviceLimit() != -1) {
-				deviceLimit = user.getDeviceLimit();
+			if (this.user.getDeviceLimit() != -1) {
+				deviceLimit = this.user.getDeviceLimit();
 			} else {
 				deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 			}
 
 			if (deviceLimit <= this.srv.getManager(DatabaseManager.class)
 					.getCollection(Device.class)
-					.countDocuments(Filters.eq("ownerId", user.getId()))) {
+					.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
 				promise.fail("Device limit reached");
 				return;
 			}
 
 			final Point location;
-			if (arrLocation != null && arrLocation.size() == 2) {
-				location = jsonArrToPoint(arrLocation);
-			} else if (arrLocation != null && arrLocation.size() != 2) {
+			if (this.arrLocation != null && this.arrLocation.size() == 2) {
+				location = DeviceManager.this.jsonArrToPoint(this.arrLocation);
+			} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
 				promise.fail("Invalid location");
 				location = null;
 			} else {
@@ -421,69 +423,70 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			final Device dev = new Device();
-			dev.setOwner(user.getId());
-			dev.setName(name);
-			if (generateGmcId)
-				dev.setGmcId(Math.abs(DEVICE_RNG.nextLong()));
+			dev.setOwner(this.user.getId());
+			dev.setName(this.name);
+			if (this.generateGmcId) {
+				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()));
+			}
 			dev.setLocation(location);
 
 			promise.complete(dev);
 
-			if (insertInDb) {
+			if (this.insertInDb) {
 				this.srv.getManager(DatabaseManager.class).getCollection(Device.class).insertOne(dev);
 			}
 		}
 
 		public boolean isInsertInDb() {
-			return insertInDb;
+			return this.insertInDb;
 		}
 
-		public CreateDeviceAction setInsertInDb(boolean insertInDb) {
+		public CreateDeviceAction setInsertInDb(final boolean insertInDb) {
 			this.insertInDb = insertInDb;
 			return this;
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public CreateDeviceAction setUser(User owner) {
+		public CreateDeviceAction setUser(final User owner) {
 			this.user = owner;
 			return this;
 		}
 
 		public boolean isIgnoreDeviceLimit() {
-			return ignoreDeviceLimit;
+			return this.ignoreDeviceLimit;
 		}
 
-		public CreateDeviceAction setIgnoreDeviceLimit(boolean ignoreDeviceLimit) {
+		public CreateDeviceAction setIgnoreDeviceLimit(final boolean ignoreDeviceLimit) {
 			this.ignoreDeviceLimit = ignoreDeviceLimit;
 			return this;
 		}
 
 		public boolean isGenerateGmcId() {
-			return generateGmcId;
+			return this.generateGmcId;
 		}
 
-		public CreateDeviceAction setGenerateGmcId(boolean generateGmcId) {
+		public CreateDeviceAction setGenerateGmcId(final boolean generateGmcId) {
 			this.generateGmcId = generateGmcId;
 			return this;
 		}
 
 		public JsonArray getArrLocation() {
-			return arrLocation;
+			return this.arrLocation;
 		}
 
-		public CreateDeviceAction setArrLocation(JsonArray arrLocation) {
+		public CreateDeviceAction setArrLocation(final JsonArray arrLocation) {
 			this.arrLocation = arrLocation;
 			return this;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
-		public CreateDeviceAction setName(String name) {
+		public CreateDeviceAction setName(final String name) {
 			this.name = name;
 			return this;
 		}

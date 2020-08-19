@@ -17,8 +17,8 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
-import me.vinceh121.gmcserver.managers.DeviceManager.DeviceTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
 import me.vinceh121.gmcserver.managers.UserManager;
@@ -172,7 +172,7 @@ public class DeviceModule extends AbstractModule {
 			getOwnerAction.execute().onComplete(ures -> {
 				final boolean own = user != null && user.getId().equals(dev.getOwner());
 
-				final JsonObject obj = (own ? dev.toJson() : dev.toPublicJson());
+				final JsonObject obj = own ? dev.toJson() : dev.toPublicJson();
 				obj.put("own", own);
 				obj.put("owner", ures.result().toPublicJson());
 
