@@ -68,7 +68,7 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	public static void main(final String[] args) {
-		GMCServer.LOG.debug("Build options:\n" + GMCBuild.buildOptions());
+		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
 		final GMCServer srv = new GMCServer();
 		srv.start();
 	}
@@ -116,7 +116,7 @@ public class GMCServer {
 
 		this.vertx = Vertx.factory.vertx(options);
 		this.srv = this.vertx.createHttpServer();
-		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error: {}", t));
+		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error", t));
 
 		this.registerManagers();
 
@@ -125,6 +125,7 @@ public class GMCServer {
 
 		this.apiRouter = Router.router(this.vertx);
 		this.baseRouter.mountSubRouter("/api/v1/", this.apiRouter);
+		this.apiRouter.errorHandler(500, ctx -> GMCServer.LOG.error("Unexpected error in API", ctx.failure()));
 
 		this.bodyHandler = BodyHandler.create();
 		this.apiHandler = new APIHandler();
@@ -150,7 +151,8 @@ public class GMCServer {
 	private void setupWebRouter(final Vertx vertx) {
 		GMCServer.LOG.info("Starting web server");
 		final Router webRouter = Router.router(vertx);
-		final WebHandler webHandler = new WebHandler(Paths.get(this.config.getProperty("web.root")));
+		final WebHandler webHandler
+				= new WebHandler(Paths.get(this.config.getProperty("web.root")), this.vertx.fileSystem());
 		webRouter.route().handler(webHandler);
 		this.baseRouter.mountSubRouter("/", webRouter);
 	}
