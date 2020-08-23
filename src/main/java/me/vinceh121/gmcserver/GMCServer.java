@@ -121,6 +121,7 @@ public class GMCServer {
 		this.registerManagers();
 
 		this.baseRouter = Router.router(this.vertx);
+		this.baseRouter.errorHandler(500, ctx -> LOG.error("Unexpected HTTP error", ctx.failure()));
 		this.srv.requestHandler(this.baseRouter);
 
 		this.apiRouter = Router.router(this.vertx);
