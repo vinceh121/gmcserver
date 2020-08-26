@@ -4,16 +4,12 @@ import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.entities.User;
 
 public class Email {
-	private JsonObject context = new JsonObject();
+	private final JsonObject context = new JsonObject();
 	private String template, subject;
 	private User to;
 
 	public JsonObject getContext() {
 		return this.context;
-	}
-
-	public void setContext(final JsonObject context) {
-		this.context = context;
 	}
 
 	public String getTemplate() {

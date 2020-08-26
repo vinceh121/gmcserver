@@ -33,29 +33,34 @@ public class EmailManager extends AbstractManager {
 		this.from = this.srv.getConfig().getProperty("email.from"); // TODO default value from instance host
 	}
 
-	public void sendEmail(final Email email) {
-		this.fillStandardContext(email.getContext());
+	public Future<Void> sendEmail(final Email email) {
+		return Future.future(p -> {
+			this.fillStandardContext(email.getContext());
 
-		this.buildEmail(email.getTemplate() + ".html", email.getContext()).onComplete(buildRes -> {
-			if (buildRes.failed()) {
-				this.log.error("Error while building email", buildRes.cause());
-				return;
-			}
-
-			final String content = buildRes.result();
-
-			final MailMessage message = new MailMessage();
-			message.setFrom(this.from);
-			message.setTo(email.getTo().getUsername() + " <" + email.getTo().getEmail() + ">");
-			message.setHtml(content);
-			message.setSubject(email.getSubject());
-
-			this.client.sendMail(message, mailRes -> {
-				if (mailRes.failed()) {
-					this.log.error("Failed to send email", mailRes.cause());
-				} else {
-					this.log.info("Email sent to {}", email.getTo());
+			this.buildEmail(email.getTemplate() + ".html", email.getContext()).onComplete(buildRes -> {
+				if (buildRes.failed()) {
+					this.log.error("Error while building email", buildRes.cause());
+					p.fail(buildRes.cause());
+					return;
 				}
+
+				final String content = buildRes.result();
+
+				final MailMessage message = new MailMessage();
+				message.setFrom(this.from);
+				message.setTo(email.getTo().getUsername() + " <" + email.getTo().getEmail() + ">");
+				message.setHtml(content);
+				message.setSubject(email.getSubject());
+
+				this.client.sendMail(message, mailRes -> {
+					if (mailRes.failed()) {
+						this.log.error("Failed to send email", mailRes.cause());
+						p.fail(buildRes.cause());
+					} else {
+						this.log.info("Email sent to {}", email.getTo());
+						p.complete();
+					}
+				});
 			});
 		});
 	}
