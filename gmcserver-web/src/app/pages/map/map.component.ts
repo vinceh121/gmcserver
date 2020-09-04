@@ -1,7 +1,7 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { tileLayer, latLng, Map, Layer, LatLngBounds, marker, LatLngTuple, icon, MarkerOptions } from 'leaflet';
 import { RequestService } from '../../request.service';
-import { MapDevice } from '../../types';
+import { MapDevice } from 'src/app/types';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
@@ -26,18 +26,17 @@ export class MapComponent implements OnInit {
 
 	rawSvg: string;
 
-	constructor(private req: RequestService, private router: Router,
-		private ngZone: NgZone, private http: HttpClient) { }
+	constructor(private req: RequestService, private router: Router, private ngZone: NgZone, private http: HttpClient) { }
 
 	ngOnInit(): void {
 		this.http.get('/assets/map/gmc-cpm-pin.svg', { responseType: 'text' }).subscribe(
-			(icon: string) => {
-				this.rawSvg = icon;
+			(i: string) => {
+				this.rawSvg = i;
 			},
 			err => {
 				console.error('Failed to get base icon: ' + err);
 			}
-		)
+		);
 	}
 
 	fetchDevices(bounds: LatLngBounds): void {
@@ -89,10 +88,12 @@ export class MapComponent implements OnInit {
 		}
 
 		let svg = this.rawSvg.replace('#0066a7', color);
-		if (dev.cpm != undefined)
+		if (dev.cpm !== undefined) {
 			svg = svg.replace('{{CPM}}', dev.cpm.toString());
-		else
+		}
+		else {
 			svg = svg.replace('{{CPM}}', '');
+		}
 		svg = 'data:image/svg+xml,' + encodeURIComponent(svg);
 		return svg;
 	}

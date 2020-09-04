@@ -1,1 +1,5 @@
-<p>home works!</p>
+<div *ngIf="info != null">
+    <h1>{{info.name}}</h1>
+    <p>Welcome to {{info.name}} GMCServer instance!</p>
+    <p>{{info.about}}</p>
+</div>

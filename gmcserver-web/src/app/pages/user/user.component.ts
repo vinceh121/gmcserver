@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RequestService } from '../../request.service';
-import { ActivatedRoute, ParamMap } from '@angular/router';
-import { User } from '../../types';
+import { ActivatedRoute, Params } from '@angular/router';
+import { User } from 'src/app/types';
 @Component({
 	selector: 'app-user',
 	templateUrl: './user.component.html',
@@ -14,8 +14,8 @@ export class UserComponent implements OnInit {
 	constructor(private req: RequestService, private route: ActivatedRoute) { }
 
 	ngOnInit(): void {
-		this.route.paramMap.subscribe((params: ParamMap) => {
-			const id: string = params.get('id');
+		this.route.queryParams.subscribe((params: Params) => {
+			const id: string = params['id'];
 			this.req.getUser(id).subscribe(
 				user => {
 					this.user = user;

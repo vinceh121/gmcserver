@@ -8,7 +8,7 @@ import { RequestService } from '../../request.service';
 	styleUrls: ['./logout.component.scss']
 })
 export class LogoutComponent implements OnInit {
-	loggedout: boolean = false;
+	loggedout = false;
 
 	constructor(private req: RequestService, private router: Router) { }
 

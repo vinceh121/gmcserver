@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ChartDataSets, ChartOptions } from 'chart.js';
-import { Device, Record } from '../../types';
+import { Device, Record } from 'src/app/types';
 import { RequestService } from '../../request.service';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
@@ -67,9 +67,9 @@ export class DeviceComponent implements OnInit {
 	constructor(private req: RequestService, private route: ActivatedRoute) {
 	}
 
-	ngOnInit(): void {
-		this.route.paramMap.subscribe((params: ParamMap) => {
-			const id: string = params.get('id');
+	ngOnInit() {
+		this.route.queryParams.subscribe((params: Params) => {
+			const id: string = params['id'];
 			this.req.getDevice(id).subscribe(dev => {
 				this.device = dev;
 				if (this.device.own) {

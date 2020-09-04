@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Device, Record, MapDevice, Intent, User } from './types';
+import { Device, Record, MapDevice, Intent, User, InstanceInfo } from './types';
 import { DRIVERS, Locker } from 'angular-safeguard';
+import { environment } from '../environments/environment';
 
 export interface LoginRequest {
 	id: string;
@@ -15,7 +16,7 @@ export interface LoginRequest {
 })
 export class RequestService {
 	/*host = '127.0.0.1:80';*/
-	host = window.location.host;
+	host = environment.production ? window.location.host : 'localhost:80';
 	baseUrl: string = '//' + this.host + '/api/v1/';
 	/*baseUrl = '/api/v1/';*/
 	websocketUrl: string = 'ws://' + this.host + '/api/v1/ws';
@@ -49,7 +50,7 @@ export class RequestService {
 		this.locker.set(DRIVERS.LOCAL, 'token', token);
 		this.updateHeaders();
 	}
-	
+
 	public logout() {
 		this.locker.clear(DRIVERS.LOCAL);
 	}
@@ -108,6 +109,10 @@ export class RequestService {
 
 	public getMap(rect: number[]): Observable<MapDevice[]> {
 		return this.get<MapDevice[]>('map/' + JSON.stringify(rect));
+	}
+
+	public getInstanceInfo(): Observable<InstanceInfo> {
+		return this.get<InstanceInfo>('instance/info');
 	}
 
 	public getPath(path: string): string {

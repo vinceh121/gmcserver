@@ -37,3 +37,9 @@ export interface User {
 	mfa?: boolean;
 	self?: boolean;
 }
+
+export interface InstanceInfo {
+	host?: string;
+	name?: string;
+	about?: string;
+}
