@@ -68,8 +68,8 @@ export class DeviceComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		this.route.queryParams.subscribe((params: Params) => {
-			const id: string = params['id'];
+		this.route.params.subscribe((params: Params) => {
+			const id: string = params.id;
 			this.req.getDevice(id).subscribe(dev => {
 				this.device = dev;
 				if (this.device.own) {

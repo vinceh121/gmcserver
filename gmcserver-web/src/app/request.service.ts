@@ -30,7 +30,9 @@ export class RequestService {
 
 	public updateHeaders(): void {
 		const tok = this.getToken();
-		this.headers = this.headers.set('Authorization', tok);
+		if (tok !== null) {
+			this.headers = this.headers.set('Authorization', tok);
+		}
 	}
 
 	public login(username: string, password: string): Observable<LoginRequest> {
@@ -120,6 +122,9 @@ export class RequestService {
 	}
 
 	private get<T>(path: string, params?: HttpParams): Observable<T> {
+		if (params === undefined) {
+			params = new HttpParams();
+		}
 		return this.http.get<T>(this.getPath(path), { headers: this.headers, params });
 	}
 
