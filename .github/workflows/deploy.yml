@@ -42,12 +42,14 @@ jobs:
         source: "deploy"
         target: "/tmp/gmcserver-deploy/"
         overwrite: true
+        debug: true
     - name: multiple command
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
+        debug: true
         script: |
           # service
           cp /tmp/gmcserver-deploy/usr/bin/gmcserver /usr/bin/gmcserver
