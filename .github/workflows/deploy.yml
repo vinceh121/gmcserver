@@ -1,0 +1,63 @@
+
+name: Deployment
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: sudo apt-get install debhelper-compat
+    ########## BACKEND
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+
+    ########## FRONTEND
+    - uses: Borales/actions-yarn@v2.3.0
+      with:
+        cmd: install
+    - name: Install Angular CLI
+      run: sudo npm install -g @angular/cli
+
+    ########## BUILD
+    - name: Run make
+      run: mkdir deploy && make && DESTDIR=./deploy make install
+
+    ########## DEPLOY
+    - name: Deploy
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        source: "deploy"
+        target: "/tmp/gmcserver-deploy/"
+        overwrite: true
+    - name: multiple command
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          # service
+          cp /tmp/gmcserver-deploy/usr/bin/gmcserver /usr/bin/gmcserver
+          # web
+          rm -r /var/www/html/gmcserver.old
+          mv /var/www/html/gmcserver /var/www/html/gmcserver.old
+          cp -r /tmp/gmcserver-deploy/var/www/html/gmcserver /var/www/html/gmcserver
+          # email templates
+          rm -r /etc/gmcserver/mail-templates
+          cp -r /tmp/gmcserver-deplot/etc/gmcserver/mail-templates /etc/gmcserver/mail-templates
+          # cleanup
+          rm -r /tmp/gmcserver-deploy

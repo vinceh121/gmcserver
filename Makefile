@@ -1,4 +1,4 @@
-all: | web server
+all: | web server emails
 
 server:
 	mvn -Dgmc.config.path=/etc/gmcserver/config.properties \
@@ -10,10 +10,15 @@ server:
 web:
 	$(MAKE) -C gmcserver-web
 
+emails:
+	$(MAKE) -C gmcserver-email
+
 DEST_BIN = $(DESTDIR)/usr/bin
 DEST_WEB = $(DESTDIR)/var/www/html
 DEST_CONF = $(DESTDIR)/etc/gmcserver
 DEST_SERVICE = $(DESTDIR)/lib/systemd/system
+
+DEST_MAILS = $(DEST_CONF)/mail-templates
 
 install-server:
 	install -T -D target/*-jar-with-dependencies.jar $(DEST_BIN)/gmcserver
@@ -25,7 +30,11 @@ install-web:
 	install -d $(DEST_WEB)/gmcserver
 	cp -r gmcserver-web/dist/gmcserver-web/* $(DEST_WEB)/gmcserver # try to find why install isn't behaving
 
-install: | install-server install-web
+install-emails:
+	mkdir -p $(DEST_MAILS)
+	cp -r gmcserver-email/out/* $(DEST_MAILS)/
+
+install: | install-server install-web install-emails
 
 #clean:
 #	#mvn -o clean
