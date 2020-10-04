@@ -32,7 +32,9 @@
 						],
 						"scripts": [],
 						"allowedCommonJsDependencies": [
-							"chart.js"
+							"chart.js",
+							"hammerjs",
+							"chartjs-plugin-zoom"
 						]
 					},
 					"configurations": {

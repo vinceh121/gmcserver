@@ -11,7 +11,7 @@
 	<mat-card-content>
 		<mat-tab-group>
 			<mat-tab label="Chart">
-				<canvas baseChart [datasets]="chartData" [labels]="chartLabels" [options]="chartOptions" chartType="line" legend="true"></canvas>
+				<canvas baseChart [plugins]="chartPlugins" [datasets]="chartData" [labels]="chartLabels" [options]="chartOptions" chartType="line" legend="true"></canvas>
 			</mat-tab>
 			<mat-tab label="Table">
 				<table mat-table [dataSource]="tableData" matSort>

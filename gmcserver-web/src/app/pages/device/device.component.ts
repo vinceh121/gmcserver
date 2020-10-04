@@ -6,6 +6,9 @@ import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Device, Record } from 'src/app/types';
 import { RequestService } from '../../request.service';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import zoomPlugin from 'chartjs-plugin-zoom';
+
+const TICK_COLOR = '#b3b3b3';
 
 @Component({
 	selector: 'app-device',
@@ -31,19 +34,29 @@ export class DeviceComponent implements OnInit {
 
 	chartLabels: any[] = [];
 
-	chartOptions: ChartOptions = {
+	chartOptions: (ChartOptions & {zoom: any}) = {
 		spanGaps: false,
+		tooltips: {
+			mode: 'index'
+		},
+		legend: {
+			labels: {
+				fontColor: 'white'
+			}
+		},
 		scales: {
 			yAxes: [
 				{
 					id: 'main',
 					type: 'linear',
-					position: 'left'
+					position: 'left',
+					ticks: { fontColor: TICK_COLOR }
 				},
 				{
 					id: 'usv',
 					type: 'linear',
-					position: 'right'
+					position: 'right',
+					ticks: { fontColor: TICK_COLOR }
 				}
 			],
 			xAxes: [
@@ -56,15 +69,48 @@ export class DeviceComponent implements OnInit {
 						displayFormats: {
 							minute: 'll H:mm'
 						}
-					}
+					},
+					ticks: { fontColor: TICK_COLOR }
 				}
 			]
+		},
+		zoom: {
+			pan: {
+				enabled: true,
+				mode: 'x',
+				onPanComplete: this.fetchTimeline,
+				rangeMin: {
+					x: null,
+					y: null
+				},
+				rangeMax: {
+					x: null,
+					y: null
+				}
+			},
+			zoom: {
+				enabled: true,
+				//drag: true,
+				modle: 'x',
+				onZoomComplete: function({ chart }) { console.log(`I was zoomed!!!`); },
+				rangeMin: {
+					x: null,
+					y: null
+				},
+				rangeMax: {
+					x: null,
+					y: null
+				}
+			}
 		}
 	};
+
+	chartPlugins = [zoomPlugin]
 
 	@ViewChild(MatSort, { static: true }) sort: MatSort = new MatSort();
 
 	constructor(private req: RequestService, private route: ActivatedRoute) {
+		console.log('lol: '+JSON.stringify(zoomPlugin))
 	}
 
 	ngOnInit() {
