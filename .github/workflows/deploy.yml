@@ -49,6 +49,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
+        script_stop: true
         debug: true
         script: |
           # service
