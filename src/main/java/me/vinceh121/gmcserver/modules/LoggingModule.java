@@ -103,7 +103,7 @@ public class LoggingModule extends AbstractModule {
 		this.log.debug("Inserting record {}", rec);
 
 		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
-		ctx.response().setStatusCode(200).end();
+		ctx.response().setStatusCode(200).end("OK.ERR0");
 
 		this.srv.getManager(WebsocketManager.class)
 				.sendIntent(user.getId(),
