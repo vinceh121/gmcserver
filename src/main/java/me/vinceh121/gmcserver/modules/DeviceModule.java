@@ -1,7 +1,6 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.util.Date;
-import java.util.List;
 
 import org.bson.types.ObjectId;
 
@@ -244,19 +243,20 @@ public class DeviceModule extends AbstractModule {
 					return;
 				}
 
-				final JsonObject obj = new JsonObject();
-				final JsonArray arr = new JsonArray();
-				obj.put("records", arr);
+				ctx.response().setChunked(true);
 
-				final List<Record> recs = histRes.result();
+				ctx.response().write("{\"records\":[");
+
+				final Iterable<Record> recs = histRes.result();
 
 				if (user != null && user.getId().equals(dev.getOwner())) {
-					recs.forEach(r -> arr.add(r.toJson()));
+					recs.forEach(r -> ctx.response().write(r.toJson().toString() + ","));
 				} else {
-					recs.forEach(r -> arr.add(r.toPublicJson()));
+					recs.forEach(r -> ctx.response().write(r.toPublicJson().toString() + ","));
 				}
 
-				ctx.response().end(obj.toBuffer());
+				ctx.response().write("]}");
+				ctx.response().end();
 			});
 		});
 

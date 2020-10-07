@@ -118,7 +118,7 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
-	public class DeviceTimelineAction extends AbstractAction<List<Record>> {
+	public class DeviceTimelineAction extends AbstractAction<Iterable<Record>> {
 		private User requester;
 		private Device dev;
 		private Date start, end;
@@ -129,7 +129,7 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		@Override
-		protected void executeSync(final Promise<List<Record>> promise) {
+		protected void executeSync(final Promise<Iterable<Record>> promise) {
 
 			final Collection<Bson> filters = new Vector<>();
 
@@ -152,10 +152,7 @@ public class DeviceManager extends AbstractManager {
 				it.limit(0);
 			}
 
-			final List<Record> records = new Vector<>();
-			it.forEach(r -> records.add(r));
-
-			promise.complete(records);
+			promise.complete(it);
 		}
 
 		public User getRequester() {
