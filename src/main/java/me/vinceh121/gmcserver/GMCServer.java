@@ -18,13 +18,14 @@ import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
-import me.vinceh121.gmcserver.event.WebsocketManager;
+import me.vinceh121.gmcserver.event.UserWebsocketManager;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
@@ -138,12 +139,12 @@ public class GMCServer {
 		this.apiRouter.route().handler(this.corsHandler);
 
 		final WebClientOptions opts = new WebClientOptions();
-		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://gmcserver.vinceh121.me");
+		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://home.gmc.vinceh121.me");
 		this.webClient = WebClient.create(this.vertx, opts);
 
 		this.registerModules();
 
-		this.srv.webSocketHandler(this.getManager(WebsocketManager.class));
+		this.apiRouter.route("/ws").handler(this.getManager(UserWebsocketManager.class));
 
 		if (Boolean.parseBoolean(this.config.getProperty("web.enabled"))) {
 			this.setupWebRouter(this.vertx);
@@ -162,7 +163,7 @@ public class GMCServer {
 	private void registerManagers() {
 		this.addManager(new DatabaseManager(this));
 		this.addManager(new MFAManager(this));
-		this.addManager(new WebsocketManager(this));
+		this.addManager(new UserWebsocketManager(this));
 		this.addManager(new UserManager(this));
 		this.addManager(new DeviceManager(this));
 		this.addManager(new EmailManager(this));
@@ -237,6 +238,10 @@ public class GMCServer {
 
 	public InstanceInfo getInstanceInfo() {
 		return this.instanceInfo;
+	}
+	
+	public EventBus getEventBus() {
+		return this.getVertx().eventBus();
 	}
 
 }

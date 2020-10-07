@@ -5,7 +5,6 @@ import java.util.Date;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
@@ -13,14 +12,18 @@ import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.Record.Builder;
 import me.vinceh121.gmcserver.entities.User;
-import me.vinceh121.gmcserver.event.StandardIntent;
-import me.vinceh121.gmcserver.event.WebsocketManager;
 import me.vinceh121.gmcserver.managers.AlertManager;
 
 public class LoggingModule extends AbstractModule {
+	/**
+	 * Hex device ID must be appended
+	 */
+	public static final String ADDRESS_PREFIX_RECORD_LOG = "me.vinceh121.gmcserver.RECORD_LOG.";
+
+	public static final String ERROR_OK = "OK.ERR0";
 	public static final String ERROR_SYNTAX = "The syntax of one of the logging parameters is incorrect";
-	public static final String ERROR_USER_ID = "Invalid user ID";
-	public static final String ERROR_DEVICE_ID = "Invalid device ID";
+	public static final String ERROR_USER_ID = "Invalid user ID.ERR1";
+	public static final String ERROR_DEVICE_ID = "Invalid device ID.ERR2";
 	public static final String ERROR_DEVICE_NOT_OWNED = "User does not own device";
 
 	public LoggingModule(final GMCServer srv) {
@@ -103,11 +106,9 @@ public class LoggingModule extends AbstractModule {
 		this.log.debug("Inserting record {}", rec);
 
 		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
-		ctx.response().setStatusCode(200).end("OK.ERR0");
+		ctx.response().setStatusCode(200).end(ERROR_OK);
 
-		this.srv.getManager(WebsocketManager.class)
-				.sendIntent(user.getId(),
-						StandardIntent.LOG2_RECORD.create(new JsonObject().put("record", rec.toJson())));
+		this.publishRecord(rec);
 
 		this.srv.getManager(AlertManager.class)
 				.checkAlert()
@@ -228,8 +229,22 @@ public class LoggingModule extends AbstractModule {
 		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
 		ctx.response().setStatusCode(200).end();
 
-		this.srv.getManager(WebsocketManager.class)
-				.sendIntent(user.getId(),
-						StandardIntent.LOG_CLASSIC_RECORD.create(new JsonObject().put("record", rec.toJson())));
+		this.publishRecord(rec);
+
+		this.srv.getManager(AlertManager.class)
+				.checkAlert()
+				.setDev(device)
+				.setOwner(user)
+				.setLatestRecord(rec)
+				.execute()
+				.onComplete(emailRes -> {
+					if (emailRes.failed()) {
+						this.log.error("Failed to check alert email");
+					}
+				});
+	}
+
+	private void publishRecord(final Record rec) {
+		this.srv.getEventBus().publish(ADDRESS_PREFIX_RECORD_LOG + rec.getDeviceId(), rec);
 	}
 }

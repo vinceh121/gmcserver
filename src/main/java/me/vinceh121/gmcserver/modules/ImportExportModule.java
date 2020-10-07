@@ -98,7 +98,7 @@ public class ImportExportModule extends AbstractModule {
 	private void importPageRecurse(final String gmcmapId, final int page, final ObjectId deviceId) {
 		this.getRecords(gmcmapId, page, deviceId).onComplete(ares -> {
 			if (ares.failed()) {
-				this.log.error("Error while importing device {} at page {}", gmcmapId);
+				this.log.error("Error while importing device {} at page {}", gmcmapId, page);
 				return;
 			}
 

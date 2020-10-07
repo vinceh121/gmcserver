@@ -3,11 +3,11 @@ package me.vinceh121.gmcserver.event;
 import io.vertx.core.http.ServerWebSocket;
 import me.vinceh121.gmcserver.entities.User;
 
-public class WebsocketSession {
+public class UserWebsocketSession {
 	private final User user;
 	private final ServerWebSocket socket;
 
-	public WebsocketSession(final User user, final ServerWebSocket socket) {
+	public UserWebsocketSession(final User user, final ServerWebSocket socket) {
 		this.user = user;
 		this.socket = socket;
 	}

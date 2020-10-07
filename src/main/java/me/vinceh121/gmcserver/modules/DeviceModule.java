@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -34,6 +36,7 @@ public class DeviceModule extends AbstractModule {
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId", this::handleDevice);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
 		this.registerRoute(HttpMethod.GET, "/device/:deviceId/stats/:field", this::handleStats);
+		this.registerRoute(HttpMethod.GET, "/device/:deviceId/live", this::handleLive);
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
@@ -294,6 +297,35 @@ public class DeviceModule extends AbstractModule {
 
 				ctx.response().end(obj.toBuffer());
 			});
+		});
+	}
+
+	private void handleLive(final RoutingContext ctx) {
+		final String rawDevId = ctx.pathParam("deviceId");
+
+		final ObjectId devId;
+		try {
+			devId = new ObjectId(rawDevId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid ID");
+			return;
+		}
+
+		final GetDeviceAction getDevAction = this.srv.getManager(DeviceManager.class).getDevice().setId(devId);
+		getDevAction.execute().onComplete(getRes -> {
+			if (getRes.failed()) {
+				this.error(ctx, 404, "Device not found");
+				return;
+			}
+
+			final ServerWebSocket sock = ctx.request().upgrade();
+
+			final MessageConsumer<Record> consumer
+					= this.srv.getEventBus().consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
+
+			consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
+
+			sock.endHandler(v -> consumer.unregister());
 		});
 	}
 
