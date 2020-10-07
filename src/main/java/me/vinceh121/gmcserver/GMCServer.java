@@ -25,7 +25,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
+import me.vinceh121.gmcserver.entities.AbstractEntity;
 import me.vinceh121.gmcserver.event.UserWebsocketManager;
+import me.vinceh121.gmcserver.event.codecs.EntityCodec;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
@@ -120,6 +122,8 @@ public class GMCServer {
 		this.srv = this.vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error", t));
 
+		this.setupEventBusCodecs();
+
 		this.registerManagers();
 
 		this.baseRouter = Router.router(this.vertx);
@@ -158,6 +162,10 @@ public class GMCServer {
 				= new WebHandler(Paths.get(this.config.getProperty("web.root")), this.vertx.fileSystem());
 		webRouter.route().handler(webHandler);
 		this.baseRouter.mountSubRouter("/", webRouter);
+	}
+
+	private void setupEventBusCodecs() {
+		this.getEventBus().registerDefaultCodec(AbstractEntity.class, new EntityCodec());
 	}
 
 	private void registerManagers() {
@@ -239,7 +247,7 @@ public class GMCServer {
 	public InstanceInfo getInstanceInfo() {
 		return this.instanceInfo;
 	}
-	
+
 	public EventBus getEventBus() {
 		return this.getVertx().eventBus();
 	}
