@@ -1,6 +1,7 @@
 package me.vinceh121.gmcserver.modules;
 
 import java.util.Date;
+import java.util.Iterator;
 
 import org.bson.types.ObjectId;
 
@@ -247,14 +248,18 @@ public class DeviceModule extends AbstractModule {
 
 				ctx.response().write("{\"records\":[");
 
-				final Iterable<Record> recs = histRes.result();
+				final Iterator<Record> recs = histRes.result().iterator();
 
-				if (user != null && user.getId().equals(dev.getOwner())) {
-					recs.forEach(r -> ctx.response().write(r.toJson().toString() + ","));
-				} else {
-					recs.forEach(r -> ctx.response().write(r.toPublicJson().toString() + ","));
-				}
-
+				recs.forEachRemaining(r -> {
+					if (user != null && user.getId().equals(dev.getOwner())) {
+						ctx.response().write(r.toJson().toString());
+					} else {
+						ctx.response().write(r.toPublicJson().toString());
+					}
+					if (recs.hasNext()) {
+						ctx.response().write(",");
+					}
+				});
 				ctx.response().write("]}");
 				ctx.response().end();
 			});
