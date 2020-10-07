@@ -33,7 +33,7 @@ public class EntityCodec<T extends AbstractEntity> implements MessageCodec<T, T>
 
 	@Override
 	public String name() {
-		return "gmcrecord";
+		return "gmcrecord-" + this.clazz.getCanonicalName();
 	}
 
 	@Override
