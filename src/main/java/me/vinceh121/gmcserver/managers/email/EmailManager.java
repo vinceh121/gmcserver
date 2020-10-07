@@ -20,6 +20,7 @@ public class EmailManager extends AbstractManager {
 	public static final Pattern VAR_PATTERN = Pattern.compile("\\{\\{[a-zA-Z/-_]+\\}\\}");
 	private final MailClient client;
 	private final String from;
+	private final boolean enabled;
 
 	public EmailManager(final GMCServer srv) {
 		super(srv);
@@ -30,10 +31,15 @@ public class EmailManager extends AbstractManager {
 			this.log.error("Failed to read mail config", e);
 			throw new RuntimeException(e);
 		}
+		this.enabled = Boolean.parseBoolean(this.srv.getConfig().getProperty("email.enabled"));
 		this.from = this.srv.getConfig().getProperty("email.from"); // TODO default value from instance host
 	}
 
 	public Future<Void> sendEmail(final Email email) {
+		if (!enabled) {
+			return Future.future(p -> p.complete());
+		}
+
 		return Future.future(p -> {
 			this.fillStandardContext(email.getContext());
 
@@ -70,7 +76,7 @@ public class EmailManager extends AbstractManager {
 
 	}
 
-	public Future<String> buildEmail(final String template, final JsonObject context) {
+	private Future<String> buildEmail(final String template, final JsonObject context) {
 		return Future.future(p -> {
 			final String raw = this.readRaw(template);
 			final String resolved = this.resolveVariables(raw, context);
