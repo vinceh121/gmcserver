@@ -145,7 +145,7 @@ public class DeviceManager extends AbstractManager {
 
 			final FindIterable<Record> it
 					= this.srv.getManager(DatabaseManager.class).getCollection(Record.class).find(Filters.and(filters));
-			it.sort(Sorts.ascending("date"));
+			it.sort(Sorts.descending("date"));
 			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
 			if (this.full && this.requester != null && this.requester.getId().equals(this.dev.getOwner())) {
