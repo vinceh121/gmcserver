@@ -26,8 +26,11 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 import me.vinceh121.gmcserver.entities.AbstractEntity;
+import me.vinceh121.gmcserver.entities.Device;
+import me.vinceh121.gmcserver.entities.Record;
+import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.event.EntityCodec;
 import me.vinceh121.gmcserver.event.UserWebsocketManager;
-import me.vinceh121.gmcserver.event.codecs.EntityCodec;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
@@ -165,7 +168,13 @@ public class GMCServer {
 	}
 
 	private void setupEventBusCodecs() {
-		this.getEventBus().registerDefaultCodec(AbstractEntity.class, new EntityCodec());
+		this.setupEventBusCodecClass(Record.class);
+		this.setupEventBusCodecClass(User.class);
+		this.setupEventBusCodecClass(Device.class);
+	}
+
+	private <T extends AbstractEntity> void setupEventBusCodecClass(final Class<T> clazz) {
+		this.getEventBus().registerDefaultCodec(clazz, new EntityCodec<>(clazz));
 	}
 
 	private void registerManagers() {
