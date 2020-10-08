@@ -323,14 +323,20 @@ public class DeviceModule extends AbstractModule {
 				return;
 			}
 
-			final ServerWebSocket sock = ctx.request().upgrade();
+			ctx.request().toWebSocket(webRes -> {
+				if (webRes.failed()) {
+					this.error(ctx, 500, "Failed to open websocket");
+					return;
+				}
+				final ServerWebSocket sock = webRes.result();
+				
+				final MessageConsumer<Record> consumer = this.srv.getEventBus()
+						.consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
 
-			final MessageConsumer<Record> consumer
-					= this.srv.getEventBus().consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
+				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 
-			consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
-
-			sock.endHandler(v -> consumer.unregister());
+				sock.endHandler(v -> consumer.unregister());
+			});
 		});
 	}
 
