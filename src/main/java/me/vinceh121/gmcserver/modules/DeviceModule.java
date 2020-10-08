@@ -325,11 +325,11 @@ public class DeviceModule extends AbstractModule {
 
 			ctx.request().toWebSocket(webRes -> {
 				if (webRes.failed()) {
-					this.error(ctx, 500, "Failed to open websocket");
+					this.error(ctx, 500, "Failed to open websocket: " + webRes.cause());
 					return;
 				}
 				final ServerWebSocket sock = webRes.result();
-				
+
 				final MessageConsumer<Record> consumer = this.srv.getEventBus()
 						.consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
 
