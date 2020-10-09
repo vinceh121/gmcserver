@@ -19,7 +19,7 @@ export class RequestService {
 	host = environment.production ? window.location.host : 'localhost:80';
 	baseUrl: string = '//' + this.host + '/api/v1/';
 	/*baseUrl = '/api/v1/';*/
-	websocketUrl: string = 'ws://' + this.host + '/api/v1/ws';
+	websocketUrl: string = 'wss://' + this.host + '/api/v1/ws';
 	headers: HttpHeaders = new HttpHeaders();
 	websocket: WebSocket;
 	websocketObs: Observable<Intent>;
