@@ -335,7 +335,7 @@ public class DeviceModule extends AbstractModule {
 
 				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 
-				sock.endHandler(v -> consumer.unregister());
+				sock.closeHandler(v -> consumer.unregister());
 			});
 		});
 	}
