@@ -55,9 +55,7 @@ jobs:
           # service
           cp /tmp/gmcserver-deploy/deploy/usr/bin/gmcserver /usr/bin/gmcserver
           # web
-          rm -r /var/www/html/gmcserver/old
-          mkdir /var/www/html/gmcserver/old
-          mv /var/www/html/gmcserver/* /var/www/html/gmcserver/old
+          rm -r /var/www/html/gmcserver/*
           cp -r /tmp/gmcserver-deploy/deploy/var/www/html/gmcserver/* /var/www/html/gmcserver
           # email templates
           rm -r /etc/gmcserver/mail-templates
