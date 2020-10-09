@@ -58,7 +58,7 @@ jobs:
           rm -r /var/www/html/gmcserver/old
           mkdir /var/www/html/gmcserver/old
           mv /var/www/html/gmcserver/* /var/www/html/gmcserver/old
-          cp -r /tmp/gmcserver-deploy/deploy/var/www/html/gmcserver /var/www/html/gmcserver
+          cp -r /tmp/gmcserver-deploy/deploy/var/www/html/gmcserver/* /var/www/html/gmcserver
           # email templates
           rm -r /etc/gmcserver/mail-templates
           cp -r /tmp/gmcserver-deploy/deploy/etc/gmcserver/mail-templates /etc/gmcserver/mail-templates
