@@ -36,48 +36,55 @@ public class UserWebsocketManager extends AbstractManager implements Handler<Rou
 
 	@Override
 	public void handle(final RoutingContext ctx) {
-		final ServerWebSocket socket = ctx.request().upgrade();
-
-		final String auth = socket.headers().get("Sec-WebSocket-Protocol");
-
-		final VerifyTokenAction tokenAction = this.srv.getManager(UserManager.class).verifyToken().setTokenString(auth);
-		tokenAction.execute().onComplete(res -> {
-			if (res.failed()) {
-				socket.close((short) 403);
-				return;
-			}
-			final Token token = res.result();
-
-			final User user = (User) token.getAccount();
-			if (user == null) {
-				socket.close((short) 403, "Invalid token");
-				return;
-			}
-			UserWebsocketManager.LOG.debug("User {} opened a websocket session", user);
-
-			if (this.sessions.get(user.getId()).size() >= this.SESSION_LIMIT) {
-				socket.close((short) 403, "Reached Websocket session limit for user");
-				UserWebsocketManager.LOG.info("User {} reached the limit of opened sessions", user);
+		ctx.request().toWebSocket(sockRes -> {
+			if (sockRes.failed()) {
+				ctx.response().setStatusCode(500).end();
 				return;
 			}
 
-			final UserWebsocketSession sess = new UserWebsocketSession(user, socket);
-			this.sessions.put(user.getId(), sess);
+			final ServerWebSocket socket = sockRes.result();
 
-			final String userAddress = ADDRESS_PREFIX_USER_INTENT + user.getId().toHexString();
+			final String auth = socket.headers().get("Sec-WebSocket-Protocol");
 
-			final MessageConsumer<UserIntent> intentConsumer
-					= this.srv.getEventBus().consumer(userAddress, msg -> {
-						final UserIntent intent = msg.body();
-						this.sendIntentLocal(intent);
-					});
+			final VerifyTokenAction tokenAction
+					= this.srv.getManager(UserManager.class).verifyToken().setTokenString(auth);
+			tokenAction.execute().onComplete(res -> {
+				if (res.failed()) {
+					socket.close((short) 403);
+					return;
+				}
+				final Token token = res.result();
 
-			this.srv.getEventBus().publish(userAddress, StandardUserIntent.HANDSHAKE_COMPLETE.create(user.getId()));
+				final User user = (User) token.getAccount();
+				if (user == null) {
+					socket.close((short) 403, "Invalid token");
+					return;
+				}
+				UserWebsocketManager.LOG.debug("User {} opened a websocket session", user);
 
-			sess.getSocket().closeHandler(v -> {
-				UserWebsocketManager.LOG.debug("User {} closed his websocket session", user.toString());
-				intentConsumer.unregister();
-				this.sessions.remove(user.getId());
+				if (this.sessions.get(user.getId()).size() >= this.SESSION_LIMIT) {
+					socket.close((short) 403, "Reached Websocket session limit for user");
+					UserWebsocketManager.LOG.info("User {} reached the limit of opened sessions", user);
+					return;
+				}
+
+				final UserWebsocketSession sess = new UserWebsocketSession(user, socket);
+				this.sessions.put(user.getId(), sess);
+
+				final String userAddress = ADDRESS_PREFIX_USER_INTENT + user.getId().toHexString();
+
+				final MessageConsumer<UserIntent> intentConsumer = this.srv.getEventBus().consumer(userAddress, msg -> {
+					final UserIntent intent = msg.body();
+					this.sendIntentLocal(intent);
+				});
+
+				this.srv.getEventBus().publish(userAddress, StandardUserIntent.HANDSHAKE_COMPLETE.create(user.getId()));
+
+				sess.getSocket().closeHandler(v -> {
+					UserWebsocketManager.LOG.debug("User {} closed his websocket session", user.toString());
+					intentConsumer.unregister();
+					this.sessions.remove(user.getId());
+				});
 			});
 		});
 	}
