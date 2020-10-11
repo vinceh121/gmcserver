@@ -1,4 +1,0 @@
-The map icons are taken from the Material Icons set under the Apache 2.0 License
-
-The gmc-cpm-pin icon is based on the Location-5 icon from Iconmonstr under the license at the page
-https://iconmonstr.com/license/
