@@ -3,7 +3,8 @@ import "./App.css";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { Layout, Menu } from "antd";
 // import GMCLogo from "./logo.svg";
-import Home from "./pages/Home"
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
 
 const { Footer, Content, Header } = Layout;
 
@@ -27,8 +28,11 @@ function App() {
 				</Header>
 				<Content style={{ minHeight: "250px" }}>
 					<Switch>
-						<Route path="/">
+						<Route exact path="/">
 							<Home />
+						</Route>
+						<Route path="*">
+							<NotFound />
 						</Route>
 					</Switch>
 				</Content>
