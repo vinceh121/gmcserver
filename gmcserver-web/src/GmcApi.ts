@@ -1,6 +1,6 @@
-import { LoginResult, ErrorResult, InstanceInfo } from "./GmcTypes";
+import { LoginResult, ErrorResult, InstanceInfo, User } from "./GmcTypes";
 
-const baseUrl: string = "/api/v1";
+const baseUrl: string = "https://gmc.vinceh121.me/api/v1";
 const storage: Storage = window.localStorage;
 
 export const request = async (
@@ -48,4 +48,13 @@ export const login = async (
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
 	return (await res.json()) as InstanceInfo;
+};
+
+export const fetchUser = async (id: string): Promise<User> => {
+	const res = await request("/user/" + id);
+	return (await res.json()) as User;
+};
+
+export const fetchMe = async (): Promise<User> => {
+	return fetchUser("me");
 };

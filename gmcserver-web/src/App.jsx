@@ -1,10 +1,11 @@
 import React from "react";
-import "./App.css";
+import "./App.less";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { Layout, Menu } from "antd";
 // import GMCLogo from "./logo.svg";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import User from "./pages/User";
 
 const { Footer, Content, Header } = Layout;
 
@@ -28,6 +29,9 @@ function App() {
 				</Header>
 				<Content style={{ minHeight: "250px" }}>
 					<Switch>
+						<Route path="/user/:id">
+							<User />
+						</Route>
 						<Route exact path="/">
 							<Home />
 						</Route>
