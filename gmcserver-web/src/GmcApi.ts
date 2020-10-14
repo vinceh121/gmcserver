@@ -40,7 +40,10 @@ export const login = async (
 	});
 
 	if (res.status === 403) {
-		throw (await res.json()) as ErrorResult;
+		// XXX Figure out why this variable declaration is necessary for Linter/Typescript
+		//	to understand that it is an error object
+		const errres = (await res.json()) as ErrorResult;
+		throw errres;
 	} else if (res.status !== 200) {
 		throw new Error("Login failed: " + res.status + ": " + res.statusText);
 	}
