@@ -1,6 +1,6 @@
 web:
 	yarn
-	yarn run build
+	yarn build
 
 clean:
-	rm -r build
+	rm -r public
