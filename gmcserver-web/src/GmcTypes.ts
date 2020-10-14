@@ -18,7 +18,7 @@ export interface Device extends MapDevice {
 	disabled: boolean;
 	gmcId?: number;
 	model?: string;
-	timeline?: Record[];
+	importedFrom?: string;
 }
 
 export interface Intent {
@@ -49,7 +49,7 @@ export interface LoginResult {
 	mfa: boolean;
 }
 
-export interface ErrorResult {
+export interface ErrorResult extends Error {
 	status: number;
 	description: string;
 	extras?: any;

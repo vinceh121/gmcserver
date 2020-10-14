@@ -6,6 +6,7 @@ import { Layout, Menu } from "antd";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import User from "./pages/User";
+import Device from "./pages/Device";
 
 const { Footer, Content, Header } = Layout;
 
@@ -31,6 +32,9 @@ function App() {
 					<Switch>
 						<Route path="/user/:id">
 							<User />
+						</Route>
+						<Route path="/device/:id">
+							<Device />
 						</Route>
 						<Route exact path="/">
 							<Home />

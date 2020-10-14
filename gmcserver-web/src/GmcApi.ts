@@ -1,4 +1,11 @@
-import { LoginResult, ErrorResult, InstanceInfo, User } from "./GmcTypes";
+import {
+	LoginResult,
+	ErrorResult,
+	InstanceInfo,
+	User,
+	Device,
+	Record,
+} from "./GmcTypes";
 
 const baseUrl: string = "https://gmc.vinceh121.me/api/v1";
 const storage: Storage = window.localStorage;
@@ -35,7 +42,7 @@ export const login = async (
 	if (res.status === 403) {
 		throw (await res.json()) as ErrorResult;
 	} else if (res.status !== 200) {
-		throw "Login failed: " + res.status + ": " + res.statusText;
+		throw new Error("Login failed: " + res.status + ": " + res.statusText);
 	}
 
 	const login = (await res.json()) as LoginResult;
@@ -57,4 +64,30 @@ export const fetchUser = async (id: string): Promise<User> => {
 
 export const fetchMe = async (): Promise<User> => {
 	return fetchUser("me");
+};
+
+export const fetchDevice = async (id: string): Promise<Device> => {
+	const res = await request("/device/" + id);
+	return (await res.json()) as Device;
+};
+
+export const fetchTimeline = async (
+	id: string,
+	full: boolean,
+	start: Date,
+	end: Date
+): Promise<Record[]> => {
+	const params: URLSearchParams = new URLSearchParams();
+	if (full) {
+		params.append("full", "y");
+	}
+	if (start) {
+		params.append("start", String(start.getTime()));
+	}
+	if (end) {
+		params.append("end", String(end.getTime()));
+	}
+
+	const res = await request("/device/" + id + "/timeline" + params.toString());
+	return (await res.json()).records as Record[];
 };
