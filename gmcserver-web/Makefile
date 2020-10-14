@@ -1,6 +1,6 @@
 web:
 	yarn
-	yarn run build --prod
+	yarn build
 
 clean:
-	rm -r dist
+	rm -r public

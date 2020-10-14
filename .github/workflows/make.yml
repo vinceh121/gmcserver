@@ -29,13 +29,6 @@ jobs:
       with:
         java-version: 1.8
 
-    ########## FRONTEND
-    - uses: Borales/actions-yarn@v2.3.0
-      with:
-        cmd: install
-    - name: Install Angular CLI
-      run: sudo npm install -g @angular/cli
-
       ########## BUILD
     - name: Build package
       run: dpkg-buildpackage -b
