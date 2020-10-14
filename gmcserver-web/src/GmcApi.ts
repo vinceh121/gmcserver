@@ -88,6 +88,6 @@ export const fetchTimeline = async (
 		params.append("end", String(end.getTime()));
 	}
 
-	const res = await request("/device/" + id + "/timeline" + params.toString());
+	const res = await request("/device/" + id + "/timeline?" + params.toString());
 	return (await res.json()).records as Record[];
 };
