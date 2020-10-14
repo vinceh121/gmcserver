@@ -7,7 +7,7 @@ import {
 	Record,
 } from "./GmcTypes";
 
-const baseUrl: string = "https://gmc.vinceh121.me/api/v1";
+const baseUrl: string = "/api/v1";
 const storage: Storage = window.localStorage;
 
 export const request = async (
