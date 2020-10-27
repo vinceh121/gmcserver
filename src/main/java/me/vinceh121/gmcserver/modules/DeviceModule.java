@@ -246,7 +246,7 @@ public class DeviceModule extends AbstractModule {
 
 				ctx.response().setChunked(true);
 
-				ctx.response().write("{\"records\":[");
+				ctx.response().write("[");
 
 				final Iterator<Record> recs = histRes.result().iterator();
 
@@ -260,7 +260,7 @@ public class DeviceModule extends AbstractModule {
 						ctx.response().write(",");
 					}
 				});
-				ctx.response().write("]}");
+				ctx.response().write("]");
 				ctx.response().end();
 			});
 		});

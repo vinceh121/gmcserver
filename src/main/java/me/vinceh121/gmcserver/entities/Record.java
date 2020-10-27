@@ -243,6 +243,10 @@ public class Record extends AbstractEntity {
 		obj.remove("deviceId");
 		obj.remove("userId");
 		obj.remove("ip");
+		obj.forEach(e -> {
+			if ("NaN".equals(String.valueOf(e.getValue())))
+				obj.remove(e.getKey());
+		});
 		return obj;
 	}
 
