@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import User from "./pages/User";
 import Device from "./pages/Device";
+import GmcMap from "./pages/GmcMap";
 
 const { Footer, Content, Header } = Layout;
 
@@ -35,6 +36,9 @@ function App() {
 						</Route>
 						<Route path="/device/:id">
 							<Device />
+						</Route>
+						<Route path="/map">
+							<GmcMap />
 						</Route>
 						<Route exact path="/">
 							<Home />

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory } from "react-router-dom";
-import { LoadingOutlined } from "@ant-design/icons";
 import { fetchDevice, fetchTimeline } from "../GmcApi";
 import {
 	Checkbox,
@@ -9,7 +8,6 @@ import {
 	PageHeader,
 	Result,
 	Space,
-	Spin,
 } from "antd";
 import DisabledBadge from "../components/DisabledBadge";
 import "react-vis/dist/style.css";
@@ -21,6 +19,7 @@ import {
 	VerticalGridLines,
 	LineSeries,
 } from "react-vis";
+import Loader from "../components/Loader";
 
 const { RangePicker } = DatePicker;
 
@@ -66,7 +65,10 @@ function DeviceChart(props) {
 			<XYPlot height={500} width={500}>
 				<VerticalGridLines />
 				<HorizontalGridLines />
-				<LineSeries data={timeline.cpm} />
+				{numericRecordFields.map((name, i) => {
+					console.log(name);
+					return <LineSeries data={timeline[name]} key={i} />;
+				})}
 				<XAxis tickLabelAngle={-90} />
 				<YAxis />
 			</XYPlot>
@@ -80,14 +82,7 @@ function DeviceChart(props) {
 			/>
 		);
 	} else {
-		return (
-			<Result
-				subTitle="Loading data..."
-				icon={
-					<Spin indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />} />
-				}
-			/>
-		);
+		return <Loader subTitle="Loading timeline..." />;
 	}
 }
 
@@ -170,14 +165,7 @@ function Device() {
 			/>
 		);
 	} else {
-		return (
-			<Result
-				subTitle="Loading device..."
-				icon={
-					<Spin indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />} />
-				}
-			/>
-		);
+		return <Loader subTitle="Loading device..." />;
 	}
 }
 

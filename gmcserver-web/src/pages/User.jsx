@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { List, PageHeader, Result, Space, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { List, PageHeader, Result, Space } from "antd";
 import { fetchUser } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DisabledBadge from "../components/DisabledBadge";
+import Loader from "../components/Loader";
 
 function User() {
 	const history = useHistory();
@@ -53,14 +53,7 @@ function User() {
 			/>
 		);
 	} else {
-		return (
-			<Result
-				subTitle="Loading user..."
-				icon={
-					<Spin indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />} />
-				}
-			/>
-		);
+		return <Loader subTitle="Loading user..." />;
 	}
 }
 

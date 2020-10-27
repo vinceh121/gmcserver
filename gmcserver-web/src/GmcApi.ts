@@ -5,6 +5,7 @@ import {
 	User,
 	Device,
 	Record,
+	MapDevice,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -94,3 +95,9 @@ export const fetchTimeline = async (
 	const res = await request("/device/" + id + "/timeline?" + params.toString());
 	return (await res.json()).records as Record[];
 };
+
+
+export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
+	const res = await request("/map/" + JSON.stringify(rect));
+	return (await res.json()) as MapDevice[];
+}
