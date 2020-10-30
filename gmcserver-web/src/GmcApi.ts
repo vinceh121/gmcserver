@@ -35,6 +35,10 @@ export const getStorage = (): Storage => {
 	return storage;
 };
 
+export const isLoggedin = (): boolean => {
+	return getStorage().getItem("token") != null;
+};
+
 export const login = async (
 	username: string,
 	password: string
