@@ -19,7 +19,7 @@ function getColor(cpm) {
 	}
 }
 
-function GmcCpmPin(props) {
+function gmcCpmPin(props) {
 	const device = props.device;
 	return (
 		"data:image/svg+xml," +
@@ -31,4 +31,4 @@ function GmcCpmPin(props) {
 	);
 }
 
-export default GmcCpmPin;
+export default gmcCpmPin;

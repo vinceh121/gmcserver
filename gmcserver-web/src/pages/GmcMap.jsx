@@ -6,7 +6,7 @@ import { Button, Card, Result, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { fetchMap } from "../GmcApi";
 import { Link } from "react-router-dom";
-import GmcCpmPin from "../assets/PinBuilder";
+import gmcCpmPin from "../assets/PinBuilder";
 
 function DeviceMarker(props) {
 	const device = props.device;
@@ -16,7 +16,7 @@ function DeviceMarker(props) {
 			icon={L.icon({
 				iconSize: [42, 42],
 				iconAnchor: [16, 32],
-				iconUrl: GmcCpmPin({ device }),
+				iconUrl: gmcCpmPin({ device }),
 			})}
 		>
 			<Popup>
