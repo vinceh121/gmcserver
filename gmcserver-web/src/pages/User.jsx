@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { List, PageHeader, Result, Space } from "antd";
+import {
+	List,
+	PageHeader,
+	Result,
+	Space,
+	Tag,
+	Typography,
+	Form,
+	Switch,
+	InputNumber,
+} from "antd";
 import { fetchUser } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DisabledBadge from "../components/DisabledBadge";
 import Loader from "../components/Loader";
+
+const { Title } = Typography;
+
+function setupMfa() {
+	// TODO
+	console.log("setupMfa() TODO");
+}
 
 function User() {
 	const history = useHistory();
@@ -24,8 +41,27 @@ function User() {
 			<PageHeader
 				onBack={history.goBack}
 				title={user.username}
-				tags={user.admin ? <AdminBadge /> : undefined}
+				subTitle={user.gmcId ? user.gmcId : undefined}
+				tags={[
+					user.admin ? (
+						<Tag>
+							<AdminBadge />
+						</Tag>
+					) : undefined,
+					user.self ? <Tag>This is you</Tag> : undefined,
+				]}
 			>
+				{user.self ? (
+					<Form>
+						<Form.Item label="2FA">
+							<Switch checked={user.mfa} onChange={setupMfa} />
+						</Form.Item>
+						<Form.Item label="Device limit">
+							<InputNumber disabled={true} value={user.deviceLimit} />
+						</Form.Item>
+					</Form>
+				) : undefined}
+				<Title level={5}>Devices</Title>
 				<List
 					itemLayout="horizontal"
 					dataSource={user.devices}

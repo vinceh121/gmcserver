@@ -22,13 +22,17 @@ export const request = async (
 		options.headers = {};
 	}
 
-	const token = storage.getItem("token");
+	const token = getStorage().getItem("token");
 	if (token) {
 		options.headers.Authorization = token;
 	}
 
 	const res = await fetch(baseUrl + ref, options);
 	return res;
+};
+
+export const getStorage = (): Storage => {
+	return storage;
 };
 
 export const login = async (
@@ -96,8 +100,7 @@ export const fetchTimeline = async (
 	return (await res.json()) as Record[];
 };
 
-
 export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 	const res = await request("/map/" + JSON.stringify(rect));
 	return (await res.json()) as MapDevice[];
-}
+};
