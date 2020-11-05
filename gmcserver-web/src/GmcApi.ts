@@ -108,3 +108,7 @@ export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 	const res = await request("/map/" + JSON.stringify(rect));
 	return (await res.json()) as MapDevice[];
 };
+
+export const openLiveTimeline = (id: string): WebSocket => {
+	return new WebSocket(baseUrl + "/" + id + "/live");
+};
