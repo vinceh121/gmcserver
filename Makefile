@@ -4,7 +4,6 @@ server:
 	$(MAKE) -C gmcserver-server
 web:
 	$(MAKE) -C gmcserver-web
-
 emails:
 	$(MAKE) -C gmcserver-email
 
@@ -16,18 +15,13 @@ DEST_SERVICE = $(DESTDIR)/lib/systemd/system
 DEST_MAILS = $(DEST_CONF)/mail-templates
 
 install-server:
-	install -T -D gmcserver-server/target/*-jar-with-dependencies.jar $(DEST_BIN)/gmcserver
-	install -T -D gmcserver-server/config.example.properties $(DEST_CONF)/config.properties
-	install -T -D gmcserver-server/vertx.json $(DEST_CONF)/vertx.json
-	install -T -D gmcserver-server/gmcserver.service $(DEST_SERVICE)/gmcserver.service
+	$(MAKE) DESTDIR=$(DESTDIR) -C gmcserver-server install-server
 
 install-web:
-	install -d $(DEST_WEB)/gmcserver
-	cp -r gmcserver-web/build/* $(DEST_WEB)/gmcserver # try to find why install isn't behaving
+	$(MAKE) DESTDIR=$(DESTDIR) -C gmcserver-web install-web
 
 install-emails:
-	mkdir -p $(DEST_MAILS)
-	cp -r gmcserver-email/out/* $(DEST_MAILS)/
+	$(MAKE) DESTDIR=$(DESTDIR) -C gmcserver-email install-emails
 
 install: | install-server install-web install-emails
 
