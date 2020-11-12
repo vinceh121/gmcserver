@@ -13,19 +13,23 @@ import {
 } from "react-vis";
 
 function LiveDevice() {
-	const [state, setState] = useState(null);
+	const [state, setState] = useState({ records: [] });
+	const { id } = useParams();
 
 	const recs = [];
 	if (state) {
 		return (
-			<Card
-				title={"Live view: " + state.name}
-				style={{ margin: "16px" }}
-			> 
-            </Card>
+			<Card title={"Live view: " + state.name} style={{ margin: "16px" }}>
+				<XYPlot width={300} height={300}>
+					<HorizontalGridLines />
+					<LineSeries color="red" data={state.records} />
+					<XAxis title="Date" />
+					<YAxis />
+				</XYPlot>
+			</Card>
 		);
 	} else {
-		return <Loader />;
+		return <Loader subTitle="Loading device live view" />;
 	}
 }
 

@@ -19,6 +19,7 @@ export interface Device extends MapDevice {
 	gmcId?: number;
 	model?: string;
 	importedFrom?: string;
+	timeline?: Record[];
 }
 
 export interface Intent {
