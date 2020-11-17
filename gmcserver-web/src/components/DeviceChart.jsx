@@ -31,22 +31,7 @@ function DeviceChart(props) {
 	const [plot, setPlot] = useState({});
 
 	useEffect(() => {
-		if (device) {
-			fetchTimeline(device.id, props.full, props.start, props.end).then(
-				(recs) => {
-					let tl = {};
-					for (let r of recs) {
-						for (let f of numericRecordFields) {
-							if (!tl[f]) tl[f] = [];
-
-							tl[f].push({ x: new Date(r.date), y: r[f] });
-						}
-					}
-					setTimeline(tl);
-				},
-				(err) => setTimelineError(err)
-			);
-		}
+		
 	}, [device, props.full, props.start, props.end]);
 
 	if (timeline) {
