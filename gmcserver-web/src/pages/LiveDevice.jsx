@@ -8,7 +8,6 @@ import { fetchDevice, openLiveTimeline } from "../GmcApi";
 function LiveDevice() {
 	const [device, setDevice] = useState(null);
 	const [timeline, setTimeline] = useState([]);
-	const [error, setError] = useState(null);
 	const { id } = useParams();
 
 	useEffect(() => {
@@ -18,7 +17,7 @@ function LiveDevice() {
 	useEffect(() => {
 		openLiveTimeline(id).onmessage = (msg) =>
 			setTimeline([].concat([JSON.parse(msg.data)], timeline));
-	}, [id]);
+	}, [id, timeline]);
 
 	if (device) {
 		return (

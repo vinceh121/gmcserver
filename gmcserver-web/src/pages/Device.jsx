@@ -22,7 +22,7 @@ function Device() {
 	const [device, setDevice] = useState(null);
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
-	const [timelineError, setTimelineError] = useState(null);
+	// const [timelineError, setTimelineError] = useState(null);
 	const [input, setInput] = useState({});
 	const { id } = useParams();
 
@@ -37,7 +37,7 @@ function Device() {
 		if (device) {
 			fetchTimeline(device.id, input.full, input.start, input.end).then(
 				(recs) => setTimeline(recs),
-				(err) => setTimelineError(err)
+				// (err) => setTimelineError(err)
 			);
 		}
 	}, [device, input.full, input.start, input.end]);
