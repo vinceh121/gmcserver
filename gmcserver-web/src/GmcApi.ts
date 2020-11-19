@@ -110,6 +110,5 @@ export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 };
 
 export const openLiveTimeline = (id: string): WebSocket => {
-	//return new WebSocket("wss://" + window.location.host + baseUrl + "/device/" + id + "/live"); // TODO is this good?
-	return new WebSocket("wss://gmc.vinceh121.me" + baseUrl + "/device/" + id + "/live");
+	return new WebSocket("wss://" + window.location.host + baseUrl + "/device/" + id + "/live"); // TODO is this good?
 };
