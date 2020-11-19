@@ -21,7 +21,7 @@ jobs:
 
     ########## BUILD
     - name: Run make
-      run: mkdir deploy && make && DESTDIR=./deploy make install
+      run: mkdir deploy && make && DESTDIR=$(realpath ./deploy) make install
 
     ########## DEPLOY
     - name: Deploy

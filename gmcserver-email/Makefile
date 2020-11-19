@@ -3,6 +3,7 @@ build:
 	yarn
 	yarn run mjml -r *.mjml -o out/
 
+DEST_CONF = $(DESTDIR)/etc/gmcserver
 DEST_MAILS = $(DEST_CONF)/mail-templates
 
 install-emails:
