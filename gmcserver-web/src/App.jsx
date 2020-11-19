@@ -11,6 +11,7 @@ import GmcMap from "./pages/GmcMap";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import { isLoggedin } from "./GmcApi";
+import LiveDevice from "./pages/LiveDevice";
 
 const { Footer, Content, Header } = Layout;
 
@@ -43,6 +44,9 @@ function App() {
 					<Switch>
 						<Route path="/user/:id">
 							<User />
+						</Route>
+						<Route path="/device/:id/live">
+							<LiveDevice />
 						</Route>
 						<Route path="/device/:id">
 							<Device />

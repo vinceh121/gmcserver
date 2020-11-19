@@ -1,36 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "antd";
 import Loader from "../components/Loader";
-import "react-vis/dist/style.css";
-import {
-	XYPlot,
-	XAxis,
-	YAxis,
-	HorizontalGridLines,
-	VerticalGridLines,
-	LineSeries,
-	Crosshair,
-} from "react-vis";
+import { useParams } from "react-router-dom";
+import DeviceChart from "../components/DeviceChart";
+import { fetchDevice, openLiveTimeline } from "../GmcApi";
 
 function LiveDevice() {
-	const [state, setState] = useState({ records: [] });
+	const [device, setDevice] = useState(null);
+	const [timeline, setTimeline] = useState([]);
+	const [error, setError] = useState(null);
 	const { id } = useParams();
 
-	const recs = [];
-	if (state) {
+	useEffect(() => {
+		fetchDevice(id).then((dev) => setDevice(dev));
+	}, [id]);
+
+	useEffect(() => {
+		openLiveTimeline(id).onmessage = (msg) =>
+			setTimeline([].concat([JSON.parse(msg.data)], timeline));
+	}, [id]);
+
+	if (device) {
 		return (
-			<Card title={"Live view: " + state.name} style={{ margin: "16px" }}>
-				<XYPlot width={300} height={300}>
-					<HorizontalGridLines />
-					<LineSeries color="red" data={state.records} />
-					<XAxis title="Date" />
-					<YAxis />
-				</XYPlot>
+			<Card
+				title={"Live view: " + device.name}
+				style={{ margin: "16px" }}
+				bodyStyle={{ height: "500px" }}
+				loading={timeline.length}
+			>
+				<DeviceChart timeline={timeline} />
 			</Card>
 		);
 	} else {
-		return <Loader subTitle="Loading device live view" />;
+		return <Loader subTitle="Loading device live view..." />;
 	}
 }
 
-export default LiveDefault;
+export default LiveDevice;

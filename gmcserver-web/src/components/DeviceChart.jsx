@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import "react-vis/dist/style.css";
 import {
-	XYPlot,
+	FlexibleXYPlot,
 	XAxis,
 	YAxis,
 	HorizontalGridLines,
@@ -10,6 +10,7 @@ import {
 	LineSeries,
 	Crosshair,
 } from "react-vis";
+import Loader from "./Loader";
 
 const numericRecordFields = [
 	"cpm",
@@ -21,56 +22,76 @@ const numericRecordFields = [
 	"ap",
 	"hmdt",
 	"accy",
-	"date",
 ];
 
+function recordToPoints(rec) {
+	const pts = [];
+	for (let f in rec) {
+		if (f === "date" || !rec[f] || rec[f] === "NaN") continue;
+		pts.push({ x: new Date(rec.date), y: rec[f], title: f });
+	}
+	return pts;
+}
+
 function DeviceChart(props) {
-    const device = props.device;
-	const [timeline, setTimeline] = useState(props.timeline);
-	const [timelineError, setTimelineError] = useState(null);
+	// we need to transform the timeline from 'record' format
+	// to 'data point' format to feed react-vis
+	const [timeline, setTimeline] = useState(null);
 	const [plot, setPlot] = useState({});
 
 	useEffect(() => {
-		
-	}, [device, props.full, props.start, props.end]);
+		if (props.timeline) {
+			let tl = {};
+			for (let r of props.timeline) {
+				for (let f of numericRecordFields) {
+					if (!tl[f]) tl[f] = [];
+
+					tl[f].push({ x: new Date(r.date), y: r[f] });
+				}
+			}
+			setTimeline(tl);
+		}
+	}, [props.timeline]);
 
 	if (timeline) {
 		return (
-			<XYPlot
-				height={500}
-				width={500}
+			<FlexibleXYPlot
 				onMouseLeave={() => setPlot({ crosshairValues: [] })}
 			>
 				<VerticalGridLines />
 				<HorizontalGridLines />
 				{numericRecordFields.map((name, i) => {
-					console.log(name);
 					return (
 						<LineSeries
 							data={timeline[name]}
 							key={i}
-							onNearestX={(value, { index }) =>
+							onNearestX={(value, { index }) => {
 								setPlot({
-									crosshairValues: timeline[name].map((d) => d[index]),
-								})
-							}
+									crosshairValues: recordToPoints(props.timeline[index]),
+								});
+							}}
 						/>
 					);
 				})}
-				<XAxis tickLabelAngle={-90} />
+				<XAxis
+					tickLabelAngle={-90}
+					tickFormat={(t) => new Date(t).toLocaleString()}
+					height={500}
+				/>
 				<YAxis />
-				<Crosshair values={plot.crosshairValues} />
-			</XYPlot>
-		);
-	} else if (timelineError) {
-		return (
-			<Result
-				status="500"
-				title="Failed to load data"
-				subTitle={String(timelineError)}
-			/>
+				<Crosshair
+					values={plot.crosshairValues}
+					itemsFormat={(pts) =>
+						pts.map((v) => {
+							return { title: v.title, value: v.y };
+						})
+					}
+				/>
+			</FlexibleXYPlot>
 		);
 	} else {
 		return <Loader subTitle="Loading timeline..." />;
 	}
 }
+
+export default DeviceChart;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { fetchDevice, fetchTimeline } from "../GmcApi";
 import {
+	Card,
 	Checkbox,
 	DatePicker,
 	Descriptions,
@@ -12,6 +13,7 @@ import {
 import DisabledBadge from "../components/DisabledBadge";
 
 import Loader from "../components/Loader";
+import DeviceChart from "../components/DeviceChart";
 
 const { RangePicker } = DatePicker;
 
@@ -19,6 +21,8 @@ function Device() {
 	const history = useHistory();
 	const [device, setDevice] = useState(null);
 	const [deviceError, setDeviceError] = useState(null);
+	const [timeline, setTimeline] = useState(null);
+	const [timelineError, setTimelineError] = useState(null);
 	const [input, setInput] = useState({});
 	const { id } = useParams();
 
@@ -31,22 +35,12 @@ function Device() {
 
 	useEffect(() => {
 		if (device) {
-			fetchTimeline(device.id, props.full, props.start, props.end).then(
-				(recs) => {
-					let tl = {};
-					for (let r of recs) {
-						for (let f of numericRecordFields) {
-							if (!tl[f]) tl[f] = [];
-
-							tl[f].push({ x: new Date(r.date), y: r[f] });
-						}
-					}
-					setTimeline(tl);
-				},
+			fetchTimeline(device.id, input.full, input.start, input.end).then(
+				(recs) => setTimeline(recs),
 				(err) => setTimelineError(err)
 			);
 		}
-	}, [device]);
+	}, [device, input.full, input.start, input.end]);
 
 	if (device) {
 		return (
@@ -73,14 +67,15 @@ function Device() {
 						</Descriptions.Item>
 					) : undefined}
 				</Descriptions>
-				<Space direction="vertical">
+				<Card bodyStyle={{ height: "500px" }} loading={!timeline}>
 					<DeviceChart
-						device={device}
 						full={input.full}
 						start={input.start}
 						end={input.end}
+						timeline={timeline}
 					/>
-
+				</Card>
+				<Space direction="vertical">
 					<RangePicker
 						showTime
 						onChange={(d) =>

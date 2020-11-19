@@ -56,8 +56,8 @@ public class DeviceManager extends AbstractManager {
 		return new DeviceStatsAction(this.srv);
 	}
 
-	public DeviceTimelineAction deviceTimeline() {
-		return new DeviceTimelineAction(this.srv);
+	public DeviceFullTimelineAction deviceFullTimeline() {
+		return new DeviceFullTimelineAction(this.srv);
 	}
 
 	public UpdateDeviceAction updateDevice() {
@@ -118,13 +118,13 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
-	public class DeviceTimelineAction extends AbstractAction<Iterable<Record>> {
+	public class DeviceFullTimelineAction extends AbstractAction<Iterable<Record>> {
 		private User requester;
 		private Device dev;
 		private Date start, end;
 		private boolean full;
 
-		public DeviceTimelineAction(final GMCServer srv) {
+		public DeviceFullTimelineAction(final GMCServer srv) {
 			super(srv);
 		}
 
@@ -159,7 +159,7 @@ public class DeviceManager extends AbstractManager {
 			return this.requester;
 		}
 
-		public DeviceTimelineAction setRequester(final User requester) {
+		public DeviceFullTimelineAction setRequester(final User requester) {
 			this.requester = requester;
 			return this;
 		}
@@ -168,7 +168,7 @@ public class DeviceManager extends AbstractManager {
 			return this.dev;
 		}
 
-		public DeviceTimelineAction setDev(final Device dev) {
+		public DeviceFullTimelineAction setDev(final Device dev) {
 			this.dev = dev;
 			return this;
 		}
@@ -177,7 +177,7 @@ public class DeviceManager extends AbstractManager {
 			return this.start;
 		}
 
-		public DeviceTimelineAction setStart(final Date start) {
+		public DeviceFullTimelineAction setStart(final Date start) {
 			this.start = start;
 			return this;
 		}
@@ -186,7 +186,7 @@ public class DeviceManager extends AbstractManager {
 			return this.end;
 		}
 
-		public DeviceTimelineAction setEnd(final Date end) {
+		public DeviceFullTimelineAction setEnd(final Date end) {
 			this.end = end;
 			return this;
 		}
@@ -195,7 +195,7 @@ public class DeviceManager extends AbstractManager {
 			return this.full;
 		}
 
-		public DeviceTimelineAction setFull(final boolean full) {
+		public DeviceFullTimelineAction setFull(final boolean full) {
 			this.full = full;
 			return this;
 		}
