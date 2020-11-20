@@ -6,12 +6,14 @@ import { Layout, Menu } from "antd";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import User from "./pages/User";
-import Device from "./pages/Device";
 import GmcMap from "./pages/GmcMap";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import Device from "./pages/device/Device";
+import LiveDevice from "./pages/device/LiveDevice";
+import NewDevice from "./pages/device/NewDevice";
+
 import { isLoggedin } from "./GmcApi";
-import LiveDevice from "./pages/LiveDevice";
 
 const { Footer, Content, Header } = Layout;
 
@@ -47,6 +49,9 @@ function App() {
 						</Route>
 						<Route path="/device/:id/live">
 							<LiveDevice />
+						</Route>
+						<Route path="/device/new">
+							<NewDevice />
 						</Route>
 						<Route path="/device/:id">
 							<Device />

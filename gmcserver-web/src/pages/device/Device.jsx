@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { fetchDevice, fetchTimeline } from "../GmcApi";
+import { fetchDevice, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
@@ -11,10 +11,9 @@ import {
 	Result,
 	Space,
 } from "antd";
-import DisabledBadge from "../components/DisabledBadge";
-
-import Loader from "../components/Loader";
-import DeviceChart from "../components/DeviceChart";
+import DisabledBadge from "../../components/DisabledBadge";
+import Loader from "../../components/Loader";
+import DeviceChart from "../../components/DeviceChart";
 
 const { RangePicker } = DatePicker;
 

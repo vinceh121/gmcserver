@@ -83,6 +83,21 @@ export const fetchDevice = async (id: string): Promise<Device> => {
 	return (await res.json()) as Device;
 };
 
+export const createDevice = async (
+	name: string,
+	lat: number,
+	lon: number
+): Promise<Device> => {
+	const res = await request("/device", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ name: name, position: [lat, lon] }),
+	});
+	return (await res.json()) as Device;
+};
+
 export const fetchTimeline = async (
 	id: string,
 	full: boolean,
@@ -110,6 +125,8 @@ export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 };
 
 export const openLiveTimeline = (id: string): WebSocket => {
-	// return new WebSocket("wss://" + window.location.host + baseUrl + "/device/" + id + "/live"); // TODO is this good?
-	return new WebSocket("wss://gmc.vinceh121.me/api/v1/device/" + id + "/live");
+	return new WebSocket(
+		"wss://" + window.location.host + baseUrl + "/device/" + id + "/live"
+	); // TODO is this good?
+	//return new WebSocket("wss://gmc.vinceh121.me/api/v1/device/" + id + "/live"); // fuck you proxy dev server not supporting websockets
 };

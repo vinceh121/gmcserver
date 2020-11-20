@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "antd";
-import Loader from "../components/Loader";
+import Loader from "../../components/Loader";
 import { useParams } from "react-router-dom";
-import DeviceChart from "../components/DeviceChart";
-import { fetchDevice, openLiveTimeline } from "../GmcApi";
+import DeviceChart from "../../components/DeviceChart";
+import { fetchDevice, openLiveTimeline } from "../../GmcApi";
 
 function LiveDevice() {
 	const [device, setDevice] = useState(null);
