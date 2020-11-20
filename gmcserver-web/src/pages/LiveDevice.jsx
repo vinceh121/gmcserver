@@ -8,16 +8,19 @@ import { fetchDevice, openLiveTimeline } from "../GmcApi";
 function LiveDevice() {
 	const [device, setDevice] = useState(null);
 	const [timeline, setTimeline] = useState([]);
+	const [ws, setWs] = useState(null);
 	const { id } = useParams();
 
 	useEffect(() => {
 		fetchDevice(id).then((dev) => setDevice(dev));
+		setWs(openLiveTimeline(id));
 	}, [id]);
 
 	useEffect(() => {
-		openLiveTimeline(id).onmessage = (msg) =>
-			setTimeline([].concat([JSON.parse(msg.data)], timeline));
-	}, [id, timeline]);
+		if (ws)
+			ws.onmessage = (msg) =>
+				setTimeline([].concat([JSON.parse(msg.data)], timeline));
+	}, [ws, timeline]);
 
 	if (device) {
 		return (
@@ -25,7 +28,6 @@ function LiveDevice() {
 				title={"Live view: " + device.name}
 				style={{ margin: "16px" }}
 				bodyStyle={{ height: "500px" }}
-				loading={timeline.length}
 			>
 				<DeviceChart timeline={timeline} />
 			</Card>

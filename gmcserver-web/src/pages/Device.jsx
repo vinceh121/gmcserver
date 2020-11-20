@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useHistory, Link } from "react-router-dom";
 import { fetchDevice, fetchTimeline } from "../GmcApi";
 import {
+	Button,
 	Card,
 	Checkbox,
 	DatePicker,
@@ -36,7 +37,7 @@ function Device() {
 	useEffect(() => {
 		if (device) {
 			fetchTimeline(device.id, input.full, input.start, input.end).then(
-				(recs) => setTimeline(recs),
+				(recs) => setTimeline(recs)
 				// (err) => setTimelineError(err)
 			);
 		}
@@ -49,6 +50,11 @@ function Device() {
 				title={device.name}
 				subTitle={device.gmcId}
 				tags={device.disabled ? <DisabledBadge /> : undefined}
+				extra={[
+					<Button key="0">
+						<Link to={"/device/" + id + "/live"}>Live timeline</Link>
+					</Button>,
+				]}
 			>
 				<Descriptions size="small">
 					{device.importedFrom ? (

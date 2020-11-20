@@ -57,6 +57,7 @@ function DeviceChart(props) {
 		return (
 			<FlexibleXYPlot
 				onMouseLeave={() => setPlot({ crosshairValues: [] })}
+				animation={true}
 			>
 				<VerticalGridLines />
 				<HorizontalGridLines />
@@ -74,7 +75,7 @@ function DeviceChart(props) {
 					);
 				})}
 				<XAxis
-					tickLabelAngle={-90}
+					tickLabelAngle={-20}
 					tickFormat={(t) => new Date(t).toLocaleString()}
 					height={500}
 				/>
