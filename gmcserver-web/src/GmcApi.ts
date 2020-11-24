@@ -39,6 +39,12 @@ export const isLoggedin = (): boolean => {
 	return getStorage().getItem("token") != null;
 };
 
+export const saveSession = (login: LoginResult): void => {
+	storage.setItem("userId", login.id);
+	storage.setItem("token", login.token);
+	storage.setItem("mfaRequired", String(login.mfa));
+};
+
 export const login = async (
 	username: string,
 	password: string
@@ -58,9 +64,7 @@ export const login = async (
 	}
 
 	const login = (await res.json()) as LoginResult;
-	storage.setItem("userId", login.id);
-	storage.setItem("token", login.token);
-	storage.setItem("mfaRequired", String(login.mfa));
+	saveSession(login);
 	return login;
 };
 
@@ -68,6 +72,26 @@ export const logoff = (): void => {
 	storage.removeItem("userId");
 	storage.removeItem("token");
 	storage.removeItem("mfaRequired");
+};
+
+export const register = async (
+	username: string,
+	email: string,
+	password: string
+): Promise<LoginResult> => {
+	const res = await request("/auth/register", {
+		method: "POST",
+		body: JSON.stringify({ username, email, password }),
+	});
+
+	if (res.status !== 200) {
+		const errres = (await res.json()) as ErrorResult;
+		throw errres;
+	}
+
+	const login = (await res.json()) as LoginResult;
+	saveSession(login);
+	return login;
 };
 
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, Button, Card, Form, Input, Space } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Link, useHistory } from "react-router-dom";
-import { login } from "../GmcApi";
+import { login } from "../../GmcApi";
 import Modal from "antd/lib/modal/Modal";
 
 function Login() {

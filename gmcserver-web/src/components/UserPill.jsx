@@ -1,7 +1,6 @@
 import React from "react";
 import { Avatar, Button } from "antd";
 import { UserOutlined } from "@ant-design/icons";
-import AdminBadge from "./AdminBadge";
 import { Link } from "react-router-dom";
 
 function UserPill(props) {

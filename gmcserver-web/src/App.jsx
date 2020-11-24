@@ -8,7 +8,8 @@ import NotFound from "./pages/NotFound";
 import User from "./pages/User";
 import GmcMap from "./pages/GmcMap";
 import Profile from "./pages/Profile";
-import Login from "./pages/Login";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import Device from "./pages/device/Device";
 import LiveDevice from "./pages/device/LiveDevice";
 import NewDevice from "./pages/device/NewDevice";
@@ -64,6 +65,9 @@ function App() {
 						</Route>
 						<Route path="/login">
 							<Login />
+						</Route>
+						<Route path="/register">
+							<Register />
 						</Route>
 						<Route exact path="/">
 							<Home />
