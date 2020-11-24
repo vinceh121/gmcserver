@@ -31,7 +31,7 @@ export interface User {
 	id: string;
 	username: string;
 	admin: boolean;
-	deviceLimit: number;
+	deviceLimit?: number;
 	devices?: Device[];
 	gmcId?: number;
 	mfa?: boolean;

@@ -64,6 +64,12 @@ export const login = async (
 	return login;
 };
 
+export const logoff = (): void => {
+	storage.removeItem("userId");
+	storage.removeItem("token");
+	storage.removeItem("mfaRequired");
+};
+
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
 	return (await res.json()) as InstanceInfo;
@@ -128,5 +134,5 @@ export const openLiveTimeline = (id: string): WebSocket => {
 	return new WebSocket(
 		"wss://" + window.location.host + baseUrl + "/device/" + id + "/live"
 	); // TODO is this good?
-	//return new WebSocket("wss://gmc.vinceh121.me/api/v1/device/" + id + "/live"); // fuck you proxy dev server not supporting websockets
+	//	return new WebSocket("wss://gmc.vinceh121.me/api/v1/device/" + id + "/live"); // fuck you proxy dev server not supporting websockets
 };

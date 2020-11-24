@@ -10,8 +10,9 @@ import {
 	Form,
 	Switch,
 	InputNumber,
+	Button,
 } from "antd";
-import { fetchUser } from "../GmcApi";
+import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DisabledBadge from "../components/DisabledBadge";
 import Loader from "../components/Loader";
@@ -49,6 +50,20 @@ function User() {
 						</Tag>
 					) : undefined,
 					user.self ? <Tag>This is you</Tag> : undefined,
+				]}
+				extra={[
+					user.self ? (
+						<Button
+							key="0"
+							onClick={() => {
+								logoff();
+								history.push("/");
+							}}
+							danger
+						>
+							Logout
+						</Button>
+					) : undefined,
 				]}
 			>
 				{user.self ? (

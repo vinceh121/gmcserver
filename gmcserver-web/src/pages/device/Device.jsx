@@ -14,6 +14,7 @@ import {
 import DisabledBadge from "../../components/DisabledBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
+import UserPill from "../../components/UserPill";
 
 const { RangePicker } = DatePicker;
 
@@ -55,7 +56,7 @@ function Device() {
 					</Button>,
 				]}
 			>
-				<Descriptions size="small">
+				<Descriptions size="small" extra={<UserPill user={device.owner} />}>
 					{device.importedFrom ? (
 						<Descriptions.Item label="Imported from">
 							{device.importedFrom}
