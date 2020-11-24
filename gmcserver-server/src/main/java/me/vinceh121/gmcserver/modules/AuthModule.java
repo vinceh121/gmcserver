@@ -33,7 +33,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (username.length() < 4 || username.length() > 128) {
+		if (username.length() < 4 || username.length() > 32) {
 			this.error(ctx, 400, "Username is invalid length");
 			return;
 		}
@@ -50,8 +50,23 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final CreateUserAction action
-				= this.srv.getManager(UserManager.class).createUser().setUsername(username).setPassword(password);
+		final String email = obj.getString("email");
+
+		if (email == null) {
+			this.error(ctx, 400, "Field email missing");
+			return;
+		}
+
+		if (!UserManager.EMAIL_REGEX.matcher(email).matches()) {
+			this.error(ctx, 400, "Invalid email");
+			return;
+		}
+
+		final CreateUserAction action = this.srv.getManager(UserManager.class)
+				.createUser()
+				.setUsername(username)
+				.setPassword(password)
+				.setEmail(email);
 		action.execute().onComplete(res -> {
 			if (res.failed()) {
 				this.error(ctx, 500, "Failed to create user: " + res.cause().getMessage());
@@ -59,12 +74,14 @@ public class AuthModule extends AbstractModule {
 			}
 
 			final User user = res.result();
+			final Token token = this.srv.getTokenize().generateToken(user);
+
 			ctx.response()
-					.end(new JsonObject().put("username", user.getUsername())
-							.put("id", user.getId().toHexString())
+					.end(new JsonObject().put("token", token.toString())
+							.put("id", user.getId().toString())
+							.put("mfa", user.isMfa())
 							.toBuffer());
 		});
-
 	}
 
 	private void handleLogin(final RoutingContext ctx) {

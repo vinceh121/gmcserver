@@ -2,6 +2,7 @@ package me.vinceh121.gmcserver.managers;
 
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
 
@@ -17,6 +18,11 @@ import xyz.bowser65.tokenize.Token;
 
 public class UserManager extends AbstractManager {
 	private static final SecureRandom USER_RANDOM = new SecureRandom();
+	public static final Pattern USERNAME_REGEX = Pattern.compile("[a-zA-Z]{2,}[a-zA-Z0-9]{2,}"),
+			EMAIL_REGEX = Pattern.compile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]"
+					+ "+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\"
+					+ ".[0-9]{1,3}\\.[0-9]{1,3}])|(([a-"
+					+ "zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$");
 
 	public UserManager(final GMCServer srv) {
 		super(srv);
@@ -174,7 +180,7 @@ public class UserManager extends AbstractManager {
 	}
 
 	public class CreateUserAction extends AbstractAction<User> {
-		private String username, password;
+		private String username, password, email;
 		private boolean admin, generateGmcId, insertInDb = true;
 		private final boolean checkUsernameAvailable = true;
 		private long gmcId;
@@ -187,6 +193,7 @@ public class UserManager extends AbstractManager {
 		protected void executeSync(final Promise<User> promise) {
 			final User user = new User();
 			user.setUsername(this.username);
+			user.setEmail(this.email);
 			user.setPassword(this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
 			user.setAdmin(this.admin);
 
@@ -261,6 +268,15 @@ public class UserManager extends AbstractManager {
 
 		public CreateUserAction setGmcId(final long gmcId) {
 			this.gmcId = gmcId;
+			return this;
+		}
+
+		public String getEmail() {
+			return email;
+		}
+
+		public CreateUserAction setEmail(String email) {
+			this.email = email;
 			return this;
 		}
 
