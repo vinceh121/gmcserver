@@ -15,6 +15,7 @@ import LiveDevice from "./pages/device/LiveDevice";
 import NewDevice from "./pages/device/NewDevice";
 
 import { isLoggedin } from "./GmcApi";
+import Welcome from "./pages/Welcome";
 
 const { Footer, Content, Header } = Layout;
 
@@ -68,6 +69,9 @@ function App() {
 						</Route>
 						<Route path="/register">
 							<Register />
+						</Route>
+						<Route path="/welcome">
+							<Welcome />
 						</Route>
 						<Route exact path="/">
 							<Home />

@@ -66,9 +66,9 @@
 			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>xyz.bowser65</groupId>
-			<artifactId>Tokenize</artifactId>
-			<version>5510691</version>
+			<groupId>com.github.vinceh121</groupId>
+			<artifactId>tokenize4j</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>

@@ -4,6 +4,7 @@ dependencies:
   '@testing-library/jest-dom': 4.2.4
   '@testing-library/react': 9.5.0_react-dom@16.14.0+react@16.14.0
   '@testing-library/user-event': 7.2.1
+  '@types/react-router-dom': 5.1.6
   antd: 4.8.4_react-dom@16.14.0+react@16.14.0
   craco-less: 1.17.0_58bb82b89132eee0a1d9f35e1d45e55c
   leaflet: 1.7.1
@@ -1792,6 +1793,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-SEYeGAIQIQX8NN6LDKprLjbrd5dARM5EXsd8GI/A5l0apYI1fGMWgPHSe4ZKL4eozlAyI+doUE9XbYS4xCkQ1w==
+  /@types/history/4.7.8:
+    dev: false
+    resolution:
+      integrity: sha512-S78QIYirQcUoo6UJZx9CSP0O2ix9IaeAXwQi26Rhr/+mg7qqPy8TzaxHSUut7eGjL8WmLccT7/MXf304WjqHcA==
   /@types/istanbul-lib-coverage/2.0.3:
     dev: false
     resolution:
@@ -1839,6 +1844,21 @@ packages:
     dev: false
     resolution:
       integrity: sha512-jE16FNWO3Logq/Lf+yvEAjKzhpST/Eac8EMd1i4dgZdMczfgqC8EjpxwNgEe3SExHYLliabXDh9DEhhqnlXJhg==
+  /@types/react-router-dom/5.1.6:
+    dependencies:
+      '@types/history': 4.7.8
+      '@types/react': 17.0.0
+      '@types/react-router': 5.1.8
+    dev: false
+    resolution:
+      integrity: sha512-gjrxYqxz37zWEdMVvQtWPFMFj1dRDb4TGOcgyOfSXTrEXdF92L00WE3C471O3TV/RF1oskcStkXsOU0Ete4s/g==
+  /@types/react-router/5.1.8:
+    dependencies:
+      '@types/history': 4.7.8
+      '@types/react': 17.0.0
+    dev: false
+    resolution:
+      integrity: sha512-HzOyJb+wFmyEhyfp4D4NYrumi+LQgQL/68HvJO+q6XtuHSDvw6Aqov7sCAhjbNq3bUPgPqbdvjXC5HeB2oEAPg==
   /@types/react/16.14.0:
     dependencies:
       '@types/prop-types': 15.7.3
@@ -1846,6 +1866,13 @@ packages:
     dev: false
     resolution:
       integrity: sha512-jJjHo1uOe+NENRIBvF46tJimUvPnmbQ41Ax0pEm7pRvhPg+wuj8VMOHHiMvaGmZRzRrCtm7KnL5OOE/6kHPK8w==
+  /@types/react/17.0.0:
+    dependencies:
+      '@types/prop-types': 15.7.3
+      csstype: 3.0.5
+    dev: false
+    resolution:
+      integrity: sha512-aj/L7RIMsRlWML3YB6KZiXB3fV2t41+5RBGYF8z+tAKU43Px8C3cYUZsDvf1/+Bm4FK21QWBrDutu8ZJ/70qOw==
   /@types/stack-utils/1.0.1:
     dev: false
     resolution:
@@ -12582,6 +12609,7 @@ specifiers:
   '@testing-library/jest-dom': ^4.2.4
   '@testing-library/react': ^9.3.2
   '@testing-library/user-event': ^7.1.2
+  '@types/react-router-dom': ^5.1.6
   antd: ^4.7.0
   craco-less: ^1.17.0
   leaflet: ^1.7.1
