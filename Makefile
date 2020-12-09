@@ -7,12 +7,6 @@ web:
 emails:
 	$(MAKE) -C gmcserver-email
 
-DEST_BIN = $(DESTDIR)/usr/bin
-DEST_WEB = $(DESTDIR)/var/www/html
-DEST_CONF = $(DESTDIR)/etc/gmcserver
-DEST_SERVICE = $(DESTDIR)/lib/systemd/system
-
-DEST_MAILS = $(DEST_CONF)/mail-templates
 
 install-server:
 	$(MAKE) DESTDIR=$(DESTDIR) -C gmcserver-server install-server
