@@ -27,8 +27,12 @@ public class LoggingModule extends AbstractModule {
 	public static final String ERROR_DEVICE_ID = "Invalid device ID.ERR2";
 	public static final String ERROR_DEVICE_NOT_OWNED = "User does not own device";
 
+	private final boolean logIp, behindReverseProxy;
+
 	public LoggingModule(final GMCServer srv) {
 		super(srv);
+		this.logIp = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"));
+		this.behindReverseProxy = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.behindReverseProxy"));
 		this.registerRoute(HttpMethod.GET, "/log2", this::handleLog2);
 		this.registerRoute(HttpMethod.GET, "/log", this::handleClassicLog);
 	}
@@ -98,8 +102,12 @@ public class LoggingModule extends AbstractModule {
 		final Builder build = new Record.Builder(ctx.request().params());
 		build.buildParameters().buildPosition().withCurrentDate().withDevice(device.getId());
 
-		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
-			build.withIp(ctx.request().remoteAddress().host());
+		if (this.logIp) {
+			if (this.behindReverseProxy) {
+				build.withIp(ctx.request().getHeader("X-Forwarded-For"));
+			} else {
+				build.withIp(ctx.request().remoteAddress().host());
+			}
 		}
 
 		final Record rec = build.build();
@@ -221,8 +229,12 @@ public class LoggingModule extends AbstractModule {
 		rec.setDeviceId(device.getId());
 		rec.setUsv(usv);
 
-		if (Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"))) {
-			rec.setIp(ctx.request().remoteAddress().host());
+		if (this.logIp) {
+			if (this.behindReverseProxy) {
+				rec.setIp(ctx.request().getHeader("X-Forwarded-For"));
+			} else {
+				rec.setIp(ctx.request().remoteAddress().host());
+			}
 		}
 
 		this.log.debug("Inserting record using old log {}", rec);
