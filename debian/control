@@ -1,10 +1,10 @@
 Source: gmcserver
 Section: net
 Priority: optional
-Maintainer: Vincent Hyvert <vincent.hyvert@sfr.fr>
+Maintainer: Vincent Hyvert <gmc@vinceh121.me>
 Build-Depends: debhelper-compat (= 9)
 Standards-Version: 4.5.0
-Homepage: https://gmcserver.vinceh121.me
+Homepage: https://home.gmc.vinceh121.me
 Vcs-Browser: https://github.com/vinceh121/gmcserver
 Vcs-Git: https://github.com/vinceh121/gmcserver.git
 

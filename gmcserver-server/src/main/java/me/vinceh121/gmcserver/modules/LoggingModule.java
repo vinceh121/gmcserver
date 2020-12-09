@@ -5,6 +5,7 @@ import java.util.Date;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
@@ -106,7 +107,7 @@ public class LoggingModule extends AbstractModule {
 		this.log.debug("Inserting record {}", rec);
 
 		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
-		ctx.response().setStatusCode(200).end(ERROR_OK);
+		this.error(ctx, 200, ERROR_OK);
 
 		this.publishRecord(rec);
 
@@ -246,5 +247,19 @@ public class LoggingModule extends AbstractModule {
 
 	private void publishRecord(final Record rec) {
 		this.srv.getEventBus().publish(ADDRESS_PREFIX_RECORD_LOG + rec.getDeviceId(), rec);
+	}
+
+	@Override
+	protected void error(final RoutingContext ctx, final int status, final String desc, final JsonObject extra) {
+		if (ctx.getAcceptableContentType().equals("application/json")) {
+			super.error(ctx, status, desc, extra);
+			return;
+		}
+
+		ctx.response()
+				.setStatusCode(status)
+				.putHeader("X-GMC-Extras", extra.encode())
+				.putHeader("Content-Type", "text/plain")
+				.end(desc);
 	}
 }

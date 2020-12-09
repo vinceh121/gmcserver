@@ -25,6 +25,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
+import me.vinceh121.gmcserver.auth.AbstractAuthenticator;
+import me.vinceh121.gmcserver.auth.InternalAuthenticator;
 import me.vinceh121.gmcserver.entities.AbstractEntity;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -74,6 +76,8 @@ public class GMCServer {
 	private final AuthHandler authHandler;
 	private final StrictAuthHandler strictAuthHandler;
 
+	private final AbstractAuthenticator authenticator;
+
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
 		final GMCServer srv = new GMCServer();
@@ -110,6 +114,17 @@ public class GMCServer {
 
 		this.tokenize = new Tokenize(secret);
 		this.argon = Argon2Factory.create();
+
+		try {
+			this.authenticator = (AbstractAuthenticator) Class
+					.forName(this.config.getProperty("auth.authenticator",
+							InternalAuthenticator.class.getCanonicalName()))
+					.getConstructor(GMCServer.class)
+					.newInstance(this);
+		} catch (final Exception e) {
+			LOG.error("Failed to initiate authenticator", e);
+			throw new IllegalStateException(e);
+		}
 
 		final VertxOptions options;
 		try {
@@ -261,4 +276,7 @@ public class GMCServer {
 		return this.getVertx().eventBus();
 	}
 
+	public AbstractAuthenticator getAuthenticator() {
+		return authenticator;
+	}
 }

@@ -36,8 +36,8 @@ public class UserManager extends AbstractManager {
 		return new VerifyTokenAction(this.srv);
 	}
 
-	public UserLoginAction userLogin() {
-		return new UserLoginAction(this.srv);
+	public GenerateTokenAction userLogin() {
+		return new GenerateTokenAction(this.srv);
 	}
 
 	public CreateUserAction createUser() {
@@ -127,30 +127,15 @@ public class UserManager extends AbstractManager {
 
 	}
 
-	public class UserLoginAction extends AbstractAction<Token> {
-		private String username, password;
+	public class GenerateTokenAction extends AbstractAction<Token> {
+		private User user;
 
-		public UserLoginAction(final GMCServer srv) {
+		public GenerateTokenAction(final GMCServer srv) {
 			super(srv);
 		}
 
 		@Override
 		protected void executeSync(final Promise<Token> promise) {
-			final User user = this.srv.getManager(DatabaseManager.class)
-					.getCollection(User.class)
-					.find(Filters.eq("username", this.username))
-					.first();
-
-			if (user == null) {
-				promise.fail("User not found");
-				return;
-			}
-
-			if (!this.srv.getArgon().verify(user.getPassword(), this.password.toCharArray())) {
-				promise.fail("Could not verify auth");
-				return;
-			}
-
 			final Token token;
 			if (user.isMfa()) {
 				token = this.srv.getTokenize().generateToken(user, "mfa");
@@ -160,21 +145,12 @@ public class UserManager extends AbstractManager {
 			promise.complete(token);
 		}
 
-		public String getUsername() {
-			return this.username;
+		public User getUser() {
+			return user;
 		}
 
-		public UserLoginAction setUsername(final String username) {
-			this.username = username;
-			return this;
-		}
-
-		public String getPassword() {
-			return this.password;
-		}
-
-		public UserLoginAction setPassword(final String password) {
-			this.password = password;
+		public GenerateTokenAction setUser(User user) {
+			this.user = user;
 			return this;
 		}
 	}
@@ -194,7 +170,8 @@ public class UserManager extends AbstractManager {
 			final User user = new User();
 			user.setUsername(this.username);
 			user.setEmail(this.email);
-			user.setPassword(this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
+			user.setPassword(
+					password == null ? null : this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
 			user.setAdmin(this.admin);
 
 			if (this.generateGmcId) {

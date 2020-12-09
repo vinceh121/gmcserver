@@ -7,8 +7,7 @@ import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.UserManager;
-import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
-import me.vinceh121.gmcserver.managers.UserManager.UserLoginAction;
+import me.vinceh121.gmcserver.managers.UserManager.GenerateTokenAction;
 import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.mfa.MFAManager.SetupMFAAction;
 import me.vinceh121.gmcserver.mfa.MFAManager.VerifyCodeAction;
@@ -38,6 +37,11 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
+		if (!UserManager.USERNAME_REGEX.matcher(username).matches()) {
+			this.error(ctx, 400, "Invalid username");
+			return;
+		}
+
 		final String password = obj.getString("password");
 
 		if (password == null) {
@@ -62,26 +66,15 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final CreateUserAction action = this.srv.getManager(UserManager.class)
-				.createUser()
-				.setUsername(username)
-				.setPassword(password)
-				.setEmail(email);
-		action.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 500, "Failed to create user: " + res.cause().getMessage());
-				return;
-			}
-
-			final User user = res.result();
-			final Token token = this.srv.getTokenize().generateToken(user);
-
-			ctx.response()
-					.end(new JsonObject().put("token", token.toString())
-							.put("id", user.getId().toString())
-							.put("mfa", user.isMfa())
-							.toBuffer());
-		});
+		this.srv.getAuthenticator().register(username, email, password).onSuccess(user -> {
+			final GenerateTokenAction action = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			action.execute().onSuccess(token -> {
+				ctx.response()
+						.end(new JsonObject().put("token", token.toString())
+								.put("id", user.getId().toString())
+								.toBuffer());
+			}).onFailure(t -> this.error(ctx, 500, "Failed to login after creating account: " + t.getMessage()));
+		}).onFailure(t -> this.error(ctx, 500, "Failed to create account: " + t.getMessage()));
 	}
 
 	private void handleLogin(final RoutingContext ctx) {
@@ -100,23 +93,17 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final UserLoginAction action
-				= this.srv.getManager(UserManager.class).userLogin().setUsername(username).setPassword(password);
-		action.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 403, "Login failed: " + res.cause().getMessage());
-			}
-
-			final Token token = res.result();
-			final User user = (User) token.getAccount();
-
-			ctx.response()
-					// .setStatusCode(user.isMfa() ? 100 : 200)
-					.end(new JsonObject().put("token", token.toString())
-							.put("id", user.getId().toString())
-							.put("mfa", user.isMfa())
-							.toBuffer());
-		});
+		this.srv.getAuthenticator().login(username, password).onSuccess(user -> {
+			final GenerateTokenAction action = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			action.execute().onSuccess(token -> {
+				ctx.response()
+						// .setStatusCode(user.isMfa() ? 100 : 200)
+						.end(new JsonObject().put("token", token.toString())
+								.put("id", user.getId().toString())
+								.put("mfa", user.isMfa())
+								.toBuffer());
+			}).onFailure(t -> this.error(ctx, 500, "Login failed: " + t.getMessage()));
+		}).onFailure(t -> this.error(ctx, 403, "Authentication failed: " + t.getMessage()));
 	}
 
 	private void handleSubmitMfa(final RoutingContext ctx) {
@@ -142,17 +129,15 @@ public class AuthModule extends AbstractModule {
 		final User user = (User) mfaToken.getAccount();
 
 		final VerifyCodeAction action = this.srv.getManager(MFAManager.class).verifyCode().setPass(pass).setUser(user);
-		action.execute().onComplete(res -> {
-			if (res.succeeded()) {
-				final Token token = this.srv.getTokenize().generateToken(user);
+		action.execute().onSuccess(res -> {
+			final GenerateTokenAction tokenAction = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			tokenAction.execute().onSuccess(token -> {
 				ctx.response()
 						.end(new JsonObject().put("token", token.toString())
 								.put("id", user.getId().toString())
 								.toBuffer());
-			} else {
-				this.error(ctx, 401, res.cause().getMessage());
-			}
-		});
+			}).onFailure(t -> this.error(ctx, 500, "Failed to login: " + t.getMessage()));
+		}).onFailure(t -> this.error(ctx, 401, "Failed to verify code: " + t.getMessage()));
 	}
 
 	private void handleActivateMfa(final RoutingContext ctx) {
@@ -166,22 +151,19 @@ public class AuthModule extends AbstractModule {
 		final SetupMFAAction action = this.srv.getManager(MFAManager.class).setupMFA().setUser(user);
 
 		if (user.getMfaKey() == null) {
-			action.execute().onComplete(res -> {
-				ctx.response().end(new JsonObject().put("mfaUri", res.result()).toBuffer());
-			});
+			action.execute().onSuccess(res -> {
+				ctx.response().end(new JsonObject().put("mfaUri", res).toBuffer());
+			}).onFailure(t -> this.error(ctx, 500, "Failed to setup MFA: " + t.getMessage()));
 		} else {
 			final Integer pass = ctx.getBodyAsJson().getInteger("pass");
 			if (pass == null) {
 				this.error(ctx, 400, "Missing pass");
 				return;
 			}
-			action.setPass(pass).execute().onComplete(res -> {
-				if (res.failed()) {
-					this.error(ctx, 403, res.cause().getMessage());
-					return;
-				}
-				ctx.response().end(new JsonObject().toBuffer());
-			});
+			action.setPass(pass)
+					.execute()
+					.onSuccess(res -> ctx.response().end(new JsonObject().toBuffer()))
+					.onFailure(t -> this.error(ctx, 403, "Failed to confirm MFA setup: " + t.getMessage()));
 		}
 	}
 }
