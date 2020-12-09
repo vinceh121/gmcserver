@@ -136,7 +136,7 @@ public class GMCServer {
 			throw new IllegalStateException(e);
 		}
 
-		this.vertx = Vertx.factory.vertx(options);
+		this.vertx = Vertx.vertx(options);
 		this.srv = this.vertx.createHttpServer();
 		this.srv.exceptionHandler(t -> GMCServer.LOG.error("Unexpected error", t));
 

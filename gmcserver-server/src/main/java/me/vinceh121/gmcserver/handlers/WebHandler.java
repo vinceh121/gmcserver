@@ -23,7 +23,7 @@ public class WebHandler implements Handler<RoutingContext> {
 
 	@Override
 	public void handle(final RoutingContext ctx) {
-		final String path = ctx.normalisedPath();
+		final String path = ctx.normalizedPath();
 		final Path filePath = this.webRoot.resolve(path.substring(1));
 		final String fullPath = filePath.toAbsolutePath().toString();
 		this.fs.exists(fullPath, exRes -> {
