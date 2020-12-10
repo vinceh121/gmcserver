@@ -5,10 +5,14 @@ import java.util.Hashtable;
 import java.util.Objects;
 
 import org.bson.Document;
+import org.bson.codecs.DoubleCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.ClassModel;
+import org.bson.codecs.pojo.ClassModelBuilder;
 import org.bson.codecs.pojo.Conventions;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.codecs.pojo.PropertyModelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +41,24 @@ public class DatabaseManager extends AbstractManager {
 
 	public DatabaseManager(final GMCServer srv) {
 		super(srv);
+
+		final ClassModelBuilder<Record> recordClassModel = ClassModel.builder(Record.class); // spaghet but really
+																								// needed and i'm too
+																								// lazy to make it
+																								// dynamic rn
+		for (final String p : Record.STAT_FIELDS) {
+			@SuppressWarnings("unchecked")
+			final PropertyModelBuilder<Double> propertyModelBuilder
+					= (PropertyModelBuilder<Double>) recordClassModel.getProperty(p);
+			propertyModelBuilder.codec(new DoubleCodec()).propertySerialization(v -> !Double.isNaN(v));
+		}
+
 		this.pojoCodecProvider = PojoCodecProvider.builder()
 				.automatic(true)
 				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
 						Conventions.ANNOTATION_CONVENTION, Conventions.CLASS_AND_PROPERTY_CONVENTION,
 						Conventions.OBJECT_ID_GENERATORS))
+				.register(recordClassModel.build())
 				.build();
 		this.codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 				CodecRegistries.fromProviders(this.pojoCodecProvider, new GeoJsonCodecProvider()));

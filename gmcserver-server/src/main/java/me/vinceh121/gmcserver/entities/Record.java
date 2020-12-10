@@ -20,7 +20,7 @@ import io.vertx.core.json.JsonObject;
 
 public class Record extends AbstractEntity {
 	public static final Collection<String> STAT_FIELDS
-			= Arrays.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy", "date");
+			= Arrays.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy");
 	private ObjectId deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;

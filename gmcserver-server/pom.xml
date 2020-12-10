@@ -7,7 +7,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>GMC Server</name>
 	<description>A lightweight service to store and analyze data from Geiger counters</description>
-	<url>https://gmcserver.vinceh121.me</url>
+	<url>https://home.gmc.vinceh121.me</url>
 
 	<licenses>
 		<license>

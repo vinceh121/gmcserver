@@ -263,14 +263,14 @@ public class LoggingModule extends AbstractModule {
 
 	@Override
 	protected void error(final RoutingContext ctx, final int status, final String desc, final JsonObject extra) {
-		if (ctx.getAcceptableContentType().equals("application/json")) {
+		if ("application/json".equals(ctx.getAcceptableContentType())) {
 			super.error(ctx, status, desc, extra);
 			return;
 		}
 
 		ctx.response()
 				.setStatusCode(status)
-				.putHeader("X-GMC-Extras", extra.encode())
+				.putHeader("X-GMC-Extras", extra == null ? null : extra.encode())
 				.putHeader("Content-Type", "text/plain")
 				.end(desc);
 	}
