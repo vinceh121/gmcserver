@@ -45,11 +45,11 @@ public class DeviceManager extends AbstractManager {
 		return point;
 	}
 
-	private List<Bson> getStatsAggregation(final String field, final ObjectId devId) {
-		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)),
-				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
-						Accumulators.min("min", "$" + field), Accumulators.max("max", "$" + field),
-						Accumulators.stdDevPop("stdDev", "$" + field)));
+	private List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
+		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)), Aggregates.sort(Sorts.descending("date")),
+				Aggregates.limit(limit),
+				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$cpm"), Accumulators.min("min", "$cpm"),
+						Accumulators.max("max", "$cpm"), Accumulators.stdDevPop("stdDev", "$cpm")));
 	}
 
 	public DeviceStatsAction deviceStats() {
@@ -79,6 +79,7 @@ public class DeviceManager extends AbstractManager {
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
 		private ObjectId devId;
+		private int sampleSize = 100;
 
 		public DeviceStatsAction(final GMCServer srv) {
 			super(srv);
@@ -88,11 +89,13 @@ public class DeviceManager extends AbstractManager {
 		protected void executeSync(final Promise<DeviceStats> promise) {
 			final DeviceStats stats = this.srv.getManager(DatabaseManager.class)
 					.getCollection(Record.class)
-					.aggregate(DeviceManager.this.getStatsAggregation(this.field, this.devId), DeviceStats.class)
+					.aggregate(DeviceManager.this.getStatsAggregation(this.field, this.devId, this.sampleSize),
+							DeviceStats.class)
 					.first();
 			if (stats != null) {
 				stats.setDevice(this.devId);
 				stats.setField(this.field);
+				stats.setSampleSize(this.sampleSize);
 				promise.complete(stats);
 			} else {
 				promise.fail("Could not get stats");
@@ -115,6 +118,14 @@ public class DeviceManager extends AbstractManager {
 		public DeviceStatsAction setDevId(final ObjectId devId) {
 			this.devId = devId;
 			return this;
+		}
+
+		public int getSampleSize() {
+			return this.sampleSize;
+		}
+
+		public void setSampleSize(final int sampleSize) {
+			this.sampleSize = sampleSize;
 		}
 	}
 

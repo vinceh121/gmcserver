@@ -6,6 +6,7 @@ public class DeviceStats extends AbstractEntity {
 	private String field;
 	private ObjectId device;
 	private double avg, min, max, stdDev;
+	private int sampleSize;
 
 	public String getField() {
 		return this.field;
@@ -53,5 +54,13 @@ public class DeviceStats extends AbstractEntity {
 
 	public void setStdDev(final double stdDev) {
 		this.stdDev = stdDev;
+	}
+
+	public int getSampleSize() {
+		return sampleSize;
+	}
+
+	public void setSampleSize(int sampleSize) {
+		this.sampleSize = sampleSize;
 	}
 }
