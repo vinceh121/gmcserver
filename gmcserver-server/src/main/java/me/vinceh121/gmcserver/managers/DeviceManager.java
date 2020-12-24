@@ -48,8 +48,9 @@ public class DeviceManager extends AbstractManager {
 	private List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
 		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)), Aggregates.sort(Sorts.descending("date")),
 				Aggregates.limit(limit),
-				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$cpm"), Accumulators.min("min", "$cpm"),
-						Accumulators.max("max", "$cpm"), Accumulators.stdDevPop("stdDev", "$cpm")));
+				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
+						Accumulators.min("min", "$" + field), Accumulators.max("max", "$" + field),
+						Accumulators.stdDevPop("stdDev", "$" + field)));
 	}
 
 	public DeviceStatsAction deviceStats() {
