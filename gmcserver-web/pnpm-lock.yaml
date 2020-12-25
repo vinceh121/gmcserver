@@ -11,6 +11,7 @@ dependencies:
   react: 16.14.0
   react-dom: 16.14.0_react@16.14.0
   react-leaflet: 2.8.0_35c2903c1ce0fa8758941800f1d408f1
+  react-qr-code: 1.0.5_react@16.14.0
   react-router-dom: 5.2.0_react@16.14.0
   react-scripts: 3.4.3_typescript@4.1.2
   react-vis: 1.11.7_react@16.14.0
@@ -1580,6 +1581,18 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
+  /@react-native-community/art/1.2.0_react@16.14.0:
+    dependencies:
+      art: 0.10.3
+      invariant: 2.2.4
+      prop-types: 15.7.2
+      react: 16.14.0
+    dev: false
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+    resolution:
+      integrity: sha512-a+ZcRGl/BzLa89yi33Mbn5SHavsEXqKUMdbfLf3U8MDLElndPqUetoJyGkv63+BcPO49UMWiQRP1YUz6/zfJ+A==
   /@sheerun/mutationobserver-shim/0.3.3:
     dev: false
     resolution:
@@ -2494,6 +2507,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=
+  /art/0.10.3:
+    dev: false
+    resolution:
+      integrity: sha512-HXwbdofRTiJT6qZX/FnchtldzJjS3vkLJxQilc3Xj+ma2MXjY4UAyQ0ls1XZYVnDvVIBiFZbC6QsvtW86TD6tQ==
   /asap/2.0.6:
     dev: false
     resolution:
@@ -9510,6 +9527,10 @@ packages:
       teleport: '>=0.2.0'
     resolution:
       integrity: sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
+  /qr.js/0.0.0:
+    dev: false
+    resolution:
+      integrity: sha1-ys6GOG9ZoNuAUPqQ2baw6IoeNk8=
   /qs/6.5.2:
     dev: false
     engines:
@@ -10168,6 +10189,17 @@ packages:
       react: ^0.14.9 || ^15.3.0 || ^16.0.0
     resolution:
       integrity: sha512-9q3YAvHoUiWlP3cK0v+w1N5Z23HXMj4IF4YuvjvWegWqNPfLXsOBE/V7UvQGpXxHFKRQQcNcVQE31g9SB/6qgQ==
+  /react-qr-code/1.0.5_react@16.14.0:
+    dependencies:
+      '@react-native-community/art': 1.2.0_react@16.14.0
+      prop-types: 15.7.2
+      qr.js: 0.0.0
+      react: 16.14.0
+    dev: false
+    peerDependencies:
+      react: ^16.11.0
+    resolution:
+      integrity: sha512-gpiry47RixhxJ2XLtVpEqSGzZjOhQ9/2xRrTqaPnBG4asMM267+mpkxDTNis9aPzJr+EcpYNmMzwjjCqXDjp8w==
   /react-router-dom/5.2.0_react@16.14.0:
     dependencies:
       '@babel/runtime': 7.12.5
@@ -12616,6 +12648,7 @@ specifiers:
   react: ^16.13.1
   react-dom: ^16.13.1
   react-leaflet: ^2.7.0
+  react-qr-code: ^1.0.5
   react-router-dom: ^5.2.0
   react-scripts: 3.4.3
   react-vis: ^1.11.7

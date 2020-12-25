@@ -55,3 +55,7 @@ export interface ErrorResult extends Error {
 	description: string;
 	extras?: any;
 }
+
+export interface MfaStartSetupResponse {
+	mfaUri: string;
+}

@@ -6,6 +6,7 @@ import {
 	Device,
 	Record,
 	MapDevice,
+	MfaStartSetupResponse,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -13,7 +14,7 @@ const storage: Storage = window.localStorage;
 
 export const request = async (
 	ref: string,
-	options?: any
+	options?: RequestInit
 ): Promise<Response> => {
 	if (!options) {
 		options = {};
@@ -94,6 +95,11 @@ export const register = async (
 	return login;
 };
 
+export const mfaStartSetup = async (): Promise<MfaStartSetupResponse> => {
+	const res = await request("/auth/mfa", { method: "PUT", body: "{}" });
+	return (await res.json()) as MfaStartSetupResponse;
+};
+
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
 	return (await res.json()) as InstanceInfo;
@@ -145,7 +151,9 @@ export const fetchTimeline = async (
 		params.append("end", String(end.getTime()));
 	}
 
-	const res = await request("/device/" + id + "/timeline?" + params.toString());
+	const res = await request(
+		"/device/" + id + "/timeline?" + params.toString()
+	);
 	return (await res.json()) as Record[];
 };
 

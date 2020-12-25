@@ -11,6 +11,8 @@ import {
 	Switch,
 	InputNumber,
 	Button,
+	Popconfirm,
+	message,
 } from "antd";
 import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
@@ -18,11 +20,6 @@ import DisabledBadge from "../components/DisabledBadge";
 import Loader from "../components/Loader";
 
 const { Title } = Typography;
-
-function setupMfa() {
-	// TODO
-	console.log("setupMfa() TODO");
-}
 
 function User() {
 	const history = useHistory();
@@ -35,6 +32,13 @@ function User() {
 			(error) => setState({ error })
 		);
 	}, [id]);
+
+	function setupMfa(value) {
+		if (value) {
+			// MFA is already set, disable it
+		} else {
+		}
+	}
 
 	if (state && state.user) {
 		const user = state.user;
@@ -72,7 +76,10 @@ function User() {
 							<Switch checked={user.mfa} onChange={setupMfa} />
 						</Form.Item>
 						<Form.Item label="Device limit">
-							<InputNumber disabled={true} value={user.deviceLimit} />
+							<InputNumber
+								disabled={true}
+								value={user.deviceLimit}
+							/>
 						</Form.Item>
 					</Form>
 				) : undefined}
