@@ -7,6 +7,7 @@ import {
 	Record,
 	MapDevice,
 	MfaStartSetupResponse,
+	DeviceStats,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -25,7 +26,7 @@ export const request = async (
 
 	const token = getStorage().getItem("token");
 	if (token) {
-		options.headers.Authorization = token;
+		(options.headers as any)["Authorization"] = token;
 	}
 
 	const res = await fetch(baseUrl + ref, options);
@@ -117,6 +118,14 @@ export const fetchMe = async (): Promise<User> => {
 export const fetchDevice = async (id: string): Promise<Device> => {
 	const res = await request("/device/" + id);
 	return (await res.json()) as Device;
+};
+
+export const fetchDeviceStats = async (
+	id: string,
+	field: string
+): Promise<DeviceStats> => {
+	const res = await request("/device/" + id + "/stats/" + field);
+	return (await res.json()) as DeviceStats;
 };
 
 export const createDevice = async (

@@ -11,18 +11,8 @@ import {
 	Crosshair,
 } from "react-vis";
 import Loader from "./Loader";
+import { numericRecordFields } from "../GmcTypes";
 
-const numericRecordFields = [
-	"cpm",
-	"acpm",
-	"usv",
-	"co2",
-	"hcho",
-	"tmp",
-	"ap",
-	"hmdt",
-	"accy",
-];
 
 function recordToPoints(rec) {
 	const pts = [];

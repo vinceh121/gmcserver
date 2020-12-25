@@ -59,3 +59,25 @@ export interface ErrorResult extends Error {
 export interface MfaStartSetupResponse {
 	mfaUri: string;
 }
+
+export interface DeviceStats {
+	field: string;
+	device: string;
+	avg: number;
+	min: number;
+	max: number;
+	stdDev: number;
+	sampleSize: number;
+}
+
+export const numericRecordFields = [
+	"cpm",
+	"acpm",
+	"usv",
+	"co2",
+	"hcho",
+	"tmp",
+	"ap",
+	"hmdt",
+	"accy",
+];

@@ -11,8 +11,6 @@ import {
 	Switch,
 	InputNumber,
 	Button,
-	Popconfirm,
-	message,
 } from "antd";
 import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
