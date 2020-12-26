@@ -24,7 +24,6 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
 public class MFAManager extends AbstractManager {
-	private GMCServer srv;
 	private final TimeBasedOneTimePasswordGenerator generator;
 	private final KeyGenerator keyGen;
 	private final int passwordLength, keySize;
