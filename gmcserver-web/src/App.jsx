@@ -16,6 +16,7 @@ import NewDevice from "./pages/device/NewDevice";
 
 import { isLoggedin } from "./GmcApi";
 import Welcome from "./pages/Welcome";
+import Mfa from "./pages/Mfa";
 
 const { Footer, Content, Header } = Layout;
 
@@ -64,6 +65,9 @@ function App() {
 						<Route path="/profile">
 							<Profile />
 						</Route>
+						<Route path="/mfa">
+							<Mfa />
+						</Route>
 						<Route path="/login">
 							<Login />
 						</Route>
@@ -82,8 +86,9 @@ function App() {
 					</Switch>
 				</Content>
 				<Footer>
-					Powered by <a href="https://home.gmc.vinceh121.me">GMCServer</a>{" "}
-					&copy; 2020 vinceh121
+					Powered by{" "}
+					<a href="https://home.gmc.vinceh121.me">GMCServer</a> &copy;
+					2020 vinceh121
 				</Footer>
 			</Layout>
 		</Router>

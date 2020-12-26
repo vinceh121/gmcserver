@@ -112,7 +112,12 @@ export const fetchUser = async (id: string): Promise<User> => {
 };
 
 export const fetchMe = async (): Promise<User> => {
-	return fetchUser("me");
+	//return fetchUser("me");
+	const id = getStorage().getItem("userId");
+	if (id == null) {
+		throw new Error("Cannot fetch self: not logged it");
+	}
+	return fetchUser(id);
 };
 
 export const fetchDevice = async (id: string): Promise<Device> => {

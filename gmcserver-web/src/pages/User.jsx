@@ -31,13 +31,6 @@ function User() {
 		);
 	}, [id]);
 
-	function setupMfa(value) {
-		if (value) {
-			// MFA is already set, disable it
-		} else {
-		}
-	}
-
 	if (state && state.user) {
 		const user = state.user;
 		return (
@@ -71,7 +64,12 @@ function User() {
 				{user.self ? (
 					<Form>
 						<Form.Item label="2FA">
-							<Switch checked={user.mfa} onChange={setupMfa} />
+							<Switch
+								checked={user.mfa}
+								onChange={() => {
+									history.push("/mfa");
+								}}
+							/>
 						</Form.Item>
 						<Form.Item label="Device limit">
 							<InputNumber
