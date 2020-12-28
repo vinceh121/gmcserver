@@ -159,6 +159,11 @@ function Device() {
 								/>
 							</Col>
 							<Col span={12}>
+								<Statistic title="Average" value={stats.avg} />
+							</Col>
+						</Row>
+						<Row gutter={16}>
+							<Col span={12}>
 								<Statistic
 									title="Sample size"
 									value={stats.sampleSize}
