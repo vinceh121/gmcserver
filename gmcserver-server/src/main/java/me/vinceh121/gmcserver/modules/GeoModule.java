@@ -8,7 +8,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -58,7 +57,7 @@ public class GeoModule extends AbstractModule {
 		//
 		// final Polygon poly = new Polygon(coords);
 
-		final FindIterable<Device> it = this.srv.getManager(DatabaseManager.class)
+		final FindIterable<Device> it = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.find(Filters.geoWithinBox("location", bb.getDouble(1), bb.getDouble(0), bb.getDouble(3),
 						bb.getDouble(2)));
@@ -68,7 +67,7 @@ public class GeoModule extends AbstractModule {
 			final JsonObject mapJson = d.toMapJson();
 			res.add(mapJson);
 
-			final Record lastRec = this.srv.getManager(DatabaseManager.class)
+			final Record lastRec = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
 					.find(Filters.eq("deviceId", d.getId()))
 					.sort(Sorts.descending("date"))

@@ -9,7 +9,6 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.model.Filters;
 
 import io.vertx.core.Promise;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.User;
@@ -53,10 +52,7 @@ public class UserManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<User> promise) {
-			final User user = this.srv.getManager(DatabaseManager.class)
-					.getCollection(User.class)
-					.find(Filters.eq(this.id))
-					.first();
+			final User user = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(this.id)).first();
 			if (user != null) {
 				promise.complete(user);
 			} else {
@@ -119,10 +115,7 @@ public class UserManager extends AbstractManager {
 		}
 
 		private IAccount fetchAccount(final String id) {
-			return this.srv.getManager(DatabaseManager.class)
-					.getCollection(User.class)
-					.find(Filters.eq(new ObjectId(id)))
-					.first();
+			return this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(new ObjectId(id))).first();
 		}
 
 	}
@@ -137,19 +130,19 @@ public class UserManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Token> promise) {
 			final Token token;
-			if (user.isMfa()) {
-				token = this.srv.getTokenize().generateToken(user, "mfa");
+			if (this.user.isMfa()) {
+				token = this.srv.getTokenize().generateToken(this.user, "mfa");
 			} else {
-				token = this.srv.getTokenize().generateToken(user);
+				token = this.srv.getTokenize().generateToken(this.user);
 			}
 			promise.complete(token);
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public GenerateTokenAction setUser(User user) {
+		public GenerateTokenAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
@@ -171,7 +164,7 @@ public class UserManager extends AbstractManager {
 			user.setUsername(this.username);
 			user.setEmail(this.email);
 			user.setPassword(
-					password == null ? null : this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
+					this.password == null ? null : this.srv.getArgon().hash(10, 65536, 1, this.password.toCharArray()));
 			user.setAdmin(this.admin);
 
 			if (this.generateGmcId) {
@@ -179,7 +172,7 @@ public class UserManager extends AbstractManager {
 			}
 			user.setGmcId(this.gmcId);
 
-			if (this.checkUsernameAvailable && this.srv.getManager(DatabaseManager.class)
+			if (this.checkUsernameAvailable && this.srv.getDatabaseManager()
 					.getCollection(User.class)
 					.find(Filters.eq("username", this.username))
 					.first() != null) {
@@ -190,7 +183,7 @@ public class UserManager extends AbstractManager {
 			promise.complete(user);
 
 			if (this.insertInDb) {
-				this.srv.getManager(DatabaseManager.class).getCollection(User.class).insertOne(user);
+				this.srv.getDatabaseManager().getCollection(User.class).insertOne(user);
 			}
 		}
 
@@ -249,10 +242,10 @@ public class UserManager extends AbstractManager {
 		}
 
 		public String getEmail() {
-			return email;
+			return this.email;
 		}
 
-		public CreateUserAction setEmail(String email) {
+		public CreateUserAction setEmail(final String email) {
 			this.email = email;
 			return this;
 		}

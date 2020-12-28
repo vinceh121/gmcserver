@@ -20,7 +20,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -59,7 +58,7 @@ public class ImportExportModule extends AbstractModule {
 			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 		}
 
-		if (deviceLimit <= this.srv.getManager(DatabaseManager.class)
+		if (deviceLimit <= this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.countDocuments(Filters.eq("ownerId", user.getId()))) {
 			this.error(ctx, 403, "Device limit reached");
@@ -73,7 +72,7 @@ public class ImportExportModule extends AbstractModule {
 		dev.setName("Imported from gmcmap ID " + gmcmapId);
 		dev.setGmcId(ImportExportModule.DEV_RANDOM.nextLong());
 
-		this.srv.getManager(DatabaseManager.class).getCollection(Device.class).insertOne(dev);
+		this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
 
 		this.getRecords(gmcmapId, 0, dev.getId()).onComplete(res -> {
 			if (res.failed()) {
@@ -89,7 +88,7 @@ public class ImportExportModule extends AbstractModule {
 			ctx.response().end();
 
 			final List<Record> recs = res.result();
-			this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertMany(recs);
+			this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 
 			this.importPageRecurse(gmcmapId, 1, dev.getId());
 		});
@@ -105,7 +104,7 @@ public class ImportExportModule extends AbstractModule {
 			this.log.info("Got {} records from device import {}, page {}", ares.result().size(), gmcmapId, page);
 
 			if (ares.result().size() != 0) {
-				this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertMany(ares.result());
+				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(ares.result());
 				this.importPageRecurse(gmcmapId, page + 1, deviceId);
 			} else {
 				this.log.info("Finished import for {}", gmcmapId);

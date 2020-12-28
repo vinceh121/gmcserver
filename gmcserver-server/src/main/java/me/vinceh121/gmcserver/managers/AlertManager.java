@@ -10,7 +10,6 @@ import me.vinceh121.gmcserver.entities.DeviceStats;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.email.Email;
-import me.vinceh121.gmcserver.managers.email.EmailManager;
 
 public class AlertManager extends AbstractManager {
 	public static final long ALERT_EMAIL_DELAY = 24 * 60 * 60 * 1000; // 1 day
@@ -38,7 +37,7 @@ public class AlertManager extends AbstractManager {
 				promise.complete(false);
 				return;
 			}
-			this.srv.getManager(DeviceManager.class)
+			this.srv.getDeviceManager()
 					.deviceStats()
 					.setField("cpm")
 					.setDevId(this.dev.getId())
@@ -62,7 +61,7 @@ public class AlertManager extends AbstractManager {
 							email.getContext().put("fieldname", "CPM");
 							email.getContext().put("value", this.latestRecord.getCpm());
 							email.getContext().put("device", this.dev.toPublicJson());
-							this.srv.getManager(EmailManager.class).sendEmail(email);
+							this.srv.getEmailManager().sendEmail(email);
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
 

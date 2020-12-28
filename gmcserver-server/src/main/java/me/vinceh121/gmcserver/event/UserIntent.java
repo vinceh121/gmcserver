@@ -26,7 +26,7 @@ public class UserIntent {
 	}
 
 	public ObjectId getDestination() {
-		return destination;
+		return this.destination;
 	}
 
 	public JsonObject getExtras() {
@@ -35,20 +35,20 @@ public class UserIntent {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(destination, extras, name);
+		return Objects.hash(this.destination, this.extras, this.name);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
 		if (!(obj instanceof UserIntent)) {
 			return false;
 		}
-		UserIntent other = (UserIntent) obj;
-		return Objects.equals(destination, other.destination) && Objects.equals(extras, other.extras)
-				&& Objects.equals(name, other.name);
+		final UserIntent other = (UserIntent) obj;
+		return Objects.equals(this.destination, other.destination) && Objects.equals(this.extras, other.extras)
+				&& Objects.equals(this.name, other.name);
 	}
 
 	public JsonObject toJson() {

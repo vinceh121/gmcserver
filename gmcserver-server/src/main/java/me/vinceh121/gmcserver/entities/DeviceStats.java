@@ -57,10 +57,10 @@ public class DeviceStats extends AbstractEntity {
 	}
 
 	public int getSampleSize() {
-		return sampleSize;
+		return this.sampleSize;
 	}
 
-	public void setSampleSize(int sampleSize) {
+	public void setSampleSize(final int sampleSize) {
 		this.sampleSize = sampleSize;
 	}
 }

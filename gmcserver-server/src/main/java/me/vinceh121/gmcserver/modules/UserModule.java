@@ -9,7 +9,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
@@ -47,10 +46,7 @@ public class UserModule extends AbstractModule {
 		if (authUser != null && requestedId.equals(authUser.getId())) {
 			user = authUser;
 		} else {
-			user = this.srv.getManager(DatabaseManager.class)
-					.getCollection(User.class)
-					.find(Filters.eq(requestedId))
-					.first();
+			user = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(requestedId)).first();
 		}
 
 		if (user == null) {
@@ -68,9 +64,8 @@ public class UserModule extends AbstractModule {
 
 		final JsonArray devs = new JsonArray();
 
-		final FindIterable<Device> it = this.srv.getManager(DatabaseManager.class)
-				.getCollection(Device.class)
-				.find(Filters.eq("owner", user.getId()));
+		final FindIterable<Device> it
+				= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq("owner", user.getId()));
 		it.forEach(d -> devs.add(d.toPublicJson()));
 
 		obj.put("devices", devs);

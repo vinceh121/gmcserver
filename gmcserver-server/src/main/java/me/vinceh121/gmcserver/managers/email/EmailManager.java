@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.mail.MailClient;
@@ -36,8 +37,8 @@ public class EmailManager extends AbstractManager {
 	}
 
 	public Future<Void> sendEmail(final Email email) {
-		if (!enabled) {
-			return Future.future(p -> p.complete());
+		if (!this.enabled) {
+			return Future.future(Promise::complete);
 		}
 
 		return Future.future(p -> {

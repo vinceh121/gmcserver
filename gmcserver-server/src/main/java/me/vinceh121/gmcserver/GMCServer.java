@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.DecoderException;
@@ -38,7 +36,6 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
-import me.vinceh121.gmcserver.managers.AbstractManager;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.UserManager;
@@ -65,8 +62,6 @@ public class GMCServer {
 	private final Router baseRouter, apiRouter;
 	private final WebClient webClient;
 
-	private final Map<Class<? extends AbstractManager>, AbstractManager> managerTable = new Hashtable<>();
-
 	private final Tokenize tokenize;
 	private final Argon2 argon;
 
@@ -77,6 +72,15 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	private final AbstractAuthenticator authenticator;
+
+	//// Managers
+	private DatabaseManager databaseManager;
+	private MFAManager mfaManager;
+	private UserWebsocketManager userWebsocketManager;
+	private UserManager userManager;
+	private DeviceManager deviceManager;
+	private EmailManager emailManager;
+	private AlertManager alertManager;
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
@@ -122,7 +126,7 @@ public class GMCServer {
 					.getConstructor(GMCServer.class)
 					.newInstance(this);
 		} catch (final Exception e) {
-			LOG.error("Failed to initiate authenticator", e);
+			GMCServer.LOG.error("Failed to initiate authenticator", e);
 			throw new IllegalStateException(e);
 		}
 
@@ -145,7 +149,7 @@ public class GMCServer {
 		this.registerManagers();
 
 		this.baseRouter = Router.router(this.vertx);
-		this.baseRouter.errorHandler(500, ctx -> LOG.error("Unexpected HTTP error", ctx.failure()));
+		this.baseRouter.errorHandler(500, ctx -> GMCServer.LOG.error("Unexpected HTTP error", ctx.failure()));
 		this.srv.requestHandler(this.baseRouter);
 
 		this.apiRouter = Router.router(this.vertx);
@@ -166,7 +170,7 @@ public class GMCServer {
 
 		this.registerModules();
 
-		this.apiRouter.route("/ws").handler(this.getManager(UserWebsocketManager.class));
+		this.apiRouter.route("/ws").handler(this.userWebsocketManager);
 
 		if (Boolean.parseBoolean(this.config.getProperty("web.enabled"))) {
 			this.setupWebRouter(this.vertx);
@@ -193,17 +197,13 @@ public class GMCServer {
 	}
 
 	private void registerManagers() {
-		this.addManager(new DatabaseManager(this));
-		this.addManager(new MFAManager(this));
-		this.addManager(new UserWebsocketManager(this));
-		this.addManager(new UserManager(this));
-		this.addManager(new DeviceManager(this));
-		this.addManager(new EmailManager(this));
-		this.addManager(new AlertManager(this));
-	}
-
-	private void addManager(final AbstractManager mng) {
-		this.managerTable.put(mng.getClass(), mng);
+		this.databaseManager = new DatabaseManager(this);
+		this.mfaManager = new MFAManager(this);
+		this.userWebsocketManager = new UserWebsocketManager(this);
+		this.userManager = new UserManager(this);
+		this.deviceManager = new DeviceManager(this);
+		this.emailManager = new EmailManager(this);
+		this.alertManager = new AlertManager(this);
 	}
 
 	private void registerModules() {
@@ -221,11 +221,6 @@ public class GMCServer {
 		final String host = this.config.getProperty("server.host", "127.0.0.1");
 		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host);
 		GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
-	}
-
-	@SuppressWarnings("unchecked")
-	public <T extends AbstractManager> T getManager(final Class<T> cls) {
-		return (T) this.managerTable.get(cls);
 	}
 
 	public Router getApiRouter() {
@@ -277,6 +272,34 @@ public class GMCServer {
 	}
 
 	public AbstractAuthenticator getAuthenticator() {
-		return authenticator;
+		return this.authenticator;
+	}
+
+	public DatabaseManager getDatabaseManager() {
+		return this.databaseManager;
+	}
+
+	public MFAManager getMfaManager() {
+		return this.mfaManager;
+	}
+
+	public UserWebsocketManager getUserWebsocketManager() {
+		return this.userWebsocketManager;
+	}
+
+	public UserManager getUserManager() {
+		return this.userManager;
+	}
+
+	public DeviceManager getDeviceManager() {
+		return this.deviceManager;
+	}
+
+	public EmailManager getEmailManager() {
+		return this.emailManager;
+	}
+
+	public AlertManager getAlertManager() {
+		return this.alertManager;
 	}
 }

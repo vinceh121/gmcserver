@@ -17,7 +17,6 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
 import io.vertx.core.Promise;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.User;
@@ -47,8 +46,7 @@ public class MFAManager extends AbstractManager {
 
 	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
 		return this.passwordMatches(
-				this.srv.getManager(DatabaseManager.class).getCollection(User.class).find(Filters.eq(id)).first(),
-				pass);
+				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(), pass);
 	}
 
 	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {
@@ -62,7 +60,7 @@ public class MFAManager extends AbstractManager {
 
 	public MFAKey setupMFA(final User user) {
 		final MFAKey key = this.generateKey();
-		this.srv.getManager(DatabaseManager.class)
+		this.srv.getDatabaseManager()
 				.getCollection(User.class)
 				.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
 		user.setMfaKey(key);
@@ -73,7 +71,7 @@ public class MFAManager extends AbstractManager {
 		final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
 		final boolean matches = actualPassword == pass;
 		if (matches) {
-			this.srv.getManager(DatabaseManager.class)
+			this.srv.getDatabaseManager()
 					.getCollection(User.class)
 					.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
 			user.setMfa(true);
@@ -123,12 +121,12 @@ public class MFAManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<String> promise) {
 			if (this.user.getMfaKey() == null) { // MFA not setup at all
-				final MFAKey key = this.srv.getManager(MFAManager.class).setupMFA(this.user);
+				final MFAKey key = this.srv.getMfaManager().setupMFA(this.user);
 				promise.complete(key.toURI("GMCServer " + this.user.getUsername()));
 			} else { // Complete MFA setup
 				boolean matches;
 				try {
-					matches = this.srv.getManager(MFAManager.class).completeMfaSetup(this.user, this.pass);
+					matches = this.srv.getMfaManager().completeMfaSetup(this.user, this.pass);
 				} catch (final InvalidKeyException e) {
 					promise.fail("Invalid MFA key");
 					return;
@@ -172,7 +170,7 @@ public class MFAManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
 			try {
-				if (this.srv.getManager(MFAManager.class).passwordMatches(this.user, this.pass)) {
+				if (this.srv.getMfaManager().passwordMatches(this.user, this.pass)) {
 					promise.complete();
 				}
 			} catch (final InvalidKeyException e) {

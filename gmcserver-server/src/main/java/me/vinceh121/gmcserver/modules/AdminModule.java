@@ -7,13 +7,11 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
-import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.email.Email;
-import me.vinceh121.gmcserver.managers.email.EmailManager;
 
 public class AdminModule extends AbstractModule {
 
-	public AdminModule(GMCServer srv) {
+	public AdminModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.GET, "/admin/testmail/:to/:template", this::handleTestEmail);
 	}
@@ -38,11 +36,11 @@ public class AdminModule extends AbstractModule {
 		}
 
 		final Email email = new Email();
-		this.srv.getManager(UserManager.class).getUser().setId(new ObjectId(to)).execute().onSuccess(user -> {
+		this.srv.getUserManager().getUser().setId(new ObjectId(to)).execute().onSuccess(user -> {
 			email.setTo(user);
 			email.setTemplate(template);
 			email.setSubject("GMCServer test email");
-			this.srv.getManager(EmailManager.class).sendEmail(email).onSuccess(v -> {
+			this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
 				this.error(ctx, 200, "Email sent to " + user);
 				this.log.info("Sent test email to {}", user);
 			}).onFailure(t -> {
@@ -51,7 +49,6 @@ public class AdminModule extends AbstractModule {
 			});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "User not found");
-			return;
 		});
 	}
 }

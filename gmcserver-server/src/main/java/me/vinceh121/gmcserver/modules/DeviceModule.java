@@ -16,14 +16,12 @@ import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
-import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
-import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceFullTimelineAction;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
-import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.GetUserAction;
 
 public class DeviceModule extends AbstractModule {
@@ -56,11 +54,8 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final CreateDeviceAction action = this.srv.getManager(DeviceManager.class)
-				.createDevice()
-				.setUser(user)
-				.setArrLocation(arrLoc)
-				.setName(name);
+		final CreateDeviceAction action
+				= this.srv.getDeviceManager().createDevice().setUser(user).setArrLocation(arrLoc).setName(name);
 		action.execute().onComplete(res -> {
 			if (res.failed()) {
 				this.error(ctx, 400, res.cause().getMessage());
@@ -86,11 +81,8 @@ public class DeviceModule extends AbstractModule {
 		final JsonObject obj = ctx.getBodyAsJson();
 		final boolean delete = obj.getBoolean("delete");
 
-		final DeleteDeviceAction action = this.srv.getManager(DeviceManager.class)
-				.deleteDevice()
-				.setDelete(delete)
-				.setDeviceId(deviceId)
-				.setUser(user);
+		final DeleteDeviceAction action
+				= this.srv.getDeviceManager().deleteDevice().setDelete(delete).setDeviceId(deviceId).setUser(user);
 
 		action.execute().onComplete(res -> {
 			if (res.failed()) {
@@ -115,7 +107,7 @@ public class DeviceModule extends AbstractModule {
 
 		final JsonObject obj = ctx.getBodyAsJson();
 
-		final GetDeviceAction getAction = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
+		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
 		getAction.execute().onComplete(res -> {
 			if (res.failed()) {
 				this.error(ctx, 404, res.cause().getMessage());
@@ -130,7 +122,7 @@ public class DeviceModule extends AbstractModule {
 				return;
 			}
 
-			final UpdateDeviceAction action = this.srv.getManager(DeviceManager.class)
+			final UpdateDeviceAction action = this.srv.getDeviceManager()
 					.updateDevice()
 					.setDevice(dev)
 					.setArrLocation(obj.getJsonArray("location"))
@@ -159,7 +151,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final GetDeviceAction action = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
+		final GetDeviceAction action = this.srv.getDeviceManager().getDevice().setId(deviceId);
 
 		action.execute().onComplete(res -> {
 			if (res.failed()) {
@@ -171,7 +163,7 @@ public class DeviceModule extends AbstractModule {
 
 			final User user = ctx.get(AuthHandler.USER_KEY);
 
-			final GetUserAction getOwnerAction = this.srv.getManager(UserManager.class).getUser().setId(dev.getOwner());
+			final GetUserAction getOwnerAction = this.srv.getUserManager().getUser().setId(dev.getOwner());
 			getOwnerAction.execute().onComplete(ures -> {
 				final boolean own = user != null && user.getId().equals(dev.getOwner());
 
@@ -196,7 +188,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final GetDeviceAction getAction = this.srv.getManager(DeviceManager.class).getDevice().setId(deviceId);
+		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
 		getAction.execute().onComplete(getRes -> {
 			if (getRes.failed()) {
 				this.error(ctx, 404, "Device not found");
@@ -231,7 +223,7 @@ public class DeviceModule extends AbstractModule {
 
 			final boolean full = "y".equals(ctx.request().getParam("full"));
 
-			final DeviceFullTimelineAction histAction = this.srv.getManager(DeviceManager.class)
+			final DeviceFullTimelineAction histAction = this.srv.getDeviceManager()
 					.deviceFullTimeline()
 					.setStart(start)
 					.setEnd(end)
@@ -284,17 +276,15 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final GetDeviceAction getDevAction = this.srv.getManager(DeviceManager.class).getDevice().setId(devId);
+		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
 		getDevAction.execute().onComplete(getRes -> {
 			if (getRes.failed()) {
 				this.error(ctx, 404, "Device not found");
 				return;
 			}
 
-			final DeviceStatsAction action = this.srv.getManager(DeviceManager.class)
-					.deviceStats()
-					.setDevId(getRes.result().getId())
-					.setField(field);
+			final DeviceStatsAction action
+					= this.srv.getDeviceManager().deviceStats().setDevId(getRes.result().getId()).setField(field);
 
 			action.execute().onComplete(res -> {
 				final JsonObject obj = res.result().toJson();
@@ -316,7 +306,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final GetDeviceAction getDevAction = this.srv.getManager(DeviceManager.class).getDevice().setId(devId);
+		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
 		getDevAction.execute().onComplete(getRes -> {
 			if (getRes.failed()) {
 				this.error(ctx, 404, "Device not found");

@@ -5,7 +5,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
-import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.VerifyTokenAction;
 import xyz.bowser65.tokenize.Token;
 
@@ -26,7 +25,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 			return;
 		}
 
-		final VerifyTokenAction action = this.srv.getManager(UserManager.class).verifyToken().setTokenString(auth);
+		final VerifyTokenAction action = this.srv.getUserManager().verifyToken().setTokenString(auth);
 
 		action.execute().onComplete(res -> {
 

@@ -38,7 +38,7 @@ public class WebHandler implements Handler<RoutingContext> {
 	private void supplyFile(final RoutingContext ctx, final String fullPath) {
 		this.fs.readFile(fullPath, res -> {
 			if (res.failed()) {
-				LOG.error("Failed to read file " + fullPath, res.cause());
+				WebHandler.LOG.error("Failed to read file " + fullPath, res.cause());
 				ctx.response().setStatusCode(500).end();
 				return;
 			}

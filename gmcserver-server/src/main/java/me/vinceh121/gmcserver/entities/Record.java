@@ -244,8 +244,9 @@ public class Record extends AbstractEntity {
 		obj.remove("userId");
 		obj.remove("ip");
 		for (final String field : new Vector<>(obj.fieldNames())) {
-			if ("NaN".equals(String.valueOf(obj.getValue(field))))
+			if ("NaN".equals(String.valueOf(obj.getValue(field)))) {
 				obj.remove(field);
+			}
 		}
 		return obj;
 	}

@@ -7,13 +7,11 @@ import com.mongodb.client.model.Filters;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.Record.Builder;
 import me.vinceh121.gmcserver.entities.User;
-import me.vinceh121.gmcserver.managers.AlertManager;
 
 public class LoggingModule extends AbstractModule {
 	/**
@@ -70,16 +68,14 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getManager(DatabaseManager.class)
-				.getCollection(User.class)
-				.find(Filters.eq("gmcId", gmcUserId))
-				.first();
+		final User user
+				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("gmcId", gmcUserId)).first();
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
-		final Device device = this.srv.getManager(DatabaseManager.class)
+		final Device device = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.find(Filters.eq("gmcId", gmcDeviceId))
 				.first();
@@ -114,12 +110,12 @@ public class LoggingModule extends AbstractModule {
 
 		this.log.debug("Inserting record {}", rec);
 
-		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
-		this.error(ctx, 200, ERROR_OK);
+		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
+		this.error(ctx, 200, LoggingModule.ERROR_OK);
 
 		this.publishRecord(rec);
 
-		this.srv.getManager(AlertManager.class)
+		this.srv.getAlertManager()
 				.checkAlert()
 				.setDev(device)
 				.setOwner(user)
@@ -197,17 +193,15 @@ public class LoggingModule extends AbstractModule {
 			usv = Double.NaN;
 		}
 
-		final User user = this.srv.getManager(DatabaseManager.class)
-				.getCollection(User.class)
-				.find(Filters.eq("gmcId", userGmcId))
-				.first();
+		final User user
+				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("gmcId", userGmcId)).first();
 
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
-		final Device device = this.srv.getManager(DatabaseManager.class)
+		final Device device = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.find(Filters.eq("gmcId", deviceGmcId))
 				.first();
@@ -239,12 +233,12 @@ public class LoggingModule extends AbstractModule {
 
 		this.log.debug("Inserting record using old log {}", rec);
 
-		this.srv.getManager(DatabaseManager.class).getCollection(Record.class).insertOne(rec);
+		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
 		ctx.response().setStatusCode(200).end();
 
 		this.publishRecord(rec);
 
-		this.srv.getManager(AlertManager.class)
+		this.srv.getAlertManager()
 				.checkAlert()
 				.setDev(device)
 				.setOwner(user)
@@ -258,7 +252,7 @@ public class LoggingModule extends AbstractModule {
 	}
 
 	private void publishRecord(final Record rec) {
-		this.srv.getEventBus().publish(ADDRESS_PREFIX_RECORD_LOG + rec.getDeviceId(), rec);
+		this.srv.getEventBus().publish(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + rec.getDeviceId(), rec);
 	}
 
 	@Override

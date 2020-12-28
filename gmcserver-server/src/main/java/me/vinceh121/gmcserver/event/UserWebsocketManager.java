@@ -16,7 +16,6 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.AbstractManager;
-import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.VerifyTokenAction;
 import xyz.bowser65.tokenize.Token;
 
@@ -46,8 +45,7 @@ public class UserWebsocketManager extends AbstractManager implements Handler<Rou
 
 			final String auth = socket.headers().get("Sec-WebSocket-Protocol");
 
-			final VerifyTokenAction tokenAction
-					= this.srv.getManager(UserManager.class).verifyToken().setTokenString(auth);
+			final VerifyTokenAction tokenAction = this.srv.getUserManager().verifyToken().setTokenString(auth);
 			tokenAction.execute().onComplete(res -> {
 				if (res.failed()) {
 					socket.close((short) 403);
@@ -71,7 +69,7 @@ public class UserWebsocketManager extends AbstractManager implements Handler<Rou
 				final UserWebsocketSession sess = new UserWebsocketSession(user, socket);
 				this.sessions.put(user.getId(), sess);
 
-				final String userAddress = ADDRESS_PREFIX_USER_INTENT + user.getId().toHexString();
+				final String userAddress = UserWebsocketManager.ADDRESS_PREFIX_USER_INTENT + user.getId().toHexString();
 
 				final MessageConsumer<UserIntent> intentConsumer = this.srv.getEventBus().consumer(userAddress, msg -> {
 					final UserIntent intent = msg.body();

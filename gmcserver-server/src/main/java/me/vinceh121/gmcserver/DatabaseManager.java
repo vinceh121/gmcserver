@@ -111,7 +111,7 @@ public class DatabaseManager extends AbstractManager {
 		private final String name;
 		private final Class<?> clazz;
 
-		private GMCCol(final String name, final Class<?> clazz) {
+		GMCCol(final String name, final Class<?> clazz) {
 			this.name = name;
 			this.clazz = clazz;
 		}

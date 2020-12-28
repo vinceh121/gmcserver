@@ -18,10 +18,8 @@ import com.mongodb.client.model.Filters;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
-import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
 
 public class LdapAuthenticator extends AbstractAuthenticator {
@@ -45,7 +43,7 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 		final SearchDnResolver dnResolver = SearchDnResolver.builder()
 				.factory(new DefaultConnectionFactory(conConfig))
 				.dn(srv.getConfig().getProperty("auth.ldap.baseDn"))
-				.filter("(" + fieldUid + "={user})")
+				.filter("(" + this.fieldUid + "={user})")
 				.build();
 
 		final SimpleBindAuthenticationHandler authHandler
@@ -60,7 +58,7 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 			final AuthenticationResponse res;
 			try {
 				res = this.auth.authenticate(
-						new AuthenticationRequest(username, new Credential(password), fieldEmail, fieldUid));
+						new AuthenticationRequest(username, new Credential(password), this.fieldEmail, this.fieldUid));
 			} catch (final LdapException e) {
 				promise.fail(e);
 				return;
@@ -68,7 +66,7 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 
 			if (res.isSuccess()) {
 				final LdapEntry e = res.getLdapEntry();
-				fetchOrCreateInternalUser(e, promise);
+				this.fetchOrCreateInternalUser(e, promise);
 			} else {
 				promise.fail(res.getDiagnosticMessage());
 			}
@@ -76,19 +74,17 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 	}
 
 	private void fetchOrCreateInternalUser(final LdapEntry e, final Promise<User> promise) {
-		final String uid = e.getAttribute(fieldUid).getStringValue();
-		final String email = e.getAttribute(fieldEmail).getStringValue();
+		final String uid = e.getAttribute(this.fieldUid).getStringValue();
+		final String email = e.getAttribute(this.fieldEmail).getStringValue();
 
-		final User user = this.srv.getManager(DatabaseManager.class)
-				.getCollection(User.class)
-				.find(Filters.eq("username", uid))
-				.first();
+		final User user
+				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("username", uid)).first();
 
 		if (user != null) {
 			promise.complete(user);
 		} else {
-			LOG.info("First login for LDAP user {} <{}>", uid, email);
-			final CreateUserAction userCreate = this.srv.getManager(UserManager.class)
+			LdapAuthenticator.LOG.info("First login for LDAP user {} <{}>", uid, email);
+			final CreateUserAction userCreate = this.srv.getUserManager()
 					.createUser()
 					.setEmail(email)
 					.setGenerateGmcId(true)

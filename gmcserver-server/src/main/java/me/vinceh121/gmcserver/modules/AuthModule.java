@@ -8,7 +8,6 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.GenerateTokenAction;
-import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.mfa.MFAManager.SetupMFAAction;
 import me.vinceh121.gmcserver.mfa.MFAManager.VerifyCodeAction;
 import xyz.bowser65.tokenize.Token;
@@ -67,7 +66,7 @@ public class AuthModule extends AbstractModule {
 		}
 
 		this.srv.getAuthenticator().register(username, email, password).onSuccess(user -> {
-			final GenerateTokenAction action = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			final GenerateTokenAction action = this.srv.getUserManager().userLogin().setUser(user);
 			action.execute().onSuccess(token -> {
 				ctx.response()
 						.end(new JsonObject().put("token", token.toString())
@@ -94,7 +93,7 @@ public class AuthModule extends AbstractModule {
 		}
 
 		this.srv.getAuthenticator().login(username, password).onSuccess(user -> {
-			final GenerateTokenAction action = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			final GenerateTokenAction action = this.srv.getUserManager().userLogin().setUser(user);
 			action.execute().onSuccess(token -> {
 				ctx.response()
 						// .setStatusCode(user.isMfa() ? 100 : 200)
@@ -128,9 +127,9 @@ public class AuthModule extends AbstractModule {
 
 		final User user = (User) mfaToken.getAccount();
 
-		final VerifyCodeAction action = this.srv.getManager(MFAManager.class).verifyCode().setPass(pass).setUser(user);
+		final VerifyCodeAction action = this.srv.getMfaManager().verifyCode().setPass(pass).setUser(user);
 		action.execute().onSuccess(res -> {
-			final GenerateTokenAction tokenAction = this.srv.getManager(UserManager.class).userLogin().setUser(user);
+			final GenerateTokenAction tokenAction = this.srv.getUserManager().userLogin().setUser(user);
 			tokenAction.execute().onSuccess(token -> {
 				ctx.response()
 						.end(new JsonObject().put("token", token.toString())
@@ -148,7 +147,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final SetupMFAAction action = this.srv.getManager(MFAManager.class).setupMFA().setUser(user);
+		final SetupMFAAction action = this.srv.getMfaManager().setupMFA().setUser(user);
 
 		if (user.getMfaKey() == null) {
 			action.execute().onSuccess(res -> {

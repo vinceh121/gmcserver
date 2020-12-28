@@ -24,7 +24,6 @@ import com.mongodb.client.result.UpdateResult;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
@@ -88,7 +87,7 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<DeviceStats> promise) {
-			final DeviceStats stats = this.srv.getManager(DatabaseManager.class)
+			final DeviceStats stats = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
 					.aggregate(DeviceManager.this.getStatsAggregation(this.field, this.devId, this.sampleSize),
 							DeviceStats.class)
@@ -156,7 +155,7 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			final FindIterable<Record> it
-					= this.srv.getManager(DatabaseManager.class).getCollection(Record.class).find(Filters.and(filters));
+					= this.srv.getDatabaseManager().getCollection(Record.class).find(Filters.and(filters));
 			it.sort(Sorts.descending("date"));
 			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
@@ -239,7 +238,7 @@ public class DeviceManager extends AbstractManager {
 				updates.add(Updates.set("location", DeviceManager.this.jsonArrToPoint(this.arrLocation)));
 			}
 
-			final UpdateResult res = this.srv.getManager(DatabaseManager.class)
+			final UpdateResult res = this.srv.getDatabaseManager()
 					.getCollection(Device.class)
 					.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
 
@@ -297,10 +296,8 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Device> promise) {
-			final Device dev = this.srv.getManager(DatabaseManager.class)
-					.getCollection(Device.class)
-					.find(Filters.eq(this.id))
-					.first();
+			final Device dev
+					= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(this.id)).first();
 
 			if (dev == null) {
 				promise.fail("Device not found");
@@ -331,10 +328,8 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			final Device dev = this.srv.getManager(DatabaseManager.class)
-					.getCollection(Device.class)
-					.find(Filters.eq(this.deviceId))
-					.first();
+			final Device dev
+					= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(this.deviceId)).first();
 
 			if (dev == null) {
 				promise.fail("Device not found");
@@ -347,16 +342,14 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			if (!this.delete) {
-				this.srv.getManager(DatabaseManager.class)
+				this.srv.getDatabaseManager()
 						.getCollection(Device.class)
 						.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
 			} else {
-				this.srv.getManager(DatabaseManager.class)
+				this.srv.getDatabaseManager()
 						.getCollection(Record.class)
 						.deleteMany(Filters.eq("deviceId", dev.getId()));
-				this.srv.getManager(DatabaseManager.class)
-						.getCollection(Device.class)
-						.deleteOne(Filters.eq(dev.getId()));
+				this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
 			}
 
 			promise.complete();
@@ -414,7 +407,7 @@ public class DeviceManager extends AbstractManager {
 				deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 			}
 
-			if (deviceLimit <= this.srv.getManager(DatabaseManager.class)
+			if (deviceLimit <= this.srv.getDatabaseManager()
 					.getCollection(Device.class)
 					.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
 				promise.fail("Device limit reached");
@@ -442,7 +435,7 @@ public class DeviceManager extends AbstractManager {
 			promise.complete(dev);
 
 			if (this.insertInDb) {
-				this.srv.getManager(DatabaseManager.class).getCollection(Device.class).insertOne(dev);
+				this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
 			}
 		}
 
