@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Card, message, Result, Steps } from "antd";
+import {
+	Button,
+	Card,
+	message,
+	Result,
+	Space,
+	Steps,
+	Typography,
+	Form,
+	InputNumber,
+} from "antd";
 import Loader from "../components/Loader";
-import { fetchMe, mfaStartSetup } from "../GmcApi";
+import { fetchMe, mfaFinishSetup, mfaStartSetup } from "../GmcApi";
 import QRCode from "react-qr-code";
 
 const { Step } = Steps;
+const { Text } = Typography;
 
 function MfaSetup(props) {
 	const [mfaUri, setMfaUri] = useState();
@@ -21,8 +32,52 @@ function MfaSetup(props) {
 	if (props.step === 0 && mfaUri) {
 		return (
 			<div>
-				<QRCode value={mfaUri} />
+				<Space direction="vertical">
+					<QRCode value={mfaUri} />
+					<Text code>{mfaUri}</Text>
+					<Button type="primary" onClick={props.onNextStep}>
+						Next
+					</Button>
+				</Space>
 			</div>
+		);
+	} else if (props.step === 1) {
+		return (
+			<div>
+				<Form
+					onFinish={(v) => {
+						mfaFinishSetup(v.pass).then((r) => {
+							props.onNextStep();
+						});
+					}}
+				>
+					<Form.Item
+						name="pass"
+						rules={[
+							{
+								type: "number",
+								min: 0,
+								max: 999_999,
+								message: "Invalid MFA pass",
+							},
+						]}
+					>
+						<InputNumber placeholder="MFA code" />
+					</Form.Item>
+					<Form.Item>
+						<Button type="primary" htmlType="submit">
+							Submit
+						</Button>
+					</Form.Item>
+				</Form>
+			</div>
+		);
+	} else if (props.step === 2) {
+		return (
+			<Result
+				status="success"
+				title="MFA is now setup on your account!"
+			/>
 		);
 	} else {
 		return <Loader />;

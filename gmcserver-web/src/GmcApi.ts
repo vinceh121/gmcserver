@@ -101,6 +101,14 @@ export const mfaStartSetup = async (): Promise<MfaStartSetupResponse> => {
 	return (await res.json()) as MfaStartSetupResponse;
 };
 
+export const mfaFinishSetup = async (pass: number): Promise<object> => {
+	const res = await request("/auth/mfa", {
+		method: "PUT",
+		body: JSON.stringify({ pass }),
+	});
+	return (await res.json()) as object;
+};
+
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
 	return (await res.json()) as InstanceInfo;
