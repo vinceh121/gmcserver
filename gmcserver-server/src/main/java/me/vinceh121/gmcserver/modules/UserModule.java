@@ -25,7 +25,7 @@ public class UserModule extends AbstractModule {
 	private void handleMe(final RoutingContext ctx) {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 		if (user != null) {
-			ctx.reroute(HttpMethod.GET, "/user/" + user.getId().toHexString());
+			ctx.reroute(HttpMethod.GET, "/api/v1/user/" + user.getId().toHexString());
 		} else {
 			this.error(ctx, 404, "Not logged in");
 		}
