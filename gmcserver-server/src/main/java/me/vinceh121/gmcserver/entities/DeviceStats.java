@@ -2,6 +2,8 @@ package me.vinceh121.gmcserver.entities;
 
 import org.bson.types.ObjectId;
 
+import io.vertx.core.json.JsonObject;
+
 public class DeviceStats extends AbstractEntity {
 	private String field;
 	private ObjectId device;
@@ -62,5 +64,12 @@ public class DeviceStats extends AbstractEntity {
 
 	public void setSampleSize(final int sampleSize) {
 		this.sampleSize = sampleSize;
+	}
+
+	@Override
+	public JsonObject toJson() {
+		final JsonObject obj = super.toJson();
+		obj.remove("id");
+		return obj;
 	}
 }

@@ -288,7 +288,7 @@ public class DeviceModule extends AbstractModule {
 
 			action.execute().onComplete(res -> {
 				final JsonObject obj = res.result().toJson();
-				obj.remove("_id");
+				obj.remove("id");
 
 				ctx.response().end(obj.toBuffer());
 			});

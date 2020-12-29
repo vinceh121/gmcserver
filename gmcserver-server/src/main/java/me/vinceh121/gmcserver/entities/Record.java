@@ -228,15 +228,6 @@ public class Record extends AbstractEntity {
 	@Override
 	@JsonIgnore
 	@BsonIgnore
-	public JsonObject toJson() {
-		final JsonObject obj = super.toJson();
-		obj.put("deviceId", Objects.toString(this.deviceId));
-		return obj;
-	}
-
-	@Override
-	@JsonIgnore
-	@BsonIgnore
 	public JsonObject toPublicJson() {
 		final JsonObject obj = this.toJson();
 		obj.remove("id");

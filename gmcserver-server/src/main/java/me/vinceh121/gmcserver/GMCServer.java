@@ -36,6 +36,7 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
+import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.UserManager;
@@ -84,8 +85,13 @@ public class GMCServer {
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
+		registerJsonUtils();
 		final GMCServer srv = new GMCServer();
 		srv.start();
+	}
+
+	private static void registerJsonUtils() {
+		MongoJackson.registerSerializers();
 	}
 
 	public GMCServer() {

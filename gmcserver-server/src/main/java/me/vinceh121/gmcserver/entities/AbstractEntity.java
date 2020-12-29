@@ -1,7 +1,5 @@
 package me.vinceh121.gmcserver.entities;
 
-import java.util.Objects;
-
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
@@ -26,7 +24,6 @@ public abstract class AbstractEntity {
 
 	public JsonObject toJson() {
 		final JsonObject obj = JsonObject.mapFrom(this);
-		obj.put("id", Objects.toString(this.id));
 		return obj;
 	}
 
