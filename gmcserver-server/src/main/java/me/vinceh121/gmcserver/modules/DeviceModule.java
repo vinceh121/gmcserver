@@ -287,6 +287,10 @@ public class DeviceModule extends AbstractModule {
 					= this.srv.getDeviceManager().deviceStats().setDevId(getRes.result().getId()).setField(field);
 
 			action.execute().onComplete(res -> {
+				if (res.result() == null) {
+					this.error(ctx, 204, "No statistical data for this field");
+					return;
+				}
 				final JsonObject obj = res.result().toJson();
 				obj.remove("id");
 
