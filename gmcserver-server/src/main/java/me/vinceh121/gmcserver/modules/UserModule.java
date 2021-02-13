@@ -58,6 +58,9 @@ public class UserModule extends AbstractModule {
 		if (authUser != null && requestedId.equals(authUser.getId())) {
 			obj = user.toJson();
 			obj.put("self", true);
+			if (user.getDeviceLimit() == -1) {
+				obj.put("deviceLimit", Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit")));
+			}
 		} else {
 			obj = user.toPublicJson();
 		}
