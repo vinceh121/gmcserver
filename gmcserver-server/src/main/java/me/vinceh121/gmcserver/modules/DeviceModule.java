@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
-import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
@@ -56,12 +55,10 @@ public class DeviceModule extends AbstractModule {
 
 		final CreateDeviceAction action
 				= this.srv.getDeviceManager().createDevice().setUser(user).setArrLocation(arrLoc).setName(name);
-		action.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 400, res.cause().getMessage());
-				return;
-			}
-			ctx.response().end(res.result().toJson().toBuffer());
+		action.execute().onSuccess(dev -> {
+			ctx.response().end(dev.toJson().toBuffer());
+		}).onFailure(t -> {
+			this.error(ctx, 400, t.getMessage());
 		});
 	}
 
@@ -84,13 +81,10 @@ public class DeviceModule extends AbstractModule {
 		final DeleteDeviceAction action
 				= this.srv.getDeviceManager().deleteDevice().setDelete(delete).setDeviceId(deviceId).setUser(user);
 
-		action.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 400, res.cause().getMessage());
-				return;
-			}
-
+		action.execute().onSuccess(res -> {
 			ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+		}).onFailure(t -> {
+			this.error(ctx, 400, t.getMessage());
 		});
 	}
 
@@ -108,13 +102,7 @@ public class DeviceModule extends AbstractModule {
 		final JsonObject obj = ctx.getBodyAsJson();
 
 		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
-		getAction.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 404, res.cause().getMessage());
-				return;
-			}
-
-			final Device dev = res.result();
+		getAction.execute().onSuccess(dev -> {
 			final User user = ctx.get(AuthHandler.USER_KEY);
 
 			if (!user.getId().equals(dev.getOwner())) {
@@ -128,14 +116,13 @@ public class DeviceModule extends AbstractModule {
 					.setArrLocation(obj.getJsonArray("location"))
 					.setModel(obj.getString("model"))
 					.setName(obj.getString("name"));
-			action.execute().onComplete(upRes -> {
-				if (upRes.failed()) {
-					this.error(ctx, 500, upRes.cause().getMessage());
-					return;
-				}
-
-				ctx.response().end(new JsonObject().put("changed", upRes.result()).toBuffer());
+			action.execute().onSuccess(upRes -> {
+				ctx.response().end(new JsonObject().put("changed", upRes).toBuffer());
+			}).onFailure(t -> {
+				this.error(ctx, 500, t.getMessage());
 			});
+		}).onFailure(t -> {
+			this.error(ctx, 404, t.getMessage());
 		});
 
 	}
@@ -153,26 +140,21 @@ public class DeviceModule extends AbstractModule {
 
 		final GetDeviceAction action = this.srv.getDeviceManager().getDevice().setId(deviceId);
 
-		action.execute().onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 404, res.cause().getMessage());
-				return;
-			}
-
-			final Device dev = res.result();
-
+		action.execute().onSuccess(dev -> {
 			final User user = ctx.get(AuthHandler.USER_KEY);
 
 			final GetUserAction getOwnerAction = this.srv.getUserManager().getUser().setId(dev.getOwner());
-			getOwnerAction.execute().onComplete(ures -> {
+			getOwnerAction.execute().onSuccess(ures -> {
 				final boolean own = user != null && user.getId().equals(dev.getOwner());
 
 				final JsonObject obj = own ? dev.toJson() : dev.toPublicJson();
 				obj.put("own", own);
-				obj.put("owner", ures.result().toPublicJson());
+				obj.put("owner", ures.toPublicJson());
 
 				ctx.response().end(obj.toBuffer());
 			});
+		}).onFailure(t -> {
+			this.error(ctx, 404, t.getMessage());
 		});
 	}
 
@@ -189,14 +171,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
-		getAction.execute().onComplete(getRes -> {
-			if (getRes.failed()) {
-				this.error(ctx, 404, "Device not found");
-				return;
-			}
-
-			final Device dev = getRes.result();
-
+		getAction.execute().onSuccess(dev -> {
 			final Date start, end;
 
 			if (ctx.request().params().contains("start")) {
@@ -229,17 +204,12 @@ public class DeviceModule extends AbstractModule {
 					.setEnd(end)
 					.setFull(full)
 					.setDev(dev);
-			histAction.execute().onComplete(histRes -> {
-				if (histRes.failed()) {
-					this.error(ctx, 500, histRes.cause().getMessage());
-					return;
-				}
-
+			histAction.execute().onSuccess(hist -> {
 				ctx.response().setChunked(true);
 
 				ctx.response().write("[");
 
-				final Iterator<Record> recs = histRes.result().iterator();
+				final Iterator<Record> recs = hist.iterator();
 
 				recs.forEachRemaining(r -> {
 					if (user != null && user.getId().equals(dev.getOwner())) {
@@ -253,7 +223,11 @@ public class DeviceModule extends AbstractModule {
 				});
 				ctx.response().write("]");
 				ctx.response().end();
+			}).onFailure(t -> {
+				this.error(ctx, 500, t.getMessage());
 			});
+		}).onFailure(t -> {
+			this.error(ctx, 404, "Device not found");
 		});
 
 	}
@@ -276,25 +250,20 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
-		getDevAction.execute().onComplete(getRes -> {
-			if (getRes.failed()) {
-				this.error(ctx, 404, "Device not found");
-				return;
-			}
-
+		getDevAction.execute().onSuccess(dev -> {
 			final DeviceStatsAction action
-					= this.srv.getDeviceManager().deviceStats().setDevId(getRes.result().getId()).setField(field);
+					= this.srv.getDeviceManager().deviceStats().setDevId(dev.getId()).setField(field);
 
-			action.execute().onComplete(res -> {
-				if (res.result() == null) {
-					this.error(ctx, 204, "No statistical data for this field");
-					return;
-				}
-				final JsonObject obj = res.result().toJson();
+			action.execute().onSuccess(res -> {
+				final JsonObject obj = res.toJson();
 				obj.remove("id");
 
 				ctx.response().end(obj.toBuffer());
+			}).onFailure(t -> {
+				this.error(ctx, 204, "No statistical data for this field");
 			});
+		}).onFailure(t -> {
+			this.error(ctx, 404, "Device not found");
 		});
 	}
 
@@ -310,12 +279,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
-		getDevAction.execute().onComplete(getRes -> {
-			if (getRes.failed()) {
-				this.error(ctx, 404, "Device not found");
-				return;
-			}
-
+		getDevAction.execute().onSuccess(getRes -> {
 			ctx.request().toWebSocket(webRes -> {
 				if (webRes.failed()) {
 					this.error(ctx, 500, "Failed to open websocket: " + webRes.cause());
@@ -330,7 +294,8 @@ public class DeviceModule extends AbstractModule {
 
 				sock.closeHandler(v -> consumer.unregister());
 			});
+		}).onFailure(t -> {
+			this.error(ctx, 404, "Device not found");
 		});
 	}
-
 }

@@ -44,15 +44,7 @@ public class EmailManager extends AbstractManager {
 		return Future.future(p -> {
 			this.fillStandardContext(email.getContext());
 
-			this.buildEmail(email.getTemplate() + ".html", email.getContext()).onComplete(buildRes -> {
-				if (buildRes.failed()) {
-					this.log.error("Error while building email", buildRes.cause());
-					p.fail(buildRes.cause());
-					return;
-				}
-
-				final String content = buildRes.result();
-
+			this.buildEmail(email.getTemplate() + ".html", email.getContext()).onSuccess(content -> {
 				final MailMessage message = new MailMessage();
 				message.setFrom(this.from);
 				message.setTo(email.getTo().getUsername() + " <" + email.getTo().getEmail() + ">");
@@ -62,12 +54,15 @@ public class EmailManager extends AbstractManager {
 				this.client.sendMail(message, mailRes -> {
 					if (mailRes.failed()) {
 						this.log.error("Failed to send email", mailRes.cause());
-						p.fail(buildRes.cause());
+						p.fail(mailRes.cause());
 					} else {
 						this.log.info("Email sent to {}", email.getTo());
 						p.complete();
 					}
 				});
+			}).onFailure(t -> {
+				this.log.error("Error while building email", t);
+				p.fail(t);
 			});
 		});
 	}

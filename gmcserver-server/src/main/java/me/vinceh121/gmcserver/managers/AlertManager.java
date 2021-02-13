@@ -6,7 +6,6 @@ import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
-import me.vinceh121.gmcserver.entities.DeviceStats;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.email.Email;
@@ -42,14 +41,7 @@ public class AlertManager extends AbstractManager {
 					.setField("cpm")
 					.setDevId(this.dev.getId())
 					.execute()
-					.onComplete(statsRes -> {
-						if (statsRes.failed()) {
-							AlertManager.this.log.error("Failed to get stats for device {}", this.dev);
-							promise.fail("Failed to get stats");
-							return;
-						}
-						final DeviceStats stats = statsRes.result();
-
+					.onSuccess(stats -> {
 						final double upperBound = stats.getAvg() + stats.getStdDev();
 						// final double lowerBound = stats.getAvg() - stats.getStdDev();
 
@@ -65,6 +57,9 @@ public class AlertManager extends AbstractManager {
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
 
+					}).onFailure(t -> {
+						log.error("Failed to get stats for device {}", this.dev);
+						promise.fail("Failed to get stats");
 					});
 		}
 

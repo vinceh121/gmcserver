@@ -6,7 +6,6 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.UserManager.VerifyTokenAction;
-import xyz.bowser65.tokenize.Token;
 
 public class AuthHandler implements Handler<RoutingContext> {
 	public static final String TOKEN_KEY = "me.vinceh121.gmcserver.token";
@@ -27,22 +26,17 @@ public class AuthHandler implements Handler<RoutingContext> {
 
 		final VerifyTokenAction action = this.srv.getUserManager().verifyToken().setTokenString(auth);
 
-		action.execute().onComplete(res -> {
-
-			if (res.failed()) {
-				ctx.response()
-						.setStatusCode(401)
-						.end(new JsonObject().put("status", 401).put("msg", res.cause().getMessage()).toBuffer());
-				return;
-			}
-
-			final Token token = res.result();
+		action.execute().onSuccess(token -> {
 			if (token != null) {
 				final User user = (User) token.getAccount();
 				ctx.put(AuthHandler.TOKEN_KEY, token);
 				ctx.put(AuthHandler.USER_KEY, user);
 			}
 			ctx.next();
+		}).onFailure(t -> {
+			ctx.response()
+					.setStatusCode(401)
+					.end(new JsonObject().put("status", 401).put("msg", t.getMessage()).toBuffer());
 		});
 
 	}

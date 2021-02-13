@@ -121,11 +121,7 @@ public class LoggingModule extends AbstractModule {
 				.setOwner(user)
 				.setLatestRecord(rec)
 				.execute()
-				.onComplete(emailRes -> {
-					if (emailRes.failed()) {
-						this.log.error("Failed to check alert email");
-					}
-				});
+				.onFailure(t -> this.log.error("Failed to check alert email", t));
 	}
 
 	private void handleClassicLog(final RoutingContext ctx) {
@@ -244,11 +240,7 @@ public class LoggingModule extends AbstractModule {
 				.setOwner(user)
 				.setLatestRecord(rec)
 				.execute()
-				.onComplete(emailRes -> {
-					if (emailRes.failed()) {
-						this.log.error("Failed to check alert email");
-					}
-				});
+				.onFailure(t -> this.log.error("Failed to check alert email", t));
 	}
 
 	private void publishRecord(final Record rec) {

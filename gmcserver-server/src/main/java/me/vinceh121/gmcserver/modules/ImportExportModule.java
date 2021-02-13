@@ -78,41 +78,34 @@ public class ImportExportModule extends AbstractModule {
 
 		this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
 
-		this.getRecords(gmcmapId, 0, dev.getId()).onComplete(res -> {
-			if (res.failed()) {
-				this.error(ctx, 502, "Failure: " + res.cause().getMessage());
-				return;
-			}
-
-			if (res.result().size() == 0) {
+		this.getRecords(gmcmapId, 0, dev.getId()).onSuccess(recs -> {
+			if (recs.size() == 0) {
 				this.error(ctx, 502, "Returned data table is empty");
 				return;
 			}
 
 			ctx.response().end();
 
-			final List<Record> recs = res.result();
 			this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 
 			this.importPageRecurse(gmcmapId, 1, dev.getId());
+		}).onFailure(t -> {
+			this.error(ctx, 502, "Failure: " + t.getMessage());
 		});
 	}
 
 	private void importPageRecurse(final String gmcmapId, final int page, final ObjectId deviceId) {
-		this.getRecords(gmcmapId, page, deviceId).onComplete(ares -> {
-			if (ares.failed()) {
-				this.log.error("Error while importing device {} at page {}", gmcmapId, page);
-				return;
-			}
+		this.getRecords(gmcmapId, page, deviceId).onSuccess(recs -> {
+			this.log.info("Got {} records from device import {}, page {}", recs.size(), gmcmapId, page);
 
-			this.log.info("Got {} records from device import {}, page {}", ares.result().size(), gmcmapId, page);
-
-			if (ares.result().size() != 0) {
-				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(ares.result());
+			if (recs.size() != 0) {
+				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 				this.importPageRecurse(gmcmapId, page + 1, deviceId);
 			} else {
 				this.log.info("Finished import for {}", gmcmapId);
 			}
+		}).onFailure(t -> {
+			this.log.error("Error while importing device {} at page {}", gmcmapId, page);
 		});
 	}
 
