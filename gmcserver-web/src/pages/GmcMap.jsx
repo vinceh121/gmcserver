@@ -2,13 +2,11 @@ import React, { createRef, useEffect, useState } from "react";
 import L from "leaflet";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Button, Card, Result, Space, Spin, Typography } from "antd";
+import { Button, Card, Result, Space, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { fetchMap } from "../GmcApi";
 import { Link } from "react-router-dom";
 import gmcCpmPin from "../assets/PinBuilder";
-
-const { Text } = Typography;
 
 function DeviceMarker(props) {
 	const device = props.device;
@@ -21,18 +19,14 @@ function DeviceMarker(props) {
 				iconUrl: gmcCpmPin({ device }),
 			})}
 		>
-			<Popup className="ant-popover">
-				<Typography>
-					<Space direction="vertical">
-						<Text type="secondary" copyable>
-							{device.id}
-						</Text>
-						<Text>{device.cpm} CPM</Text>
-						<Link to={"/device/" + device.id}>
-							<Button type="link">More info</Button>
-						</Link>
-					</Space>
-				</Typography>
+			<Popup>
+				<Space direction="vertical">
+					{device.name}<br/>
+					{device.cpm} CPM
+					<Link to={"/device/" + device.id}>
+						<Button type="link">More info</Button>
+					</Link>
+				</Space>
 			</Popup>
 		</Marker>
 	);
@@ -69,7 +63,12 @@ function GmcMap() {
 				extra={
 					devices.length ? undefined : (
 						<Spin
-							indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />}
+							indicator={
+								<LoadingOutlined
+									spin
+									style={{ fontSize: 34 }}
+								/>
+							}
 						/>
 					)
 				}

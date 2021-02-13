@@ -7,6 +7,7 @@ export interface Record {
 
 export interface MapDevice {
 	id: string;
+	name?: string;
 	location?: number[];
 	cpm: number;
 }
