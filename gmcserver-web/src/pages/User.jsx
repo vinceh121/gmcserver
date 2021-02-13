@@ -50,6 +50,14 @@ function User() {
 					user.self ? (
 						<Button
 							key="0"
+							onClick={() => history.push("/device/new")}
+						>
+							New Device
+						</Button>
+					) : undefined,
+					user.self ? (
+						<Button
+							key="1"
 							onClick={() => {
 								logoff();
 								history.push("/");

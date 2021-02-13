@@ -15,7 +15,7 @@ function NewDevice() {
 	};
 
 	return (
-		<PageHeader title="New Device" onBack={history.onBack}>
+		<PageHeader title="New Device" onBack={history.goBack}>
 			{state && state.error ? (
 				<Alert
 					message={"Failed to create device: " + String(state.error)}
