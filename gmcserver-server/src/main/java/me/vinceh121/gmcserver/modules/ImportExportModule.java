@@ -11,6 +11,8 @@ import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.client.model.Filters;
 
@@ -27,16 +29,18 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 
 public class ImportExportModule extends AbstractModule {
+	private static final Logger LOG = LoggerFactory.getLogger(ImportExportModule.class);
 	public static final DateFormat GMCMAP_DATE_FMT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
 	private static final SecureRandom DEV_RANDOM = new SecureRandom();
 
 	public ImportExportModule(final GMCServer srv) {
 		super(srv);
-		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::importGmcMap);
+		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::handleImportGmcMap);
+		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/export/csv", this::handleCsvExport);
 	}
 
-	private void importGmcMap(final RoutingContext ctx) {
+	private void handleImportGmcMap(final RoutingContext ctx) {
 		final JsonObject obj = ctx.getBodyAsJson();
 		if (obj == null) {
 			this.error(ctx, 400, "Invalid JSON");
@@ -164,6 +168,56 @@ public class ImportExportModule extends AbstractModule {
 						}
 						p.complete(records);
 					});
+		});
+	}
+
+	private void handleCsvExport(final RoutingContext ctx) {
+		final String rawDeviceId = ctx.pathParam("deviceId");
+		final ObjectId deviceId;
+		try {
+			deviceId = new ObjectId(rawDeviceId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid device ID");
+			return;
+		}
+
+		ctx.response().setChunked(true);
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		this.srv.getDeviceManager().getDevice().setId(deviceId).execute().onSuccess(device -> {
+			this.srv.getDeviceManager().deviceFullTimeline().setFull(true).setDev(device).execute().onSuccess(recs -> {
+				if (user == null) {
+					ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LAT,LON\n");
+					for (final Record r : recs) {
+						ctx.response()
+								.write(String.format("%f,%f,%f,%s,%s,%s,%s\n", r.getCpm(), r.getAcpm(), r.getUsv(),
+										r.getDate().getTime(), r.getType(),
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
+												: ""));
+					}
+				} else {
+					ctx.response().write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LAT,LON\n");
+					for (final Record r : recs) {
+						ctx.response()
+								.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n", r.getId(),
+										r.getDeviceId(), r.getCpm(), r.getAcpm(), r.getUsv(), r.getCo2(), r.getHcho(),
+										r.getTmp(), r.getAp(), r.getHmdt(), r.getAccy(), r.getDate().getTime(),
+										r.getIp(), r.getType(),
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0)
+												: null,
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
+												: null));
+					}
+				}
+				ctx.response().end();
+			}).onFailure(t -> {
+				LOG.error("Failed to get device " + deviceId + " timeline for export", t);
+				this.error(ctx, 500, "Failed to get device timeline for export");
+			});
+		}).onFailure(t -> { // TODO differentiate DB error and not found
+			this.error(ctx, 404, "Device not found");
 		});
 	}
 

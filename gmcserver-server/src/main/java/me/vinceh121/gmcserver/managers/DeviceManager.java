@@ -130,7 +130,6 @@ public class DeviceManager extends AbstractManager {
 	}
 
 	public class DeviceFullTimelineAction extends AbstractAction<Iterable<Record>> {
-		private User requester;
 		private Device dev;
 		private Date start, end;
 		private boolean full;
@@ -159,20 +158,11 @@ public class DeviceManager extends AbstractManager {
 			it.sort(Sorts.descending("date"));
 			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
-			if (this.full && this.requester != null && this.requester.getId().equals(this.dev.getOwner())) {
+			if (this.full) {
 				it.limit(0);
 			}
 
 			promise.complete(it);
-		}
-
-		public User getRequester() {
-			return this.requester;
-		}
-
-		public DeviceFullTimelineAction setRequester(final User requester) {
-			this.requester = requester;
-			return this;
 		}
 
 		public Device getDev() {

@@ -228,7 +228,6 @@ public class DeviceModule extends AbstractModule {
 					.setStart(start)
 					.setEnd(end)
 					.setFull(full)
-					.setRequester(user)
 					.setDev(dev);
 			histAction.execute().onComplete(histRes -> {
 				if (histRes.failed()) {
