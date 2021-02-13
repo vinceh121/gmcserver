@@ -30,7 +30,6 @@ import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.event.EntityCodec;
-import me.vinceh121.gmcserver.event.UserWebsocketManager;
 import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
@@ -77,7 +76,6 @@ public class GMCServer {
 	//// Managers
 	private DatabaseManager databaseManager;
 	private MFAManager mfaManager;
-	private UserWebsocketManager userWebsocketManager;
 	private UserManager userManager;
 	private DeviceManager deviceManager;
 	private EmailManager emailManager;
@@ -176,8 +174,6 @@ public class GMCServer {
 
 		this.registerModules();
 
-		this.apiRouter.route("/ws").handler(this.userWebsocketManager);
-
 		if (Boolean.parseBoolean(this.config.getProperty("web.enabled"))) {
 			this.setupWebRouter(this.vertx);
 		}
@@ -205,7 +201,6 @@ public class GMCServer {
 	private void registerManagers() {
 		this.databaseManager = new DatabaseManager(this);
 		this.mfaManager = new MFAManager(this);
-		this.userWebsocketManager = new UserWebsocketManager(this);
 		this.userManager = new UserManager(this);
 		this.deviceManager = new DeviceManager(this);
 		this.emailManager = new EmailManager(this);
@@ -287,10 +282,6 @@ public class GMCServer {
 
 	public MFAManager getMfaManager() {
 		return this.mfaManager;
-	}
-
-	public UserWebsocketManager getUserWebsocketManager() {
-		return this.userWebsocketManager;
 	}
 
 	public UserManager getUserManager() {
