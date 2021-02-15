@@ -130,9 +130,16 @@ function Device() {
 					</Checkbox>
 
 					<div>
-						<Select onChange={handleStatsChange}>
-							{numericRecordFields.map((f) => {
-								return <Option value={f}>{f}</Option>;
+						<Select
+							onChange={handleStatsChange}
+							style={{ width: "120px" }}
+						>
+							{numericRecordFields.map((f, i) => {
+								return (
+									<Option key={i} value={f}>
+										{f}
+									</Option>
+								);
 							})}
 						</Select>
 						<Row gutter={16}>

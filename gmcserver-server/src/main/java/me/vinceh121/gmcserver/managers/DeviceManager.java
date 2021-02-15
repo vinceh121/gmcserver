@@ -309,7 +309,6 @@ public class DeviceManager extends AbstractManager {
 
 	public class DeleteDeviceAction extends AbstractAction<Void> {
 		private ObjectId deviceId;
-		private User user;
 		private boolean delete;
 
 		public DeleteDeviceAction(final GMCServer srv) {
@@ -323,11 +322,6 @@ public class DeviceManager extends AbstractManager {
 
 			if (dev == null) {
 				promise.fail("Device not found");
-				return;
-			}
-
-			if (!this.user.getId().equals(dev.getId()) || this.user.isAdmin()) {
-				promise.fail("Not owner of device");
 				return;
 			}
 
@@ -354,15 +348,6 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
-		public User getUser() {
-			return this.user;
-		}
-
-		public DeleteDeviceAction setUser(final User user) {
-			this.user = user;
-			return this;
-		}
-
 		public boolean isDelete() {
 			return this.delete;
 		}
@@ -377,7 +362,7 @@ public class DeviceManager extends AbstractManager {
 		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true;
 		private User user;
 		private JsonArray arrLocation;
-		private String name;
+		private String name, model;
 
 		public CreateDeviceAction(final GMCServer srv) {
 			super(srv);
@@ -417,6 +402,7 @@ public class DeviceManager extends AbstractManager {
 			final Device dev = new Device();
 			dev.setOwner(this.user.getId());
 			dev.setName(this.name);
+			dev.setModel(this.model);
 			if (this.generateGmcId) {
 				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()));
 			}
@@ -483,5 +469,13 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
+		public String getModel() {
+			return model;
+		}
+
+		public CreateDeviceAction setModel(String model) {
+			this.model = model;
+			return this;
+		}
 	}
 }

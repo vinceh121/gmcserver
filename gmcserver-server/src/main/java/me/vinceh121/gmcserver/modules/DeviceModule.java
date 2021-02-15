@@ -16,7 +16,6 @@ import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
-import me.vinceh121.gmcserver.managers.DeviceManager.DeleteDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceFullTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
@@ -42,19 +41,29 @@ public class DeviceModule extends AbstractModule {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
 		final String name = obj.getString("name");
-		if (name == null) {
-			this.error(ctx, 400, "Missing parameter name");
+		if (name == null || name.length() > 2 && name.length() < 64) {
+			this.error(ctx, 400, "Invalid name");
+			return;
+		}
+
+		final String model = obj.getString("model");
+		if (model == null || name.length() > 2 && name.length() < 64) {
+			this.error(ctx, 400, "Invalid model");
 			return;
 		}
 
 		final JsonArray arrLoc = obj.getJsonArray("position");
-		if (arrLoc == null) {
-			this.error(ctx, 400, "Missing parameter position");
+		if (arrLoc == null || arrLoc.size() != 2) {
+			this.error(ctx, 400, "Invalid position");
 			return;
 		}
 
-		final CreateDeviceAction action
-				= this.srv.getDeviceManager().createDevice().setUser(user).setArrLocation(arrLoc).setName(name);
+		final CreateDeviceAction action = this.srv.getDeviceManager()
+				.createDevice()
+				.setModel(model)
+				.setUser(user)
+				.setArrLocation(arrLoc)
+				.setName(name);
 		action.execute().onSuccess(dev -> {
 			ctx.response().end(dev.toJson().toBuffer());
 		}).onFailure(t -> {
@@ -75,16 +84,28 @@ public class DeviceModule extends AbstractModule {
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
-		final JsonObject obj = ctx.getBodyAsJson();
-		final boolean delete = obj.getBoolean("delete");
+		this.srv.getDeviceManager().getDevice().setId(deviceId).execute().onSuccess(dev -> {
+			if (user.getId().equals(dev.getOwner())) {
+				this.error(ctx, 403, "Device not owned");
+				return;
+			}
 
-		final DeleteDeviceAction action
-				= this.srv.getDeviceManager().deleteDevice().setDelete(delete).setDeviceId(deviceId).setUser(user);
+			final JsonObject obj = ctx.getBodyAsJson();
+			final boolean delete = obj.getBoolean("delete");
 
-		action.execute().onSuccess(res -> {
-			ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+			this.srv.getDeviceManager()
+					.deleteDevice()
+					.setDelete(delete)
+					.setDeviceId(deviceId)
+					.execute()
+					.onSuccess(res -> {
+						ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+					})
+					.onFailure(t -> {
+						this.error(ctx, 400, t.getMessage());
+					});
 		}).onFailure(t -> {
-			this.error(ctx, 400, t.getMessage());
+			this.error(ctx, 404, "Device not found");
 		});
 	}
 
@@ -293,6 +314,10 @@ public class DeviceModule extends AbstractModule {
 				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 
 				sock.closeHandler(v -> consumer.unregister());
+				sock.exceptionHandler(t -> {
+					consumer.unregister();
+					sock.close((short) 1011);
+				});
 			});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "Device not found");
