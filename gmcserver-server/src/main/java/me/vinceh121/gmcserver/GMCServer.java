@@ -9,8 +9,8 @@ import java.util.Properties;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
@@ -52,7 +52,7 @@ import me.vinceh121.gmcserver.modules.UserModule;
 import xyz.bowser65.tokenize.Tokenize;
 
 public class GMCServer {
-	private static final Logger LOG = LoggerFactory.getLogger(GMCServer.class);
+	private static final Logger LOG = LogManager.getLogger(GMCServer.class);
 	private final Properties config = new Properties();
 	private final InstanceInfo instanceInfo = new InstanceInfo();
 

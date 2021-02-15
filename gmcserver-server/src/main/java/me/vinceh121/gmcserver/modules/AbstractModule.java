@@ -1,7 +1,7 @@
 package me.vinceh121.gmcserver.modules;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
@@ -16,7 +16,7 @@ public abstract class AbstractModule {
 
 	public AbstractModule(final GMCServer srv) {
 		this.srv = srv;
-		this.log = LoggerFactory.getLogger(this.getClass());
+		this.log = LogManager.getLogger(this.getClass());
 	}
 
 	protected Route registerStrictAuthedRoute(final HttpMethod method, final String path,

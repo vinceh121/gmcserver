@@ -2,6 +2,8 @@ package me.vinceh121.gmcserver.managers;
 
 import java.util.Date;
 
+import org.apache.logging.log4j.message.FormattedMessage;
+
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
@@ -57,8 +59,9 @@ public class AlertManager extends AbstractManager {
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
 
-					}).onFailure(t -> {
-						log.error("Failed to get stats for device {}", this.dev);
+					})
+					.onFailure(t -> {
+						log.error(new FormattedMessage("Failed to get stats for device {}", this.dev), t);
 						promise.fail("Failed to get stats");
 					});
 		}

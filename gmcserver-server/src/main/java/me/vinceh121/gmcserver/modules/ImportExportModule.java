@@ -7,12 +7,13 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.client.model.Filters;
 
@@ -29,7 +30,7 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 
 public class ImportExportModule extends AbstractModule {
-	private static final Logger LOG = LoggerFactory.getLogger(ImportExportModule.class);
+	private static final Logger LOG = LogManager.getLogger(ImportExportModule.class);
 	public static final DateFormat GMCMAP_DATE_FMT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
 	private static final SecureRandom DEV_RANDOM = new SecureRandom();
@@ -105,7 +106,7 @@ public class ImportExportModule extends AbstractModule {
 				this.log.info("Finished import for {}", gmcmapId);
 			}
 		}).onFailure(t -> {
-			this.log.error("Error while importing device {} at page {}", gmcmapId, page);
+			this.log.error(new FormattedMessage("Error while importing device {} at page {}", gmcmapId, page), t);
 		});
 	}
 
@@ -206,7 +207,7 @@ public class ImportExportModule extends AbstractModule {
 				}
 				ctx.response().end();
 			}).onFailure(t -> {
-				LOG.error("Failed to get device " + deviceId + " timeline for export", t);
+				LOG.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
 				this.error(ctx, 500, "Failed to get device timeline for export");
 			});
 		}).onFailure(t -> { // TODO differentiate DB error and not found

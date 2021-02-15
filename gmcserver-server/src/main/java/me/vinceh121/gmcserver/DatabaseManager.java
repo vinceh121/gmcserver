@@ -13,8 +13,6 @@ import org.bson.codecs.pojo.ClassModelBuilder;
 import org.bson.codecs.pojo.Conventions;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.codecs.pojo.PropertyModelBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -32,7 +30,6 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
 public class DatabaseManager extends AbstractManager {
-	private static Logger LOG = LoggerFactory.getLogger(DatabaseManager.class);
 	private final MongoClient client;
 	private final MongoDatabase database;
 	private final PojoCodecProvider pojoCodecProvider;
@@ -89,7 +86,7 @@ public class DatabaseManager extends AbstractManager {
 		}
 
 		if (deviceIndexCount <= 1) {
-			DatabaseManager.LOG.warn("Device collection does not have index, generating");
+			log.warn("Device collection does not have index, generating");
 			this.getCollection(Device.class).createIndex(Indexes.geo2dsphere("location"));
 		}
 	}

@@ -2,15 +2,16 @@ package me.vinceh121.gmcserver.handlers;
 
 import java.nio.file.Path;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 
 import io.vertx.core.Handler;
 import io.vertx.core.file.FileSystem;
 import io.vertx.ext.web.RoutingContext;
 
 public class WebHandler implements Handler<RoutingContext> {
-	private static final Logger LOG = LoggerFactory.getLogger(WebHandler.class);
+	private static final Logger LOG = LogManager.getLogger(WebHandler.class);
 	private final FileSystem fs;
 	private final Path webRoot;
 	private final String indexFile;
@@ -38,7 +39,7 @@ public class WebHandler implements Handler<RoutingContext> {
 	private void supplyFile(final RoutingContext ctx, final String fullPath) {
 		this.fs.readFile(fullPath, res -> {
 			if (res.failed()) {
-				WebHandler.LOG.error("Failed to read file " + fullPath, res.cause());
+				WebHandler.LOG.error(new FormattedMessage("Failed to read file {}", fullPath), res.cause());
 				ctx.response().setStatusCode(500).end();
 				return;
 			}

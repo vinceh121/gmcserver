@@ -1,5 +1,7 @@
 package me.vinceh121.gmcserver.auth;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.ldaptive.BindConnectionInitializer;
 import org.ldaptive.ConnectionConfig;
 import org.ldaptive.Credential;
@@ -11,8 +13,6 @@ import org.ldaptive.auth.AuthenticationResponse;
 import org.ldaptive.auth.Authenticator;
 import org.ldaptive.auth.SearchDnResolver;
 import org.ldaptive.auth.SimpleBindAuthenticationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.client.model.Filters;
 
@@ -23,7 +23,7 @@ import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
 
 public class LdapAuthenticator extends AbstractAuthenticator {
-	private static final Logger LOG = LoggerFactory.getLogger(LdapAuthenticator.class);
+	private static final Logger LOG = LogManager.getLogger(LdapAuthenticator.class);
 	private final Authenticator auth;
 	private final String fieldEmail, fieldUid;
 

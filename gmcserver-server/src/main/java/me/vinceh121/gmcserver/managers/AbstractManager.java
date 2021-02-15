@@ -1,7 +1,7 @@
 package me.vinceh121.gmcserver.managers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import me.vinceh121.gmcserver.GMCServer;
 
@@ -11,6 +11,6 @@ public abstract class AbstractManager {
 
 	public AbstractManager(final GMCServer srv) {
 		this.srv = srv;
-		this.log = LoggerFactory.getLogger(this.getClass());
+		this.log = LogManager.getLogger(this.getClass());
 	}
 }
