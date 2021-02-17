@@ -4,6 +4,9 @@ import java.util.Date;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
@@ -55,7 +58,12 @@ public class AlertManager extends AbstractManager {
 							email.getContext().put("fieldname", "CPM");
 							email.getContext().put("value", this.latestRecord.getCpm());
 							email.getContext().put("device", this.dev.toPublicJson());
-							this.srv.getEmailManager().sendEmail(email);
+							this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
+								this.srv.getDatabaseManager()
+										.getCollection(Device.class)
+										.updateOne(Filters.eq(this.dev.getId()),
+												Updates.set("lastEmailAlert", System.currentTimeMillis()));
+							});
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
 
