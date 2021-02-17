@@ -1,10 +1,14 @@
 <mj-section background-color="#ff5722">
-    <mj-column>
-        <mj-navbar base-url="http://{{instance/host}}" hamburger="hamburger" ico-color="#fff">
-            <mj-navbar-link href="/" font-size="18px">GMCServer</mj-navbar-link>
-            <mj-navbar-link href="/profile">My profile</mj-navbar-link>
-            <!-- <mj-navbar-link href="https://gmcserver.vinceh121.me">About</mj-navbar-link> -->
-        </mj-navbar>
-    </mj-column>
+	<mj-column>
+		<mj-navbar
+			base-url="http://{{instance/host}}"
+			hamburger="hamburger"
+			ico-color="#fff"
+		>
+			<mj-navbar-link href="/" font-size="18px">GMCServer</mj-navbar-link>
+			<mj-navbar-link href="/profile">My profile</mj-navbar-link>
+			<!-- <mj-navbar-link href="https://gmcserver.vinceh121.me">About</mj-navbar-link> -->
+		</mj-navbar>
+	</mj-column>
 </mj-section>
 <mj-spacer height="16px" />
