@@ -62,7 +62,7 @@ public class AlertManager extends AbstractManager {
 								this.srv.getDatabaseManager()
 										.getCollection(Device.class)
 										.updateOne(Filters.eq(this.dev.getId()),
-												Updates.set("lastEmailAlert", System.currentTimeMillis()));
+												Updates.set("lastEmailAlert", new Date()));
 							});
 						}
 						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
