@@ -37,7 +37,9 @@ public class AlertManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Boolean> promise) {
-			if (new Date().getTime() - this.dev.getLastEmailAlert().getTime() < AlertManager.ALERT_EMAIL_DELAY) {
+			if (this.dev.isDisabled()
+					|| new Date().getTime() - this.dev.getLastEmailAlert().getTime() < AlertManager.ALERT_EMAIL_DELAY
+					|| Double.isNaN(this.dev.getStdDevAlertLimit())) {
 				promise.complete(false);
 				return;
 			}
@@ -47,10 +49,7 @@ public class AlertManager extends AbstractManager {
 					.setDevId(this.dev.getId())
 					.execute()
 					.onSuccess(stats -> {
-						final double upperBound = stats.getAvg() + stats.getStdDev();
-						// final double lowerBound = stats.getAvg() - stats.getStdDev();
-
-						if (this.latestRecord.getCpm() > upperBound) { // too high
+						if (stats.getStdDev() >= this.dev.getStdDevAlertLimit()) { // too high
 							final Email email = new Email();
 							email.setTo(this.owner);
 							email.setTemplate("device-alert");
@@ -65,8 +64,6 @@ public class AlertManager extends AbstractManager {
 												Updates.set("lastEmailAlert", new Date()));
 							});
 						}
-						// else if (this.latestRecord.getCpm()< lowerBound) {} // too low
-
 					})
 					.onFailure(t -> {
 						log.error(new FormattedMessage("Failed to get stats for device {}", this.dev), t);

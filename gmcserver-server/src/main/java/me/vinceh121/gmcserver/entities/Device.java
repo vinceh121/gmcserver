@@ -15,6 +15,7 @@ public class Device extends AbstractEntity {
 	private long gmcId;
 	private boolean disabled;
 	private Date lastEmailAlert = new Date(0L);
+	private double stdDevAlertLimit = Double.NaN;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -80,6 +81,14 @@ public class Device extends AbstractEntity {
 		this.lastEmailAlert = lastEmailAlert;
 	}
 
+	public double getStdDevAlertLimit() {
+		return stdDevAlertLimit;
+	}
+
+	public void setStdDevAlertLimit(double stdDevAlertLimit) {
+		this.stdDevAlertLimit = stdDevAlertLimit;
+	}
+
 	@Override
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
@@ -104,5 +113,4 @@ public class Device extends AbstractEntity {
 		obj.put("location", this.location.getCoordinates().getValues());
 		return obj;
 	}
-
 }
