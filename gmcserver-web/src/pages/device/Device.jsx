@@ -4,7 +4,6 @@ import { fetchDevice, fetchDeviceStats, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
-	Checkbox,
 	Col,
 	DatePicker,
 	Descriptions,
@@ -44,12 +43,12 @@ function Device() {
 
 	useEffect(() => {
 		if (device) {
-			fetchTimeline(device.id, input.full, input.start, input.end).then(
+			fetchTimeline(device.id, input.start && input.end, input.start, input.end).then(
 				(recs) => setTimeline(recs)
 				// (err) => setTimelineError(err)
 			);
 		}
-	}, [device, input.full, input.start, input.end]);
+	}, [device, input.start, input.end]);
 
 	function handleStatsChange(field) {
 		fetchDeviceStats(device.id, field).then(
@@ -115,19 +114,6 @@ function Device() {
 							)
 						}
 					/>
-
-					<Checkbox
-						disabled={!device.own}
-						onChange={(e) =>
-							setInput(
-								Object.assign({}, input, {
-									full: e.target.checked,
-								})
-							)
-						}
-					>
-						Full timeline
-					</Checkbox>
 
 					<div>
 						<Select

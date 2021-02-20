@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import "react-vis/dist/style.css";
 import {
@@ -13,7 +13,6 @@ import {
 import Loader from "./Loader";
 import { numericRecordFields } from "../GmcTypes";
 
-
 function recordToPoints(rec) {
 	const pts = [];
 	for (let f in rec) {
@@ -27,7 +26,14 @@ function DeviceChart(props) {
 	// we need to transform the timeline from 'record' format
 	// to 'data point' format to feed react-vis
 	const [timeline, setTimeline] = useState(null);
-	const [plot, setPlot] = useState({});
+	const [crosshairValues, setCrosshairValues] = useState([]);
+
+	const onNearestX = useCallback(
+		(value, { index }) => {
+			setCrosshairValues(recordToPoints(props.timeline[index]));
+		},
+		[props.timeline]
+	);
 
 	useEffect(() => {
 		if (props.timeline) {
@@ -40,14 +46,15 @@ function DeviceChart(props) {
 				}
 			}
 			setTimeline(tl);
+			console.log(tl);
 		}
 	}, [props.timeline]);
 
 	if (timeline) {
 		return (
 			<FlexibleXYPlot
-				onMouseLeave={() => setPlot({ crosshairValues: [] })}
-				animation={true}
+				onMouseLeave={() => setCrosshairValues([])}
+				animation={false}
 			>
 				<VerticalGridLines />
 				<HorizontalGridLines />
@@ -56,11 +63,7 @@ function DeviceChart(props) {
 						<LineSeries
 							data={timeline[name]}
 							key={i}
-							onNearestX={(value, { index }) => {
-								setPlot({
-									crosshairValues: recordToPoints(props.timeline[index]),
-								});
-							}}
+							onNearestX={onNearestX}
 						/>
 					);
 				})}
@@ -71,7 +74,7 @@ function DeviceChart(props) {
 				/>
 				<YAxis />
 				<Crosshair
-					values={plot.crosshairValues}
+					values={crosshairValues}
 					itemsFormat={(pts) =>
 						pts.map((v) => {
 							return { title: v.title, value: v.y };
