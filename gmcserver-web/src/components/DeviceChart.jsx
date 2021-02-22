@@ -11,13 +11,25 @@ function DeviceChart(props) {
 
 	useEffect(() => {
 		if (props.timeline) {
+			let usedFields = [];
+			for (let r of props.timeline) {
+				Object.keys(r)
+					.filter(
+						(v) =>
+							!usedFields.includes(v) &&
+							numericRecordFields.includes(v)
+					)
+					.forEach((v) => usedFields.push(v));
+			}
+			console.log(usedFields);
+
 			let tl = {};
-			for (let f of numericRecordFields) {
+			for (let f of usedFields) {
 				tl[f] = { id: f, data: [] };
 			}
 
 			for (let r of props.timeline) {
-				for (let f of numericRecordFields) {
+				for (let f of usedFields) {
 					tl[f].data.push({
 						x: r.date,
 						y: r[f] !== "NaN" ? r[f] : null,
