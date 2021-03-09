@@ -66,7 +66,8 @@ public class AlertManager extends AbstractManager {
 						}
 					})
 					.onFailure(t -> {
-						log.error(new FormattedMessage("Failed to get stats for device {}", this.dev), t);
+						AlertManager.this.log.error(new FormattedMessage("Failed to get stats for device {}", this.dev),
+								t);
 						promise.fail("Failed to get stats");
 					});
 		}

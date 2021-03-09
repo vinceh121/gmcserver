@@ -33,6 +33,7 @@ public class DeviceModule extends AbstractModule {
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/timeline", this::handleDeviceHistory);
 		this.registerRoute(HttpMethod.GET, "/device/:deviceId/stats/:field", this::handleStats);
 		this.registerRoute(HttpMethod.GET, "/device/:deviceId/live", this::handleLive);
+		this.registerRoute(HttpMethod.GET, "/device/:deviceId/calendar", this::handleCalendar);
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
@@ -321,6 +322,29 @@ public class DeviceModule extends AbstractModule {
 			});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "Device not found");
+		});
+	}
+
+	private void handleCalendar(final RoutingContext ctx) {
+		final String rawDevId = ctx.pathParam("deviceId");
+
+		final ObjectId devId;
+		try {
+			devId = new ObjectId(rawDevId);
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, "Invalid ID");
+			return;
+		}
+
+		this.srv.getDeviceCalendarManager().getCalendar().setDeviceId(devId).execute().onSuccess(cal -> {
+			if (cal == null || cal.isInProgress()) {
+				this.error(ctx, 200, "Calendar is loading");
+				return;
+			}
+
+			ctx.response().end(cal.toPublicJson().toBuffer());
+		}).onFailure(t -> {
+			this.error(ctx, 500, "Failed to get calendar: " + t);
 		});
 	}
 }

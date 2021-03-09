@@ -82,10 +82,10 @@ public class Device extends AbstractEntity {
 	}
 
 	public double getStdDevAlertLimit() {
-		return stdDevAlertLimit;
+		return this.stdDevAlertLimit;
 	}
 
-	public void setStdDevAlertLimit(double stdDevAlertLimit) {
+	public void setStdDevAlertLimit(final double stdDevAlertLimit) {
 		this.stdDevAlertLimit = stdDevAlertLimit;
 	}
 

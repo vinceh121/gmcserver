@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.vertx.core.json.JsonObject;
 
 public abstract class AbstractEntity {
-	private ObjectId id;
+	private ObjectId id = new ObjectId();
 
 	public AbstractEntity() {
 		this.id = new ObjectId();

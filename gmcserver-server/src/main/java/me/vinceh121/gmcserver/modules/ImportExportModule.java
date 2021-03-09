@@ -207,7 +207,8 @@ public class ImportExportModule extends AbstractModule {
 				}
 				ctx.response().end();
 			}).onFailure(t -> {
-				LOG.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
+				ImportExportModule.LOG
+						.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
 				this.error(ctx, 500, "Failed to get device timeline for export");
 			});
 		}).onFailure(t -> { // TODO differentiate DB error and not found

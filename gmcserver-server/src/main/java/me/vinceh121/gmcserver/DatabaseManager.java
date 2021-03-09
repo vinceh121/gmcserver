@@ -25,6 +25,7 @@ import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 
 import me.vinceh121.gmcserver.entities.Device;
+import me.vinceh121.gmcserver.entities.DeviceCalendar;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.AbstractManager;
@@ -86,7 +87,7 @@ public class DatabaseManager extends AbstractManager {
 		}
 
 		if (deviceIndexCount <= 1) {
-			log.warn("Device collection does not have index, generating");
+			this.log.warn("Device collection does not have index, generating");
 			this.getCollection(Device.class).createIndex(Indexes.geo2dsphere("location"));
 		}
 	}
@@ -103,7 +104,10 @@ public class DatabaseManager extends AbstractManager {
 	}
 
 	private enum GMCCol {
-		USERS("users", User.class), DEVICES("devices", Device.class), RECORDS("records", Record.class);
+		USERS("users", User.class),
+		DEVICES("devices", Device.class),
+		RECORDS("records", Record.class),
+		CALENDARS("calendars", DeviceCalendar.class);
 
 		private final String name;
 		private final Class<?> clazz;

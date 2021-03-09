@@ -37,6 +37,7 @@ import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
 import me.vinceh121.gmcserver.handlers.WebHandler;
 import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
+import me.vinceh121.gmcserver.managers.DeviceCalendarManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.email.EmailManager;
@@ -80,10 +81,11 @@ public class GMCServer {
 	private DeviceManager deviceManager;
 	private EmailManager emailManager;
 	private AlertManager alertManager;
+	private DeviceCalendarManager deviceCalendarManager;
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
-		registerJsonUtils();
+		GMCServer.registerJsonUtils();
 		final GMCServer srv = new GMCServer();
 		srv.start();
 	}
@@ -205,6 +207,7 @@ public class GMCServer {
 		this.deviceManager = new DeviceManager(this);
 		this.emailManager = new EmailManager(this);
 		this.alertManager = new AlertManager(this);
+		this.deviceCalendarManager = new DeviceCalendarManager(this);
 	}
 
 	private void registerModules() {
@@ -298,5 +301,9 @@ public class GMCServer {
 
 	public AlertManager getAlertManager() {
 		return this.alertManager;
+	}
+
+	public DeviceCalendarManager getDeviceCalendarManager() {
+		return this.deviceCalendarManager;
 	}
 }

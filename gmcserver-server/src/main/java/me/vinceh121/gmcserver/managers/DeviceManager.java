@@ -470,10 +470,10 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		public String getModel() {
-			return model;
+			return this.model;
 		}
 
-		public CreateDeviceAction setModel(String model) {
+		public CreateDeviceAction setModel(final String model) {
 			this.model = model;
 			return this;
 		}
