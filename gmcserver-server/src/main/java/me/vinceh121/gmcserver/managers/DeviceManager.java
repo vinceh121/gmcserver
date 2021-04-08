@@ -79,7 +79,7 @@ public class DeviceManager extends AbstractManager {
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
 		private ObjectId devId;
-		private int sampleSize = 100;
+		private int sampleSize = 500;
 
 		public DeviceStatsAction(final GMCServer srv) {
 			super(srv);
