@@ -7,6 +7,9 @@
   "author": "vinceh121",
   "license": "GNU GPL V3",
   "private": true,
+  "scripts": {
+    "build": "mjml -r *.mjml -o out/ "
+  },
   "dependencies": {
     "mjml": "^4.6.3"
   }

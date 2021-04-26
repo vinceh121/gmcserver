@@ -1,6 +1,6 @@
 web:
-	yarn
-	yarn build
+	pnpm i
+	pnpm run build
 
 DEST_WEB = $(DESTDIR)/var/www/html
 

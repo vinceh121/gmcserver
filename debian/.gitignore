@@ -1,3 +1,4 @@
 /gmcserver/
 /maven-repo/
-
+/.debhelper/
+gmcserver.debhelper.log
