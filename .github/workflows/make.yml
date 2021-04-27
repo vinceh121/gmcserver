@@ -36,5 +36,5 @@ jobs:
       ########## UPDLOAD
     - uses: actions/upload-artifact@v2
       with:
-        name: Debian package $GITHUB_REF/$GITHUB_SHA
+        name: gmcserver-debian-$GITHUB_REF-$GITHUB_SHA
         path: ~/**/*.deb
