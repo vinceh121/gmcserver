@@ -36,5 +36,5 @@ jobs:
       ########## UPDLOAD
     - uses: actions/upload-artifact@v2
       with:
-        name: Debian package
+        name: Debian package $GITHUB_REF/$GITHUB_SHA
         path: ~/**/*.deb
