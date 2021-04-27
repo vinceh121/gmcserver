@@ -43,6 +43,7 @@ export interface InstanceInfo {
 	host?: string;
 	name?: string;
 	about?: string;
+	captcha: boolean;
 }
 
 export interface LoginResult {

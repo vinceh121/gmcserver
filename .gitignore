@@ -5,3 +5,4 @@
 # Config used in testing
 config.properties
 .settings/
+/.metadata/

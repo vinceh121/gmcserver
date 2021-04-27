@@ -1,20 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, Card, Form, Input } from "antd";
-import { register } from "../../GmcApi";
+import { fetchCaptcha, fetchInstanceInfo, register } from "../../GmcApi";
 import { useHistory } from "react-router-dom";
 
 function Register() {
 	const [state, setState] = useState({});
+	const [captchaRequired, setCaptchaRequired] = useState(undefined);
+	const [captchaId, setCaptchaId] = useState(undefined);
 	const history = useHistory();
 
+	useEffect(() => {
+		if (captchaRequired && captchaId === undefined) {
+			fetchCaptcha().then((id) => setCaptchaId(id));
+		}
+	}, [captchaId, captchaRequired]);
+
+	useEffect(() => {
+		if (captchaRequired === undefined) {
+			fetchInstanceInfo().then((info) => setCaptchaRequired(info.captcha));
+		}
+	}, [captchaRequired]);
+
 	const onFinish = (data) => {
+		console.log(data);
 		setState({ loading: true });
-		register(data.username, data.email, data.password).then(
+		register(data.username, data.email, data.password, data.captchaAnswer, captchaId).then(
 			(result) => {
 				setState({ result });
 				history.push("/welcome");
 			},
-			(error) => setState({ error })
+			(error) => {
+				setState({ error });
+				if (error.extras.captchaResponse === "False" || error.extras.captchaResponse === "Expired") {
+					setCaptchaId(undefined);
+				}
+			}
 		);
 	};
 
@@ -59,6 +79,15 @@ function Register() {
 					<Form.Item name="password" label="Password" required="true">
 						<Input.Password />
 					</Form.Item>
+
+					{captchaRequired ?
+						<Card size="small" style={{ marginBottom: "24px" }}>
+							<img alt="Captcha" src={"/api/v1/captcha?id=" + captchaId} />
+							<Form.Item noStyle="true" name="captchaAnswer" required="true">
+								<Input />
+							</Form.Item>
+						</Card>
+						: null}
 
 					<Form.Item>
 						<Button type="primary" htmlType="submit" loading={state.loading}>

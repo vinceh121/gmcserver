@@ -150,7 +150,7 @@ public class UserManager extends AbstractManager {
 
 	public class CreateUserAction extends AbstractAction<User> {
 		private String username, password, email;
-		private boolean admin, generateGmcId, insertInDb = true;
+		private boolean admin, generateGmcId = true, insertInDb = true;
 		private final boolean checkUsernameAvailable = true;
 		private long gmcId;
 

@@ -44,6 +44,7 @@ import me.vinceh121.gmcserver.managers.email.EmailManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
 import me.vinceh121.gmcserver.modules.AdminModule;
 import me.vinceh121.gmcserver.modules.AuthModule;
+import me.vinceh121.gmcserver.modules.CaptchaModule;
 import me.vinceh121.gmcserver.modules.DeviceModule;
 import me.vinceh121.gmcserver.modules.GeoModule;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
@@ -219,6 +220,7 @@ public class GMCServer {
 		new ImportExportModule(this);
 		new InstanceModule(this);
 		new AdminModule(this);
+		new CaptchaModule(this);
 	}
 
 	public void start() {

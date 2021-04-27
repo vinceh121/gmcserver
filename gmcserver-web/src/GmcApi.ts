@@ -79,11 +79,13 @@ export const logoff = (): void => {
 export const register = async (
 	username: string,
 	email: string,
-	password: string
+	password: string,
+	captchaAnswer: string,
+	captchaId: string
 ): Promise<LoginResult> => {
 	const res = await request("/auth/register", {
 		method: "POST",
-		body: JSON.stringify({ username, email, password }),
+		body: JSON.stringify({ username, email, password, captchaAnswer, captchaId }),
 	});
 
 	if (res.status !== 200) {
@@ -182,6 +184,11 @@ export const fetchTimeline = async (
 export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 	const res = await request("/map/" + JSON.stringify(rect));
 	return (await res.json()) as MapDevice[];
+};
+
+export const fetchCaptcha = async (): Promise<String> => {
+	const res = await request("/captcha");
+	return ((await res.json()) as any).id;
 };
 
 export const openLiveTimeline = (id: string): WebSocket => {
