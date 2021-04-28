@@ -118,10 +118,10 @@ public class DeviceCalendarManager extends AbstractManager {
 			return this;
 		}
 
-		private Date[] getDeviceDateBounds(final ObjectId deviceI) {
+		private Date[] getDeviceDateBounds(final ObjectId deviceId) {
 			final Document doc = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
-					.aggregate(Arrays.asList(Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
+					.aggregate(Arrays.asList(Aggregates.match(Filters.eq(deviceId)),Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
 							Accumulators.max("max", "$date"))), Document.class)
 					.first();
 			return new Date[] { doc.getDate("min"), doc.getDate("max") };
