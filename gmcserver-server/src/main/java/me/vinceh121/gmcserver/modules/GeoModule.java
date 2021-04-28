@@ -16,7 +16,7 @@ public class GeoModule extends AbstractModule {
 
 	public GeoModule(final GMCServer srv) {
 		super(srv);
-		this.registerAuthedRoute(HttpMethod.GET, "/map/:boundingBox", this::handleMap);
+		this.registerRoute(HttpMethod.GET, "/map/:boundingBox", this::handleMap);
 	}
 
 	private void handleMap(final RoutingContext ctx) {
