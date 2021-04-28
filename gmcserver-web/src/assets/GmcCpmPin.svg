@@ -1,10 +1,10 @@
 <svg version="1.1" viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg">
-    <path d="m6 8c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6-6-2.686-6-6zm-2-0.398c0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602-4.198 0-8 3.403-8 7.602z" />
-    <path d="m12 2c-3.314 0-6 2.686-6 6 0 3.314 2.686 6 6 6 3.314 0 6-2.686 6-6 0-3.314-2.686-6-6-6z" fill="{color}" stroke-width=".23409" />
-    <text transform="scale(1.0297 .97114)" x="11.842512" y="10.039745" fill="#000000" font-family="'circles and sticks'" font-size="5.3952px" letter-spacing="0px" stroke-width="1.0116" word-spacing="0px" style="line-height:1.25">
-        <tspan x="11.842512" y="10.039745" font-size="5.3952px" stroke-width="1.0116" text-align="center" text-anchor="middle">
+	xmlns="http://www.w3.org/2000/svg">
+	<path d="m6 8c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6-6-2.686-6-6zm-2-0.398c0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602-4.198 0-8 3.403-8 7.602z" />
+	<path d="m12 2c-3.314 0-6 2.686-6 6 0 3.314 2.686 6 6 6 3.314 0 6-2.686 6-6 0-3.314-2.686-6-6-6z" fill="{color}" stroke-width=".23409" />
+	<text transform="scale(1.0297 .97114)" x="11.842512" y="10.039745" fill="#000000" font-family="'circles and sticks'" font-size="5.3952px" letter-spacing="0px" stroke-width="1.0116" word-spacing="0px" style="line-height:1.25">
+		<tspan x="11.842512" y="10.039745" font-size="5.3952px" stroke-width="1.0116" text-align="center" text-anchor="middle">
 					{cpm}
-        </tspan>
-    </text>
+		</tspan>
+	</text>
 </svg>
