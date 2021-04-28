@@ -7,11 +7,62 @@
 [![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/vinceh121/gmcserver?style=for-the-badge)](https://lgtm.com/projects/g/vinceh121/gmcserver/)
 [![Most used swear](https://img.shields.io/badge/dynamic/json?color=yellow&label=Most%20used%20swear&query=%24.mostUsed.word&url=https%3A%2F%2Fswear.vinceh121.me%2Fcount.json%3Furi%3Dhttps%3A%2F%2Fgithub.com%2Fvinceh121%2Fgmcserver&style=for-the-badge)](https://github.com/vinceh121/git-swears)
 
-A simple, lightweight GMC logger server supporting multiple users and devices.
+GMCServer is a lightweight service that allows logging, analysis and visualization of data recorded by [GMC Geiger counters](https://www.amazon.com/GQ-Radiation-Detector-Recorder-equipment/dp/B00ROHGWIQ)
+<br> Some of the features implemented so far:
+ - User accounts
+ - Device logging
+ - Timeline visualization
+ - Device World map
+ - Simple statistical analysis (min, max, average, standard deviation)
+
+A demo/main instance is available at **https://gmc.vinceh121.me**
+
+## Motivation
+On top of not being self-hostable and closed-source, gmcmap.com lacks some features relating to data analysis, visualization, API access, and overall security. This project aims to create a compatible, open-source and self-hostable alternative to gmcmap.com implementing those missing features and security fixes.
+
+## Setting up device
+You should first set up WiFi on your GMC device. In the `Server` settings, you should set the following values:
+ - `Website` : to the hostname of the server where GMCServer is running (`gmc.vinceh121.me` for the main instance)
+ - `URL` : to `api/v1/log2`
+ - `User ID` : to the "GMC ID" of your account, visible next to your username when logged in on your user page. This ID is supposed to stay secret.
+ - `Counter ID` : to the "GMC ID" of your device, visible next to the device's name when logged in on its page. This ID is supposed to stay secret.
+
+Once those settings set, pressing the Test Connection button should show "Successful" after a second.
+
+
+## Installing
+
+### On Debian/Ubuntu
+ - Install Java (`apt install default-jre`)
+ - Install [MongoDB](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/)
+ - Download the deb file from GitHub actions "Make debian" and install it with dpkg:
+```sh
+unzip gmcserver-debian-master-abcdef012345.zip
+dpkg -i work/gmcserver/gmcserver_0.0.0-1_amd64.deb
+```
+
+### Building from source
+The following dependencies are required to build:
+ - make
+ - maven
+ - pnpm
+
+```sh
+git clone https://github.com/vinceh121/gmcserver
+cd gmcserver
+make
+sudo make install
+```
+
+### Configuring web server
+GMCServer can act on its own as a web server, you just need to set the `web.enabled` setting to true in `config.properties`
+
+However, it may be more "proper" to use a separate web server/reverse proxy such as Apache or Nginx:
+ - [Nginx example config](https://github.com/vinceh121/gmcserver/blob/master/nginx.example.conf)
+ - TODO: Apache example config
+
+## Licensing
+Unless otherwise noted, files in this repository are licensed under the GNU GPL V3 license.
 
 Icon is by Lorc under the CC BY 3.0 license from game-icons.net
 
-## Note on IDs
-
-The Mongo IDs are used for public operations.
-The GMC IDs are used as private tokens only available to the device owner.
