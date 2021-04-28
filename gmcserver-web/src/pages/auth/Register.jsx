@@ -31,7 +31,7 @@ function Register() {
 			},
 			(error) => {
 				setState({ error });
-				if (error.extras.captchaResponse === "False" || error.extras.captchaResponse === "Expired") {
+				if (error.extras && (error.extras.captchaResponse === "False" || error.extras.captchaResponse === "Expired")) {
 					setCaptchaId(undefined);
 				}
 			}
@@ -42,7 +42,7 @@ function Register() {
 		<div
 			style={{
 				backgroundImage:
-					"url(https://images.unsplash.com/photo-1578995511335-b54ca0772e83?auto=format&fit=crop&w=1934&q=80&blur=60)",
+					"url(https://images.unsplash.com/photo-1578995511335-b54ca0772e83?auto=format&fit=crop&w=1934&q=80&blur=100)",
 				backgroundBlendMode: "overlay",
 				backgroundRepeat: "no-repeat",
 				backgroundSize: "cover",
