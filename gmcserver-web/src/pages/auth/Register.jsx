@@ -42,12 +42,13 @@ function Register() {
 		<div
 			style={{
 				backgroundImage:
-					"url(https://images.unsplash.com/photo-1578995511335-b54ca0772e83?auto=format&fit=crop&w=1934&q=80)",
+					"url(https://images.unsplash.com/photo-1578995511335-b54ca0772e83?auto=format&fit=crop&w=1934&q=80&blur=60)",
 				backgroundBlendMode: "overlay",
 				backgroundRepeat: "no-repeat",
 				backgroundSize: "cover",
 				backgroundAttachment: "fixed",
 				backgroundPosition: "50%",
+				height: "80vh"
 			}}
 		>
 			<Card
