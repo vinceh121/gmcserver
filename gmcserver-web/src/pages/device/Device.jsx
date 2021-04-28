@@ -94,7 +94,7 @@ function Device() {
 						</Descriptions.Item>
 					) : undefined}
 				</Descriptions>
-				<Card bodyStyle={{ height: "500px" }} loading={!timeline}>
+				<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{marginBottom: "8px"}}>
 					<DeviceChart
 						full={input.full}
 						start={input.start}
