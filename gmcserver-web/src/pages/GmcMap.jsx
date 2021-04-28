@@ -1,9 +1,8 @@
-import React, { createRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import L from "leaflet";
-import { Map, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Button, Card, Result, Space, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { Button, Card, Space } from "antd";
 import { fetchMap } from "../GmcApi";
 import { Link } from "react-router-dom";
 import gmcCpmPin from "../assets/PinBuilder";
@@ -21,7 +20,7 @@ function DeviceMarker(props) {
 		>
 			<Popup>
 				<Space direction="vertical">
-					{device.name}<br/>
+					{device.name}<br />
 					{device.cpm} CPM
 					<Link to={"/device/" + device.id}>
 						<Button type="link">More info</Button>
@@ -32,12 +31,10 @@ function DeviceMarker(props) {
 	);
 }
 
-function GmcMap() {
+function DeviceLayer() {
 	const [devices, setDevices] = useState([]);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState(null); // TODO figure out how to use this
 	const [input, setInput] = useState(null);
-
-	const mapRef = createRef();
 
 	useEffect(() => {
 		if (input && input.rect)
@@ -47,64 +44,68 @@ function GmcMap() {
 			);
 	}, [input]);
 
-	if (error) {
-		return (
-			<Result
-				status="500"
-				title="Failed to load devices"
-				subTitle={String(error)}
-			/>
-		);
-	} else {
-		return (
-			<Card
-				title="World Map"
-				style={{ margin: "16px" }}
-				extra={
-					devices.length ? undefined : (
-						<Spin
-							indicator={
-								<LoadingOutlined
-									spin
-									style={{ fontSize: 34 }}
-								/>
-							}
-						/>
-					)
-				}
-			>
-				<Map
-					ref={mapRef}
-					center={[48.743611, 18.930556]}
-					zoom={4}
-					style={{ height: "500px" }}
-					onMoveend={(e) => {
-						const map = mapRef.current;
-						if (map != null) {
-							const bounds = map.leafletElement.getBounds();
-							setInput({
-								rect: [
-									bounds.getSouthWest().lat,
-									bounds.getSouthWest().lng,
-									bounds.getNorthEast().lat,
-									bounds.getNorthEast().lng,
-								],
-							});
-						}
-					}}
-				>
-					<TileLayer
-						attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-					/>
-
-					{devices.map((dev) => (
-						<DeviceMarker key={dev.id} device={dev} />
-					))}
-				</Map>
-			</Card>
-		);
+	function updateInput(map) {
+		if (map) {
+			const bounds = map.getBounds();
+			setInput({
+				rect: [
+					bounds.getSouthWest().lat,
+					bounds.getSouthWest().lng,
+					bounds.getNorthEast().lat,
+					bounds.getNorthEast().lng,
+				],
+			});
+		}
 	}
+
+	const map = useMapEvents({
+		moveend: () => updateInput(map)
+	});
+	if (input === null) {
+		updateInput(map);
+	}
+
+	return <>
+		{
+			devices.map((dev) => (
+				<DeviceMarker key={dev.id} device={dev} />
+			))
+		}
+	</>
+}
+
+function GmcMap() {
+	return (
+		<Card
+			title="World Map"
+			style={{ margin: "16px" }}
+		// extra={ // TODO: figure out how to do this
+		// 	devices.length ? undefined : (
+		// 		<Spin
+		// 			indicator={
+		// 				<LoadingOutlined
+		// 					spin
+		// 					style={{ fontSize: 34 }}
+		// 				/>
+		// 			}
+		// 		/>
+		// 	)
+		// }
+		>
+			<MapContainer
+				center={[48.743611, 18.930556]}
+				zoom={4}
+				style={{ height: "500px" }}
+			>
+				<TileLayer
+					attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+				/>
+
+				<DeviceLayer />
+			</MapContainer>
+		</Card>
+	);
 }
 
 export default GmcMap;
