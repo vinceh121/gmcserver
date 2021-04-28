@@ -15,7 +15,7 @@ import {
 	Space,
 	Statistic,
 } from "antd";
-import DisabledBadge from "../../components/DisabledBadge";
+import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
@@ -63,7 +63,7 @@ function Device() {
 				onBack={history.goBack}
 				title={device.name}
 				subTitle={device.gmcId}
-				tags={device.disabled ? <DisabledBadge /> : undefined}
+				tags={device.disabled || device.importedFrom ? <DeviceBadge device={device} /> : undefined}
 				extra={[
 					<Button key="0">
 						<Link to={"/device/" + id + "/live"}>
@@ -94,7 +94,7 @@ function Device() {
 						</Descriptions.Item>
 					) : undefined}
 				</Descriptions>
-				<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{marginBottom: "8px"}}>
+				<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
 					<DeviceChart
 						full={input.full}
 						start={input.start}

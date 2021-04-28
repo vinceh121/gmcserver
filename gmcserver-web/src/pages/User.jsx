@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
-import DisabledBadge from "../components/DisabledBadge";
+import DeviceBadge from "../components/DeviceBadge";
 import Loader from "../components/Loader";
 
 const { Title } = Typography;
@@ -96,7 +96,7 @@ function User() {
 							<List.Item>
 								{/* <Button type="text" block> */}
 								<Space size="small">
-									{item.disabled ? <DisabledBadge /> : ""}
+									{<DeviceBadge device={item} />}
 									{item.name}
 								</Space>
 								{/* </Button> */}
