@@ -24,7 +24,7 @@ function Login() {
 
 	return (
 		<>
-			<Card title="Login" loading={state.loading}>
+			<Card title="Login" loading={state.loading} style={{ width: "max-content", margin: "16px" }}>
 				<Space direction="vertical">
 					{state.error ? (
 						<Alert
@@ -59,8 +59,7 @@ function Login() {
 							<Button type="primary" htmlType="submit">
 								Login
 							</Button>
-							<br />
-							Don't have an account? <Link to="/register">Register</Link>
+							<p style={{ marginTop: "8px" }}>Don't have an account? <Link to="/register">Register</Link></p>
 						</Form.Item>
 					</Form>
 				</Space>
