@@ -75,7 +75,13 @@ function DeviceCalendar(props) {
 					monthBorderColor="#1f1f1f"
 					dayBorderWidth={2}
 					dayBorderColor="#1f1f1f"
-					theme={{ textColor: "#fff" }}
+					theme={{
+						textColor: "#fff",
+						tooltip: {
+							container: { background: "black" },
+							basic: { background: "black" }
+						}
+					}}
 					legends={[
 						{
 							anchor: 'bottom-right',
