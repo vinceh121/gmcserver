@@ -48,12 +48,14 @@ public class DeviceCalendarManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<DeviceCalendar> promise) {
 			final DeviceCalendar cal = this.srv.getDatabaseManager()
-					.getCollection(DeviceCalendar.class)
-					.find(Filters.eq("deviceId", this.deviceId))
-					.first();
+				.getCollection(DeviceCalendar.class)
+				.find(Filters.eq("deviceId", this.deviceId))
+				.first();
 			promise.complete(cal);
 			if (cal == null) {
-				DeviceCalendarManager.this.calculateCalendar().setDeviceId(this.deviceId).execute();
+				DeviceCalendarManager.this.calculateCalendar()
+					.setDeviceId(this.deviceId)
+					.execute();
 			}
 		}
 
@@ -83,29 +85,34 @@ public class DeviceCalendarManager extends AbstractManager {
 			cal.setLastCalculationDate(new Date());
 			cal.setRecs(recs);
 			cal.setInProgress(true);
-			this.srv.getDatabaseManager().getCollection(DeviceCalendar.class).insertOne(cal);
+			this.srv.getDatabaseManager()
+				.getCollection(DeviceCalendar.class)
+				.insertOne(cal);
 
 			final Date[] arrMinMax = this.getDeviceDateBounds(this.deviceId);
 			final LocalDate startDate = LocalDate.ofInstant(arrMinMax[0].toInstant(), zone);
 			final LocalDate endDate = LocalDate.ofInstant(arrMinMax[1].toInstant(), zone);
 			for (LocalDate currentDay = startDate; currentDay.isBefore(endDate); currentDay = currentDay.plusDays(1)) {
 				final LocalDateTime curDayTime = currentDay.atStartOfDay();
-				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000);
+				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules()
+					.getOffset(curDayTime)) * 1000);
 				final Document rec = this.srv.getDatabaseManager()
-						.getCollection(Record.class)
-						.aggregate(
-								DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
-										new Date(curDayTime.plusDays(1)
-												.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000)),
-								Document.class)
-						.first();
+					.getCollection(Record.class)
+					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
+							new Date(curDayTime.plusDays(1)
+								.toEpochSecond(zone.getRules()
+									.getOffset(curDayTime)) * 1000)),
+							Document.class)
+					.first();
 				if (rec != null) {
 					rec.put("date", curDate);
 					recs.add(rec);
 				}
 			}
 			cal.setInProgress(false);
-			this.srv.getDatabaseManager().getCollection(DeviceCalendar.class).replaceOne(Filters.eq(cal.getId()), cal);
+			this.srv.getDatabaseManager()
+				.getCollection(DeviceCalendar.class)
+				.replaceOne(Filters.eq(cal.getId()), cal);
 			promise.complete(cal);
 		}
 
@@ -120,10 +127,12 @@ public class DeviceCalendarManager extends AbstractManager {
 
 		private Date[] getDeviceDateBounds(final ObjectId deviceId) {
 			final Document doc = this.srv.getDatabaseManager()
-					.getCollection(Record.class)
-					.aggregate(Arrays.asList(Aggregates.match(Filters.eq(deviceId)),Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
-							Accumulators.max("max", "$date"))), Document.class)
-					.first();
+				.getCollection(Record.class)
+				.aggregate(Arrays.asList(Aggregates.match(Filters.eq("deviceId", deviceId)),
+						Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
+								Accumulators.max("max", "$date"))),
+						Document.class)
+				.first();
 			return new Date[] { doc.getDate("min"), doc.getDate("max") };
 		}
 	}
