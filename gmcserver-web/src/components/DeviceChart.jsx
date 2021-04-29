@@ -21,7 +21,6 @@ function DeviceChart(props) {
 					)
 					.forEach((v) => usedFields.push(v));
 			}
-			console.log(usedFields);
 
 			let tl = {};
 			for (let f of usedFields) {

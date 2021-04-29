@@ -8,6 +8,7 @@ import {
 	MapDevice,
 	MfaStartSetupResponse,
 	DeviceStats,
+	DeviceCalendar,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -179,6 +180,11 @@ export const fetchTimeline = async (
 		"/device/" + id + "/timeline?" + params.toString()
 	);
 	return (await res.json()) as Record[];
+};
+
+export const fetchCalendar = async (id: string): Promise<DeviceCalendar> => {
+	const res = await request("/device/" + id + "/calendar");
+	return (await res.json()) as DeviceCalendar;
 };
 
 export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {

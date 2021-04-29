@@ -72,6 +72,14 @@ export interface DeviceStats {
 	sampleSize: number;
 }
 
+export interface DeviceCalendar {
+	id: string;
+	deviceId: string;
+	lastCalculationDate: Date;
+	recs: Record[];
+	inProgress: boolean;
+}
+
 export const numericRecordFields = [
 	"cpm",
 	"acpm",

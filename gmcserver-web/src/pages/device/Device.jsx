@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { fetchDevice, fetchDeviceStats, fetchTimeline } from "../../GmcApi";
+import { fetchDevice, fetchDeviceStats, fetchTimeline, fetchCalendar } from "../../GmcApi";
 import {
 	Button,
 	Card,
@@ -14,13 +14,16 @@ import {
 	Select,
 	Space,
 	Statistic,
+	Tabs,
 } from "antd";
 import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
 import { numericRecordFields } from "../../GmcTypes";
+import DeviceCalendar from "../../components/DeviceCalendar";
 
+const { TabPane } = Tabs;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
@@ -31,6 +34,8 @@ function Device() {
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
+	const [calendar, setCalendar] = useState(null);
+	// const [calendarError, setCalendarError] = useState(null);
 	const [input, setInput] = useState({});
 	const { id } = useParams();
 
@@ -49,6 +54,15 @@ function Device() {
 			);
 		}
 	}, [device, input.start, input.end]);
+
+	useEffect(() => {
+		if (device) {
+			fetchCalendar(device.id).then(
+				(cal) => setCalendar(cal)
+				// (err) => setCalendarError(err)
+			);
+		}
+	}, [device]);
 
 	function handleStatsChange(field) {
 		fetchDeviceStats(device.id, field).then(
@@ -94,14 +108,23 @@ function Device() {
 						</Descriptions.Item>
 					) : undefined}
 				</Descriptions>
-				<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
-					<DeviceChart
-						full={input.full}
-						start={input.start}
-						end={input.end}
-						timeline={timeline}
-					/>
-				</Card>
+				<Tabs defaultActiveKey="1">
+					<TabPane tab="Timeline" key="1">
+						<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
+							<DeviceChart
+								full={input.full}
+								start={input.start}
+								end={input.end}
+								timeline={timeline}
+							/>
+						</Card>
+					</TabPane>
+					<TabPane tab="Calendar" key="2">
+						<Card bodyStyle={{ height: "500px" }} loading={!calendar} style={{ marginBottom: "8px" }}>
+							<DeviceCalendar calendar={calendar} />
+						</Card>
+					</TabPane>
+				</Tabs>
 				<Space direction="vertical">
 					<RangePicker
 						showTime
