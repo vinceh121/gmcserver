@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ResponsiveCalendar } from '@nivo/calendar'
 import Loader from "./Loader";
 import { numericRecordFields } from "../GmcTypes";
-import { Select } from "antd";
+import { Result, Select } from "antd";
+import { ClockCircleTwoTone } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -36,7 +37,7 @@ function DeviceCalendar(props) {
 	}, [props, props.calendar, calendars]);
 
 	useEffect(() => {
-		if (Object.keys(calendars).length && !bounds) {
+		if (props.calendar.recs.length && Object.keys(calendars).length && !bounds) {
 			setBounds({
 				min: fuckDates(new Date(props.calendar.recs[0].date)),
 				max: fuckDates(new Date(props.calendar.recs[props.calendar.recs.length - 1].date))
@@ -44,6 +45,23 @@ function DeviceCalendar(props) {
 		}
 	}, [calendars, props.calendar.recs, bounds]);
 
+
+	if (props.calendar.inProgress) {
+		return (
+			<Result
+				title="The calendar is still loading"
+				subTitle="Please check later"
+				icon={<ClockCircleTwoTone twoToneColor="#ff5722" />} />
+		);
+	}
+
+	if (props.calendar.recs.length === 0) {
+		return (
+			<Result status="404"
+				title="Couldn't generate calendar"
+				subTitle="This device doesn't have enough data to produce a calendar" />
+		);
+	}
 
 	if (bounds) {
 		return (
