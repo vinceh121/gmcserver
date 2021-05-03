@@ -62,7 +62,7 @@ However, it may be more "proper" to use a separate web server/reverse proxy such
  - TODO: Apache example config
 
 ## Licensing
-Unless otherwise noted, files in this repository are licensed under the GNU GPL V3 license.
+Unless otherwise noted, files in this repository are licensed under the GNU AGPL V3 license.
 
 Icon is by Lorc under the CC BY 3.0 license from game-icons.net
 
