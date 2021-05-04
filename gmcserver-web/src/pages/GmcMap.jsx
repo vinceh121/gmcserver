@@ -33,16 +33,18 @@ function DeviceMarker(props) {
 }
 
 function GmcMap() {
-	const [devices, setDevices] = useState([]);
+	const [devices, setDevices] = useState(null);
 	const [error, setError] = useState(null);
 	const [input, setInput] = useState(null);
 
 	useEffect(() => {
-		if (input && input.rect)
+		if (input && input.rect) {
+			setDevices(null);
 			fetchMap(input.rect).then(
 				(devs) => setDevices(devs),
 				(err) => setError(err)
 			);
+		}
 	}, [input]);
 
 	function updateInput(map) {
@@ -72,12 +74,12 @@ function GmcMap() {
 				title="World Map"
 				style={{ margin: "16px" }}
 				extra={
-					devices.length ? undefined : (
+					devices ? undefined : (
 						<Spin
 							indicator={
 								<LoadingOutlined
 									spin
-									style={{ fontSize: 34 }}
+									style={{ fontSize: 21 }}
 								/>
 							}
 						/>
@@ -99,9 +101,9 @@ function GmcMap() {
 						attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 					/>
-					{devices.map((dev) => (
+					{devices ? devices.map((dev) => (
 						<DeviceMarker key={dev.id} device={dev} />
-					))}
+					)) : undefined}
 				</MapContainer>
 			</Card >
 		);
