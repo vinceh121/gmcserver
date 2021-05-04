@@ -33,15 +33,19 @@ function DeviceMarker(props) {
 }
 
 function GmcMap() {
+	const [loading, setLoading] = useState(true);
 	const [devices, setDevices] = useState(null);
 	const [error, setError] = useState(null);
 	const [input, setInput] = useState(null);
 
 	useEffect(() => {
 		if (input && input.rect) {
-			setDevices(null);
+			setLoading(true);
 			fetchMap(input.rect).then(
-				(devs) => setDevices(devs),
+				(devs) => {
+					setDevices(devs); 
+					setLoading(false); 
+				},
 				(err) => setError(err)
 			);
 		}
@@ -74,7 +78,7 @@ function GmcMap() {
 				title="World Map"
 				style={{ margin: "16px" }}
 				extra={
-					devices ? undefined : (
+					loading ? (
 						<Spin
 							indicator={
 								<LoadingOutlined
@@ -83,7 +87,7 @@ function GmcMap() {
 								/>
 							}
 						/>
-					)
+					) : undefined
 				}
 			>
 				<MapContainer
