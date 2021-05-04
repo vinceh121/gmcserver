@@ -11,6 +11,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.FormattedMessage;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
@@ -225,8 +226,12 @@ public class GMCServer {
 
 	public void start() {
 		final String host = this.config.getProperty("server.host", "127.0.0.1");
-		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host);
-		GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
+		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host).onSuccess(srv -> {
+			GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
+		}).onFailure(t -> {
+			GMCServer.LOG.error(new FormattedMessage("Failed to listen on {}:{}", host,
+					this.config.getProperty("server.port")), t);
+		});
 	}
 
 	public Router getApiRouter() {
