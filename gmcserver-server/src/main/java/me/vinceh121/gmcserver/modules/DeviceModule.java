@@ -338,7 +338,7 @@ public class DeviceModule extends AbstractModule {
 
 		this.srv.getDeviceCalendarManager().getCalendar().setDeviceId(devId).execute().onSuccess(cal -> {
 			if (cal == null || cal.isInProgress()) {
-				this.error(ctx, 200, "Calendar is loading");
+				this.error(ctx, 202, "Calendar is loading");
 				return;
 			}
 
