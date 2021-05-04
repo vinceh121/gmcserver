@@ -71,7 +71,7 @@ function App() {
 				<Footer>
 					Powered by{" "}
 					<a href="https://home.gmc.vinceh121.me">GMCServer</a> &copy;
-					2020 vinceh121
+					2020 - 2021 vinceh121
 				</Footer>
 			</Layout>
 		</Router>
