@@ -31,6 +31,21 @@ function User() {
 		);
 	}, [id]);
 
+	if (state && state.user && state.user.status === 401) {
+		return (
+			<Result
+				status="404"
+				title="Invalid session"
+				subTitle="Your sessions seems to be invalid. Please log back in."
+				extra={
+					<Link to="/login">
+						<Button type="primary">Login</Button>
+					</Link>
+				}
+			/>
+		);
+	}
+
 	if (state && state.user) {
 		const user = state.user;
 		return (
@@ -40,11 +55,11 @@ function User() {
 				subTitle={user.gmcId ? user.gmcId : undefined}
 				tags={[
 					user.admin ? (
-						<Tag>
+						<Tag key="admin">
 							<AdminBadge />
 						</Tag>
 					) : undefined,
-					user.self ? <Tag>This is you</Tag> : undefined,
+					user.self ? <Tag key="you">This is you</Tag> : undefined,
 				]}
 				extra={[
 					user.self ? (
