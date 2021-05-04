@@ -19,7 +19,7 @@ function DeviceCalendar(props) {
 	const [calendars, setCalendars] = useState({});
 
 	useEffect(() => {
-		if (props.calendar && !Object.keys(calendars).length) {
+		if (props.calendar.recs && !Object.keys(calendars).length) {
 			const cal = {};
 
 			for (let field of numericRecordFields) {
@@ -37,7 +37,8 @@ function DeviceCalendar(props) {
 	}, [props, props.calendar, calendars]);
 
 	useEffect(() => {
-		if (props.calendar.recs.length && Object.keys(calendars).length && !bounds) {
+		if (props.calendar.recs &&
+			props.calendar.recs.length && Object.keys(calendars).length && !bounds) {
 			setBounds({
 				min: fuckDates(new Date(props.calendar.recs[0].date)),
 				max: fuckDates(new Date(props.calendar.recs[props.calendar.recs.length - 1].date))
@@ -46,7 +47,7 @@ function DeviceCalendar(props) {
 	}, [calendars, props.calendar.recs, bounds]);
 
 
-	if (props.calendar.inProgress) {
+	if (props.calendar.status === 202) {
 		return (
 			<Result
 				title="The calendar is still loading"
@@ -55,7 +56,7 @@ function DeviceCalendar(props) {
 		);
 	}
 
-	if (props.calendar.recs.length === 0) {
+	if (props.calendar.recs && props.calendar.recs.length === 0) {
 		return (
 			<Result status="404"
 				title="Couldn't generate calendar"
