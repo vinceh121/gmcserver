@@ -82,7 +82,7 @@ public class DeviceCalendarManager extends AbstractManager {
 			final List<Document> recs = new Vector<>();
 			final DeviceCalendar cal = new DeviceCalendar();
 			cal.setDeviceId(this.deviceId);
-			cal.setLastCalculationDate(new Date());
+			cal.setCreatedAt(new Date());
 			cal.setRecs(recs);
 			cal.setInProgress(true);
 			this.srv.getDatabaseManager()

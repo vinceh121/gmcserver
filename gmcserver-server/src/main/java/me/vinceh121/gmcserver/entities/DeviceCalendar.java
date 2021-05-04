@@ -9,7 +9,7 @@ import org.bson.types.ObjectId;
 
 public class DeviceCalendar extends AbstractEntity {
 	private ObjectId deviceId;
-	private Date lastCalculationDate = new Date(0L);
+	private Date createdAt = new Date(0L);
 	private List<Document> recs = Collections.emptyList();
 	private boolean inProgress;
 
@@ -21,12 +21,12 @@ public class DeviceCalendar extends AbstractEntity {
 		this.deviceId = deviceId;
 	}
 
-	public Date getLastCalculationDate() {
-		return this.lastCalculationDate;
+	public Date getCreatedAt() {
+		return this.createdAt;
 	}
 
-	public void setLastCalculationDate(final Date lastCalculationDate) {
-		this.lastCalculationDate = lastCalculationDate;
+	public void setCreatedAt(final Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public List<Document> getRecs() {

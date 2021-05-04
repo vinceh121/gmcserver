@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Objects;
 
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
 import org.bson.codecs.DoubleCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -19,7 +21,6 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
@@ -77,18 +78,26 @@ public class DatabaseManager extends AbstractManager {
 		this.checkIndexes();
 	}
 
-	private void checkIndexes() {
-		int deviceIndexCount = 0;
-		final MongoCursor<Document> cur = this.getCollection(Device.class).listIndexes().iterator();
-
-		while (cur.hasNext()) {
-			cur.next();
-			deviceIndexCount++;
+	private static int countIterable(final Iterable<?> iter) {
+		int count = 0;
+		for (@SuppressWarnings("unused") Object o : iter) {
+			count++;
 		}
-
-		if (deviceIndexCount <= 1) {
+		return count;
+	}
+	
+	private void checkIndexes() {
+		if (countIterable(this.getCollection(Device.class).listIndexes()) <= 1) {
 			this.log.warn("Device collection does not have index, generating");
 			this.getCollection(Device.class).createIndex(Indexes.geo2dsphere("location"));
+		}
+		
+		if (countIterable(this.getCollection(DeviceCalendar.class).listIndexes()) <= 1) {
+			this.log.warn("Calendar collection does not have index, generating");
+			final BsonDocument expireIndex = new BsonDocument();
+			expireIndex.put("createdAt", new BsonInt32(1));
+			expireIndex.put("expireAfterSeconds", new BsonInt64(86400L)); // in seconds, currently 1 day TODO: make changeable in config
+			this.getCollection(DeviceCalendar.class).createIndex(expireIndex);
 		}
 	}
 
