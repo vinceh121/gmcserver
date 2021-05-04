@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.less";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import { Layout, Menu } from "antd";
+import { BrowserRouter as Router, Switch, Route, } from "react-router-dom";
+import { Layout } from "antd";
 // import GMCLogo from "./logo.svg";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
@@ -14,36 +14,19 @@ import Device from "./pages/device/Device";
 import LiveDevice from "./pages/device/LiveDevice";
 import NewDevice from "./pages/device/NewDevice";
 
-import { isLoggedin } from "./GmcApi";
 import Welcome from "./pages/Welcome";
 import Mfa from "./pages/Mfa";
+import ToolBar from "./components/ToolBar";
 
 const { Footer, Content, Header } = Layout;
 
 function App() {
-	const loggedIn = isLoggedin();
 	return (
 		<Router>
 			<Layout>
 				<Header>
 					{/* <GMCLogo /> */}
-					<Menu theme="dark" mode="horizontal">
-						<Menu.Item>
-							<Link to="/">Home</Link>
-						</Menu.Item>
-						<Menu.Item>
-							<Link to="/map">World map</Link>
-						</Menu.Item>
-						{loggedIn ? (
-							<Menu.Item>
-								<Link to="/profile">Profile</Link>
-							</Menu.Item>
-						) : (
-							<Menu.Item>
-								<Link to="/login">Login</Link>
-							</Menu.Item>
-						)}
-					</Menu>
+					<ToolBar />
 				</Header>
 				<Content style={{ minHeight: "250px" }}>
 					<Switch>

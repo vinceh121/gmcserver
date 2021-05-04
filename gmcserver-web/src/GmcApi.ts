@@ -14,6 +14,8 @@ import {
 const baseUrl: string = "/api/v1";
 const storage: Storage = window.localStorage;
 
+export const apiDispatcher = new EventTarget();
+
 export const request = async (
 	ref: string,
 	options?: RequestInit
@@ -66,12 +68,15 @@ export const login = async (
 		throw new Error("Login failed: " + res.status + ": " + res.statusText);
 	}
 
+	apiDispatcher.dispatchEvent(new Event("login"));
+
 	const login = (await res.json()) as LoginResult;
 	saveSession(login);
 	return login;
 };
 
 export const logoff = (): void => {
+	apiDispatcher.dispatchEvent(new Event("logoff"));
 	storage.removeItem("userId");
 	storage.removeItem("token");
 	storage.removeItem("mfaRequired");
