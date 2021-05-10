@@ -143,8 +143,10 @@ public class DeviceCalendarManager extends AbstractManager {
 			fields.add(Accumulators.avg(f, "$" + f));
 		}
 		return Arrays.asList(
-				Aggregates.match(Filters.and(Filters.eq("deviceId", id),
-						Filters.and(Filters.gte("date", lowerBound), Filters.lt("date", upperBound)))),
+				Aggregates.match(Filters.and(
+						Filters.eq("deviceId", id),
+						Filters.gte("date", lowerBound),
+						Filters.lt("date", upperBound))),
 				Aggregates.group(new BsonNull(), fields));
 	}
 }
