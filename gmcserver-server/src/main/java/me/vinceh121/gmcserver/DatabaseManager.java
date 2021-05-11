@@ -1,12 +1,16 @@
 package me.vinceh121.gmcserver;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonInt64;
+import org.apache.commons.collections4.keyvalue.UnmodifiableMapEntry;
+import org.bson.Document;
 import org.bson.codecs.DoubleCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -15,6 +19,7 @@ import org.bson.codecs.pojo.ClassModelBuilder;
 import org.bson.codecs.pojo.Conventions;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.codecs.pojo.PropertyModelBuilder;
+import org.bson.conversions.Bson;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -22,6 +27,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 
@@ -47,25 +53,25 @@ public class DatabaseManager extends AbstractManager {
 																								// dynamic rn
 		for (final String p : Record.STAT_FIELDS) {
 			@SuppressWarnings("unchecked")
-			final PropertyModelBuilder<Double> propertyModelBuilder
-					= (PropertyModelBuilder<Double>) recordClassModel.getProperty(p);
+			final PropertyModelBuilder<Double> propertyModelBuilder = (PropertyModelBuilder<Double>) recordClassModel
+				.getProperty(p);
 			propertyModelBuilder.codec(new DoubleCodec()).propertySerialization(v -> !Double.isNaN(v));
 		}
 
 		this.pojoCodecProvider = PojoCodecProvider.builder()
-				.automatic(true)
-				.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
-						Conventions.ANNOTATION_CONVENTION, Conventions.CLASS_AND_PROPERTY_CONVENTION,
-						Conventions.OBJECT_ID_GENERATORS))
-				.register(recordClassModel.build())
-				.build();
+			.automatic(true)
+			.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
+					Conventions.ANNOTATION_CONVENTION, Conventions.CLASS_AND_PROPERTY_CONVENTION,
+					Conventions.OBJECT_ID_GENERATORS))
+			.register(recordClassModel.build())
+			.build();
 		this.codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 				CodecRegistries.fromProviders(this.pojoCodecProvider, new GeoJsonCodecProvider()));
 		final MongoClientSettings set = MongoClientSettings.builder()
-				.applicationName("GMCServer")
-				.applyConnectionString(new ConnectionString(this.srv.getConfig().getProperty("mongo.constring")))
-				.codecRegistry(this.codecRegistry)
-				.build();
+			.applicationName("GMCServer")
+			.applyConnectionString(new ConnectionString(this.srv.getConfig().getProperty("mongo.constring")))
+			.codecRegistry(this.codecRegistry)
+			.build();
 
 		this.client = MongoClients.create(set);
 		this.database = this.client.getDatabase(this.srv.getConfig().getProperty("mongo.database"));
@@ -78,26 +84,35 @@ public class DatabaseManager extends AbstractManager {
 		this.checkIndexes();
 	}
 
-	private static int countIterable(final Iterable<?> iter) {
-		int count = 0;
-		for (@SuppressWarnings("unused") Object o : iter) {
-			count++;
-		}
-		return count;
-	}
-	
 	private void checkIndexes() {
-		if (countIterable(this.getCollection(Device.class).listIndexes()) <= 1) {
-			this.log.warn("Device collection does not have index, generating");
-			this.getCollection(Device.class).createIndex(Indexes.geo2dsphere("location"));
-		}
-		
-		if (countIterable(this.getCollection(DeviceCalendar.class).listIndexes()) <= 1) {
-			this.log.warn("Calendar collection does not have index, generating");
-			final BsonDocument expireIndex = new BsonDocument();
-			expireIndex.put("createdAt", new BsonInt32(1));
-			expireIndex.put("expireAfterSeconds", new BsonInt64(86400L)); // in seconds, currently 1 day TODO: make changeable in config
-			this.getCollection(DeviceCalendar.class).createIndex(expireIndex);
+		// key: collection class
+		// value: list of pairs of index document and index options
+		final Map<Class<?>, List<Entry<Bson, IndexOptions>>> defaultIndexes = new Hashtable<>();
+		defaultIndexes.put(Record.class,
+				Arrays.asList(new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.ascending("deviceId", "date"),
+						new IndexOptions().name("timeline"))));
+		defaultIndexes.put(Device.class,
+				Arrays.asList(
+						new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.geo2dsphere("location"),
+								new IndexOptions().name("map")),
+						new UnmodifiableMapEntry<>(Indexes.ascending("ownerId"), new IndexOptions().name("owners"))));
+		defaultIndexes.put(DeviceCalendar.class,
+				Arrays.asList(new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.ascending("createdAt"),
+						new IndexOptions().name("expiery").expireAfter(1L, TimeUnit.DAYS))));
+
+		for (final Entry<Class<?>, List<Entry<Bson, IndexOptions>>> e : defaultIndexes.entrySet()) {
+			final MongoCollection<?> coll = this.getCollection(e.getKey());
+			final List<String> indexNames = new ArrayList<>();
+			for (final Document d : coll.listIndexes()) {
+				indexNames.add(d.getString("name"));
+			}
+			for (final Entry<Bson, IndexOptions> indexOpts : e.getValue()) {
+				final String name = indexOpts.getValue().getName();
+				if (!indexNames.contains(name)) {
+					this.log.warn("Creating index {} on collection {}", name, e.getKey().getSimpleName());
+					coll.createIndex(indexOpts.getKey(), indexOpts.getValue());
+				}
+			}
 		}
 	}
 
@@ -113,9 +128,7 @@ public class DatabaseManager extends AbstractManager {
 	}
 
 	private enum GMCCol {
-		USERS("users", User.class),
-		DEVICES("devices", Device.class),
-		RECORDS("records", Record.class),
+		USERS("users", User.class), DEVICES("devices", Device.class), RECORDS("records", Record.class),
 		CALENDARS("calendars", DeviceCalendar.class);
 
 		private final String name;
