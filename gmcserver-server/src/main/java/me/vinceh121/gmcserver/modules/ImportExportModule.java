@@ -4,7 +4,9 @@ import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +18,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
@@ -64,8 +68,8 @@ public class ImportExportModule extends AbstractModule {
 		}
 
 		if (deviceLimit <= this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.countDocuments(Filters.eq("ownerId", user.getId()))) {
+			.getCollection(Device.class)
+			.countDocuments(Filters.eq("ownerId", user.getId()))) {
 			this.error(ctx, 403, "Device limit reached");
 			return;
 		}
@@ -113,14 +117,15 @@ public class ImportExportModule extends AbstractModule {
 	private Future<List<Record>> getRecords(final String gmcmapId, final int page, final ObjectId deviceId) {
 		return Future.future(p -> {
 			this.srv.getWebClient()
-					.get(ImportExportModule.GMCMAP_HOST, ImportExportModule.GMCMAP_HISTORY_URI)
-					.setQueryParam("param_ID", gmcmapId)
-					.setQueryParam("curpage", String.valueOf(page))
-					.send(a -> {
-						if (a.failed()) {
-							p.fail("Http request failed: " + a.cause().getMessage());
-							return;
-						}
+				.get(ImportExportModule.GMCMAP_HOST, ImportExportModule.GMCMAP_HISTORY_URI)
+				.setQueryParam("param_ID", gmcmapId)
+				.setQueryParam("curpage", String.valueOf(page))
+				.send(a -> {
+					if (a.failed()) {
+						p.fail("Http request failed: " + a.cause().getMessage());
+						return;
+					}
+					try {
 
 						final HttpResponse<Buffer> res = a.result();
 						final Document doc = Jsoup.parse(res.bodyAsString());
@@ -129,6 +134,20 @@ public class ImportExportModule extends AbstractModule {
 						if (table == null) {
 							p.fail("No data table found");
 							return;
+						}
+
+						final Map<String, Integer> colIndexes = new Hashtable<>();
+						final Element thead = table.children().select("thead").first().selectFirst("tr");
+						for (int i = 0; i < thead.childrenSize(); i++) {
+							final Element c = thead.child(i);
+							if (!c.tagName().equals("th")) {
+								continue;
+							}
+							if (c.text().startsWith("Date (")) {
+								c.text("Date");
+							}
+
+							colIndexes.put(c.text(), i);
 						}
 
 						final List<Record> records = new Vector<>();
@@ -140,28 +159,122 @@ public class ImportExportModule extends AbstractModule {
 
 							final Element tr = c.getElementsByTag("tr").first();
 
-							final Element elmDate = tr.child(0);
-							final Element elmCpm = tr.child(1);
-							final Element elmAcpm = tr.child(2);
-							final Element elmUsv = tr.child(3);
-							// final Element elmLat = tr.child(4);
-							// final Element elmLon = tr.child(5);
+							// Date, CPM, ACPM and uSv are guaranteed to be present
+							final Element elmDate = tr.child(colIndexes.get("Date"));
+							final Element elmCpm = tr.child(colIndexes.get("CPM"));
+							final Element elmAcpm = tr.child(colIndexes.get("ACPM"));
+							final Element elmUsv = tr.child(colIndexes.get("uSv/h"));
+
+							Element elmLat = null;
+							if (colIndexes.containsKey("Latitude")) {
+								elmLat = tr.child(colIndexes.get("Latitude"));
+							}
+
+							Element elmLon = null;
+							if (colIndexes.containsKey("Longitude")) {
+								elmLon = tr.child(colIndexes.get("Longitude"));
+							}
+
+							Element elmAlt = null;
+							if (colIndexes.containsKey("Altitude")) {
+								elmAlt = tr.child(colIndexes.get("Altitude"));
+							}
+
+							Element elmCO2 = null;
+							if (colIndexes.containsKey("CO2")) {
+								elmCO2 = tr.child(colIndexes.get("CO2"));
+							}
+
+							Element elmHCHO = null;
+							if (colIndexes.containsKey("HCHO")) {
+								elmHCHO = tr.child(colIndexes.get("HCHO"));
+							}
+
+							Element elmTemperature = null;
+							if (colIndexes.containsKey("Temperature")) {
+								elmTemperature = tr.child(colIndexes.get("Temperature"));
+							}
+
+							Element elmHumidity = null;
+							if (colIndexes.containsKey("Humidity")) {
+								elmHumidity = tr.child(colIndexes.get("Humidity"));
+							}
 
 							final Record r = new Record();
 							r.setDeviceId(deviceId);
+
 							try {
 								r.setDate(ImportExportModule.GMCMAP_DATE_FMT.parse(elmDate.text()));
 							} catch (final ParseException e) {
 								this.log.error("Error while parsing date for record during import", e);
 								return;
 							}
-							r.setCpm(Double.parseDouble(elmCpm.text()));
-							r.setAcpm(Double.parseDouble(elmAcpm.text()));
-							r.setUsv(Double.parseDouble(elmUsv.text()));
+
+							if (!elmCpm.text().isEmpty()) {
+								r.setCpm(Double.parseDouble(elmCpm.text()));
+							}
+							if (!elmAcpm.text().isEmpty()) { // for some reason this wasn't a problem before
+								r.setAcpm(Double.parseDouble(elmAcpm.text()));
+							}
+							if (!elmUsv.text().isEmpty()) {
+								r.setUsv(Double.parseDouble(elmUsv.text()));
+							}
+
+							if (elmLat != null) {
+								if (r.getLocation() == null) {
+									r.setLocation(new Point(new Position(0, 0)));
+								}
+								r.setLocation(new Point(new Position(r.getLocation().getPosition().getValues().get(0),
+										Double.parseDouble(elmLon.text()))));
+							}
+
+							if (elmLon != null) {
+								if (r.getLocation() == null) {
+									r.setLocation(new Point(new Position(0, 0)));
+								}
+								r.setLocation(new Point(new Position(Double.parseDouble(elmLat.text()),
+										r.getLocation().getPosition().getValues().get(1))));
+							}
+
+							if (elmAlt != null) {
+								if (r.getLocation() == null) {
+									r.setLocation(new Point(new Position(0, 0, 0)));
+								} else if (r.getLocation().getPosition().getValues().size() != 3) {
+									r.setLocation(
+											new Point(new Position(r.getLocation().getPosition().getValues().get(0),
+													r.getLocation().getPosition().getValues().get(1), 0)));
+								}
+								r.setLocation(new Point(new Position(r.getLocation().getPosition().getValues().get(0),
+										r.getLocation().getPosition().getValues().get(2),
+										Double.parseDouble(elmAlt.text()))));
+							}
+
+							if (elmCO2 != null) {
+								r.setCo2(Double.parseDouble(elmCO2.text()));
+							}
+
+							if (elmHCHO != null) {
+								r.setHcho(Double.parseDouble(elmHCHO.text()));
+							}
+
+							if (elmTemperature != null) {
+								r.setTmp(Double.parseDouble(elmTemperature.text()));
+							}
+
+							if (elmHumidity != null) {
+								r.setHmdt(Double.parseDouble(elmHumidity.text()));
+							}
+
 							records.add(r);
 						}
 						p.complete(records);
-					});
+					} catch (final NumberFormatException e) {
+						p.fail(new RuntimeException("Failed to import device", e));
+					} catch (Exception e) {
+						log.error(new FormattedMessage("ohno oopsie fucky wucky with import {} at page {}", gmcmapId,
+								page), e);
+					}
+				});
 		});
 	}
 
@@ -185,30 +298,27 @@ public class ImportExportModule extends AbstractModule {
 					ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LAT,LON\n");
 					for (final Record r : recs) {
 						ctx.response()
-								.write(String.format("%f,%f,%f,%s,%s,%s,%s\n", r.getCpm(), r.getAcpm(), r.getUsv(),
-										r.getDate().getTime(), r.getType(),
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
-												: ""));
+							.write(String.format("%f,%f,%f,%s,%s,%s,%s\n", r.getCpm(), r.getAcpm(), r.getUsv(),
+									r.getDate().getTime(), r.getType(),
+									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
+									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : ""));
 					}
 				} else {
 					ctx.response().write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LAT,LON\n");
 					for (final Record r : recs) {
 						ctx.response()
-								.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n", r.getId(),
-										r.getDeviceId(), r.getCpm(), r.getAcpm(), r.getUsv(), r.getCo2(), r.getHcho(),
-										r.getTmp(), r.getAp(), r.getHmdt(), r.getAccy(), r.getDate().getTime(),
-										r.getIp(), r.getType(),
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0)
-												: null,
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
-												: null));
+							.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n", r.getId(),
+									r.getDeviceId(), r.getCpm(), r.getAcpm(), r.getUsv(), r.getCo2(), r.getHcho(),
+									r.getTmp(), r.getAp(), r.getHmdt(), r.getAccy(), r.getDate().getTime(), r.getIp(),
+									r.getType(),
+									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : null,
+									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : null));
 					}
 				}
 				ctx.response().end();
 			}).onFailure(t -> {
 				ImportExportModule.LOG
-						.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
+					.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
 				this.error(ctx, 500, "Failed to get device timeline for export");
 			});
 		}).onFailure(t -> { // TODO differentiate DB error and not found
