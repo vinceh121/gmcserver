@@ -19,6 +19,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.Filters;
 
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
@@ -53,9 +54,7 @@ public class DeviceCalendarManager extends AbstractManager {
 				.first();
 			promise.complete(cal);
 			if (cal == null) {
-				DeviceCalendarManager.this.calculateCalendar()
-					.setDeviceId(this.deviceId)
-					.execute();
+				DeviceCalendarManager.this.calculateCalendar().setDeviceId(this.deviceId).execute();
 			}
 		}
 
@@ -85,35 +84,44 @@ public class DeviceCalendarManager extends AbstractManager {
 			cal.setCreatedAt(new Date());
 			cal.setRecs(recs);
 			cal.setInProgress(true);
-			this.srv.getDatabaseManager()
-				.getCollection(DeviceCalendar.class)
-				.insertOne(cal);
+			this.srv.getDatabaseManager().getCollection(DeviceCalendar.class).insertOne(cal);
 
 			final Date[] arrMinMax = this.getDeviceDateBounds(this.deviceId);
 			final LocalDate startDate = LocalDate.ofInstant(arrMinMax[0].toInstant(), zone);
 			final LocalDate endDate = LocalDate.ofInstant(arrMinMax[1].toInstant(), zone);
-			for (LocalDate currentDay = startDate; currentDay.isBefore(endDate); currentDay = currentDay.plusDays(1)) {
+			this.recurseCompileDay(cal, zone, startDate, endDate).onSuccess(promise::complete).onFailure(promise::fail);
+		}
+
+		private Future<DeviceCalendar> recurseCompileDay(final DeviceCalendar cal, final ZoneId zone,
+				final LocalDate currentDay, final LocalDate endDate) {
+			return Future.future(promise -> {
 				final LocalDateTime curDayTime = currentDay.atStartOfDay();
-				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules()
-					.getOffset(curDayTime)) * 1000);
+				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000);
 				final Document rec = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
 					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
-							new Date(curDayTime.plusDays(1)
-								.toEpochSecond(zone.getRules()
-									.getOffset(curDayTime)) * 1000)),
+							new Date(curDayTime.plusDays(1).toEpochSecond(zone.getRules().getOffset(curDayTime))
+									* 1000)),
 							Document.class)
 					.first();
 				if (rec != null) {
 					rec.put("date", curDate);
-					recs.add(rec);
+					cal.getRecs().add(rec);
 				}
-			}
-			cal.setInProgress(false);
-			this.srv.getDatabaseManager()
-				.getCollection(DeviceCalendar.class)
-				.replaceOne(Filters.eq(cal.getId()), cal);
-			promise.complete(cal);
+
+				final LocalDate nextDay = currentDay.plusDays(1);
+				if (nextDay.equals(endDate)) {
+					cal.setInProgress(false);
+					this.srv.getDatabaseManager()
+						.getCollection(DeviceCalendar.class)
+						.replaceOne(Filters.eq(cal.getId()), cal);
+					promise.complete(cal);
+				} else {
+					this.recurseCompileDay(cal, zone, nextDay, endDate)
+						.onSuccess(promise::complete)
+						.onFailure(promise::fail);
+				}
+			});
 		}
 
 		public ObjectId getDeviceId() {
@@ -142,11 +150,7 @@ public class DeviceCalendarManager extends AbstractManager {
 		for (final String f : Record.STAT_FIELDS) {
 			fields.add(Accumulators.avg(f, "$" + f));
 		}
-		return Arrays.asList(
-				Aggregates.match(Filters.and(
-						Filters.eq("deviceId", id),
-						Filters.gte("date", lowerBound),
-						Filters.lt("date", upperBound))),
-				Aggregates.group(new BsonNull(), fields));
+		return Arrays.asList(Aggregates.match(Filters.and(Filters.eq("deviceId", id), Filters.gte("date", lowerBound),
+				Filters.lt("date", upperBound))), Aggregates.group(new BsonNull(), fields));
 	}
 }
