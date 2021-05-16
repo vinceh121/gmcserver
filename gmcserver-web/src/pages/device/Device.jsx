@@ -14,6 +14,7 @@ import {
 	Select,
 	Space,
 	Statistic,
+	Table,
 	Tabs,
 } from "antd";
 import DeviceBadge from "../../components/DeviceBadge";
@@ -119,7 +120,17 @@ function Device() {
 							/>
 						</Card>
 					</TabPane>
-					<TabPane tab="Calendar" key="2">
+					<TabPane tab="Table" key="2">
+						<Table dataSource={timeline} columns={
+							[
+								{ title: "Date", dataIndex: "date", key: "date",
+									render: a => new Date(a).toLocaleString(), sorter: (a, b) => a - b },
+								{ title: "CPM", dataIndex: "cpm", key: "cpm" },
+								{ title: "ACPM", dataIndex: "acpm", key: "acpm" }
+							]
+						} />
+					</TabPane>
+					<TabPane tab="Calendar" key="3">
 						<Card bodyStyle={{ height: "500px" }} loading={!calendar} style={{ marginBottom: "8px" }}>
 							<DeviceCalendar calendar={calendar} />
 						</Card>
