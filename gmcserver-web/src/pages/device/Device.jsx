@@ -7,6 +7,8 @@ import {
 	Col,
 	DatePicker,
 	Descriptions,
+	Dropdown,
+	Menu,
 	message,
 	PageHeader,
 	Result,
@@ -21,8 +23,9 @@ import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
-import { numericRecordFields } from "../../GmcTypes";
+import { exportTypes, numericRecordFields } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
+import { DownOutlined } from "@ant-design/icons";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -85,6 +88,15 @@ function Device() {
 							Live timeline
 						</Link>
 					</Button>,
+					<Dropdown overlay={
+						<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
+							{exportTypes.map(t => <Menu.Item key={t}>{t.toUpperCase()}</Menu.Item>)}
+						</Menu>
+					}>
+						<Button>
+							Export <DownOutlined />
+						</Button>
+					</Dropdown>
 				]}
 			>
 				<Descriptions
@@ -123,8 +135,10 @@ function Device() {
 					<TabPane tab="Table" key="2">
 						<Table dataSource={timeline} columns={
 							[
-								{ title: "Date", dataIndex: "date", key: "date",
-									render: a => new Date(a).toLocaleString(), sorter: (a, b) => a - b },
+								{
+									title: "Date", dataIndex: "date", key: "date",
+									render: a => new Date(a).toLocaleString(), sorter: (a, b) => a - b
+								},
 								{ title: "CPM", dataIndex: "cpm", key: "cpm" },
 								{ title: "ACPM", dataIndex: "acpm", key: "acpm" }
 							]

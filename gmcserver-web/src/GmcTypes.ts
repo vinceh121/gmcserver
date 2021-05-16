@@ -91,3 +91,7 @@ export const numericRecordFields = [
 	"hmdt",
 	"accy",
 ];
+
+export const exportTypes = [
+	"csv"
+]
