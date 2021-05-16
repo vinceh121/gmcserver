@@ -288,6 +288,10 @@ public class ImportExportModule extends AbstractModule {
 			return;
 		}
 
+		ctx.response()
+			.putHeader("Content-Type", "text/csv")
+			.putHeader("Content-Disposition", "attachment; filename=\"gmcserver-" + deviceId.toHexString() + ".csv\"");
+
 		ctx.response().setChunked(true);
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
