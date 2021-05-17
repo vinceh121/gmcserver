@@ -7,9 +7,4 @@
 
 ## Commit message format
 
-Please (I mean whatever if you don't, but pwease) prefix your commit messages with which part of the code is edited:
-
- - `Backend - `
- - `Frontend - `
- - `Email templates - `
-
+Please follow the [https://www.conventionalcommits.org/en/v1.0.0/](Conventional Commits formats) (I mean whatever if you don't, just look at the commit history)
