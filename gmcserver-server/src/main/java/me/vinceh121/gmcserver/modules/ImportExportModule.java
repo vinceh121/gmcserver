@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +37,9 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 public class ImportExportModule extends AbstractModule {
 	private static final Logger LOG = LogManager.getLogger(ImportExportModule.class);
 	public static final DateFormat GMCMAP_DATE_FMT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	static {
+		GMCMAP_DATE_FMT.setTimeZone(TimeZone.getTimeZone("UTC"));
+	}
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
 	private static final SecureRandom DEV_RANDOM = new SecureRandom();
 
@@ -120,6 +124,7 @@ public class ImportExportModule extends AbstractModule {
 				.get(ImportExportModule.GMCMAP_HOST, ImportExportModule.GMCMAP_HISTORY_URI)
 				.setQueryParam("param_ID", gmcmapId)
 				.setQueryParam("curpage", String.valueOf(page))
+				.setQueryParam("systemTimeZone", "0")
 				.send(a -> {
 					if (a.failed()) {
 						p.fail("Http request failed: " + a.cause().getMessage());
