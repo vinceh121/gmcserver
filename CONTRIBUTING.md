@@ -7,4 +7,4 @@
 
 ## Commit message format
 
-Please follow the [https://www.conventionalcommits.org/en/v1.0.0/](Conventional Commits formats) (I mean whatever if you don't, just look at the commit history)
+Please follow the [Conventional Commits format](https://www.conventionalcommits.org/en/v1.0.0/) (I mean whatever if you don't, just look at the commit history)
