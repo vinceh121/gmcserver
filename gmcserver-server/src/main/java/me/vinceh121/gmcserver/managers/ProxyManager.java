@@ -1,11 +1,16 @@
 package me.vinceh121.gmcserver.managers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
@@ -36,15 +41,54 @@ public class ProxyManager extends AbstractManager {
 		return proxies;
 	}
 
+	public ValidateProxiesSettingsAction validateProxiesSettings() {
+		return new ValidateProxiesSettingsAction(srv);
+	}
+
 	public ProcessDeviceProxiesAction processDeviceProxies() {
 		return new ProcessDeviceProxiesAction(srv);
+	}
+
+	public class ValidateProxiesSettingsAction extends AbstractAction<Void> {
+		private JsonObject proxiesSettings;
+
+		private ValidateProxiesSettingsAction(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<Void> promise) {
+			if (this.proxiesSettings == null) {
+				promise.complete();
+				return;
+			}
+			@SuppressWarnings("rawtypes") // to vertx: why not type this with `<?>` ?
+			final List<Future> futures = new Vector<>();
+			for (final String key : this.proxiesSettings.getMap().keySet()) {
+				final AbstractProxy p = proxies.get(key);
+				if (p == null) {
+					promise.fail("Unknown proxy '" + key + "'");
+					return;
+				}
+			}
+			CompositeFuture.all(futures).onSuccess(f -> promise.complete()).onFailure(promise::fail);
+		}
+
+		public JsonObject getProxiesSettings() {
+			return proxiesSettings;
+		}
+
+		public ValidateProxiesSettingsAction setProxiesSettings(JsonObject proxiesSettings) {
+			this.proxiesSettings = proxiesSettings;
+			return this;
+		}
 	}
 
 	public class ProcessDeviceProxiesAction extends AbstractAction<Void> {
 		private Device device;
 		private Record record;
 
-		public ProcessDeviceProxiesAction(final GMCServer srv) {
+		private ProcessDeviceProxiesAction(final GMCServer srv) {
 			super(srv);
 		}
 
