@@ -18,6 +18,7 @@ import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.proxy.AbstractProxy;
 import me.vinceh121.gmcserver.proxy.GmcmapProxy;
 import me.vinceh121.gmcserver.proxy.RadmonProxy;
+import me.vinceh121.gmcserver.proxy.SafecastProxy;
 
 public class ProxyManager extends AbstractManager {
 
@@ -31,6 +32,7 @@ public class ProxyManager extends AbstractManager {
 	private void registerProxies() {
 		this.registerProxy(new GmcmapProxy(this.srv));
 		this.registerProxy(new RadmonProxy(this.srv));
+		this.registerProxy(new SafecastProxy(this.srv));
 	}
 
 	private void registerProxy(final AbstractProxy p) {
@@ -101,7 +103,7 @@ public class ProxyManager extends AbstractManager {
 		}
 
 		private void processProxy(final AbstractProxy p) {
-			p.proxyRecord(record, this.device.getProxiesSettings().get(p.getClass().getSimpleName())).onFailure(t -> {
+			p.proxyRecord(record, this.device, this.device.getProxiesSettings().get(p.getClass().getSimpleName())).onFailure(t -> {
 				log.error(new FormattedMessage("Failed to proxy record {} for {}", record.getId(),
 						p.getClass().getSimpleName()), t);
 				// TODO save error to report to user
