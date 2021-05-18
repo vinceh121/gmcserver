@@ -48,7 +48,7 @@ public class WebHandler implements Handler<RoutingContext> {
 		});
 	}
 
-	private String getContentType(final String file) {
+	private static String getContentType(final String file) {
 		final String extension = file.substring(file.lastIndexOf('.') + 1);
 		switch (extension) {
 		case "html":

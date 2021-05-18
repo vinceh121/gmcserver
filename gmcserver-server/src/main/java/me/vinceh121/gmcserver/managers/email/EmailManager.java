@@ -75,7 +75,7 @@ public class EmailManager extends AbstractManager {
 	private Future<String> buildEmail(final String template, final JsonObject context) {
 		return Future.future(p -> {
 			final String raw = this.readRaw(template);
-			final String resolved = this.resolveVariables(raw, context);
+			final String resolved = EmailManager.resolveVariables(raw, context);
 			p.complete(resolved);
 		});
 	}
@@ -84,7 +84,7 @@ public class EmailManager extends AbstractManager {
 		return this.srv.getVertx().fileSystem().readFileBlocking(GMCBuild.MAIL_TEMPLATES_PATH + template).toString();
 	}
 
-	private String resolveVariables(final String rawHtml, final JsonObject context) throws IllegalArgumentException {
+	private static String resolveVariables(final String rawHtml, final JsonObject context) throws IllegalArgumentException {
 		final StringBuilder sb = new StringBuilder(rawHtml);
 		Matcher matcher;
 		while ((matcher = EmailManager.VAR_PATTERN.matcher(sb)).find()) {

@@ -38,13 +38,13 @@ public class DeviceManager extends AbstractManager {
 		super(srv);
 	}
 
-	private Point jsonArrToPoint(final JsonArray arr) { // standard lat lon in array -> lon lat for mongo
+	private static Point jsonArrToPoint(final JsonArray arr) { // standard lat lon in array -> lon lat for mongo
 		final Position pos = new Position(arr.getDouble(1), arr.getDouble(0));
 		final Point point = new Point(pos);
 		return point;
 	}
 
-	private List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
+	private static List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
 		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)), Aggregates.sort(Sorts.descending("date")),
 				Aggregates.limit(limit),
 				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
@@ -89,7 +89,7 @@ public class DeviceManager extends AbstractManager {
 		protected void executeSync(final Promise<DeviceStats> promise) {
 			final DeviceStats stats = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
-					.aggregate(DeviceManager.this.getStatsAggregation(this.field, this.devId, this.sampleSize),
+					.aggregate(DeviceManager.getStatsAggregation(this.field, this.devId, this.sampleSize),
 							DeviceStats.class)
 					.first();
 			if (stats != null) {
@@ -225,7 +225,7 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			if (this.arrLocation != null) {
-				updates.add(Updates.set("location", DeviceManager.this.jsonArrToPoint(this.arrLocation)));
+				updates.add(Updates.set("location", DeviceManager.jsonArrToPoint(this.arrLocation)));
 			}
 
 			final UpdateResult res = this.srv.getDatabaseManager()
@@ -391,7 +391,7 @@ public class DeviceManager extends AbstractManager {
 
 			final Point location;
 			if (this.arrLocation != null && this.arrLocation.size() == 2) {
-				location = DeviceManager.this.jsonArrToPoint(this.arrLocation);
+				location = DeviceManager.jsonArrToPoint(this.arrLocation);
 			} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
 				promise.fail("Invalid location");
 				location = null;
