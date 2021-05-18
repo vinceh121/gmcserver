@@ -12,6 +12,7 @@ import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.proxy.AbstractProxy;
 import me.vinceh121.gmcserver.proxy.GmcmapProxy;
+import me.vinceh121.gmcserver.proxy.RadmonProxy;
 
 public class ProxyManager extends AbstractManager {
 
@@ -24,6 +25,7 @@ public class ProxyManager extends AbstractManager {
 
 	private void registerProxies() {
 		this.registerProxy(new GmcmapProxy(this.srv));
+		this.registerProxy(new RadmonProxy(this.srv));
 	}
 
 	private void registerProxy(final AbstractProxy p) {
