@@ -44,7 +44,7 @@ public class WebHandler implements Handler<RoutingContext> {
 				return;
 			}
 
-			ctx.response().putHeader("Content-Type", this.getContentType(fullPath)).end(res.result());
+			ctx.response().putHeader("Content-Type", WebHandler.getContentType(fullPath)).end(res.result());
 		});
 	}
 
