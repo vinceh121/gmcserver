@@ -68,17 +68,19 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user
-				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("gmcId", gmcUserId)).first();
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.eq("gmcId", gmcUserId))
+			.first();
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
 		final Device device = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq("gmcId", gmcDeviceId))
-				.first();
+			.getCollection(Device.class)
+			.find(Filters.eq("gmcId", gmcDeviceId))
+			.first();
 		if (device == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
 			return;
@@ -116,12 +118,14 @@ public class LoggingModule extends AbstractModule {
 		this.publishRecord(rec);
 
 		this.srv.getAlertManager()
-				.checkAlert()
-				.setDev(device)
-				.setOwner(user)
-				.setLatestRecord(rec)
-				.execute()
-				.onFailure(t -> this.log.error("Failed to check alert email", t));
+			.checkAlert()
+			.setDev(device)
+			.setOwner(user)
+			.setLatestRecord(rec)
+			.execute()
+			.onFailure(t -> this.log.error("Failed to check alert email", t));
+		
+		this.srv.getProxyManager().processDeviceProxies().setDevice(device).setRecord(rec).execute();
 	}
 
 	private void handleClassicLog(final RoutingContext ctx) {
@@ -189,8 +193,10 @@ public class LoggingModule extends AbstractModule {
 			usv = Double.NaN;
 		}
 
-		final User user
-				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("gmcId", userGmcId)).first();
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.eq("gmcId", userGmcId))
+			.first();
 
 		if (user == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
@@ -198,9 +204,9 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		final Device device = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq("gmcId", deviceGmcId))
-				.first();
+			.getCollection(Device.class)
+			.find(Filters.eq("gmcId", deviceGmcId))
+			.first();
 
 		if (device == null) {
 			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
@@ -235,12 +241,14 @@ public class LoggingModule extends AbstractModule {
 		this.publishRecord(rec);
 
 		this.srv.getAlertManager()
-				.checkAlert()
-				.setDev(device)
-				.setOwner(user)
-				.setLatestRecord(rec)
-				.execute()
-				.onFailure(t -> this.log.error("Failed to check alert email", t));
+			.checkAlert()
+			.setDev(device)
+			.setOwner(user)
+			.setLatestRecord(rec)
+			.execute()
+			.onFailure(t -> this.log.error("Failed to check alert email", t));
+
+		this.srv.getProxyManager().processDeviceProxies().setDevice(device).setRecord(rec).execute();
 	}
 
 	private void publishRecord(final Record rec) {
@@ -255,9 +263,9 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		ctx.response()
-				.setStatusCode(status)
-				.putHeader("X-GMC-Extras", extra == null ? null : extra.encode())
-				.putHeader("Content-Type", "text/plain")
-				.end(desc);
+			.setStatusCode(status)
+			.putHeader("X-GMC-Extras", extra == null ? null : extra.encode())
+			.putHeader("Content-Type", "text/plain")
+			.end(desc);
 	}
 }

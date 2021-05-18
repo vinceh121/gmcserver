@@ -137,7 +137,8 @@ public class DeviceModule extends AbstractModule {
 					.setDevice(dev)
 					.setArrLocation(obj.getJsonArray("location"))
 					.setModel(obj.getString("model"))
-					.setName(obj.getString("name"));
+					.setName(obj.getString("name"))
+					.setProxiesSettings(obj.getJsonObject("proxiesSettings"));
 			action.execute().onSuccess(upRes -> {
 				ctx.response().end(new JsonObject().put("changed", upRes).toBuffer());
 			}).onFailure(t -> {

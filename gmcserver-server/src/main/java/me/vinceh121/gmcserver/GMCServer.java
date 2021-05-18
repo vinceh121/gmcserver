@@ -40,6 +40,7 @@ import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceCalendarManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
+import me.vinceh121.gmcserver.managers.ProxyManager;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.email.EmailManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
@@ -84,6 +85,7 @@ public class GMCServer {
 	private EmailManager emailManager;
 	private AlertManager alertManager;
 	private DeviceCalendarManager deviceCalendarManager;
+	private ProxyManager proxyManager;
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
@@ -129,10 +131,9 @@ public class GMCServer {
 
 		try {
 			this.authenticator = (AbstractAuthenticator) Class
-					.forName(this.config.getProperty("auth.authenticator",
-							InternalAuthenticator.class.getCanonicalName()))
-					.getConstructor(GMCServer.class)
-					.newInstance(this);
+				.forName(this.config.getProperty("auth.authenticator", InternalAuthenticator.class.getCanonicalName()))
+				.getConstructor(GMCServer.class)
+				.newInstance(this);
 		} catch (final Exception e) {
 			GMCServer.LOG.error("Failed to initiate authenticator", e);
 			throw new IllegalStateException(e);
@@ -186,8 +187,8 @@ public class GMCServer {
 	private void setupWebRouter(final Vertx vertx) {
 		GMCServer.LOG.info("Starting web server");
 		final Router webRouter = Router.router(vertx);
-		final WebHandler webHandler
-				= new WebHandler(Paths.get(this.config.getProperty("web.root")), this.vertx.fileSystem());
+		final WebHandler webHandler = new WebHandler(Paths.get(this.config.getProperty("web.root")),
+				this.vertx.fileSystem());
 		webRouter.route().handler(webHandler);
 		this.baseRouter.mountSubRouter("/", webRouter);
 	}
@@ -210,6 +211,7 @@ public class GMCServer {
 		this.emailManager = new EmailManager(this);
 		this.alertManager = new AlertManager(this);
 		this.deviceCalendarManager = new DeviceCalendarManager(this);
+		this.proxyManager = new ProxyManager(this);
 	}
 
 	private void registerModules() {
@@ -229,8 +231,8 @@ public class GMCServer {
 		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host).onSuccess(srv -> {
 			GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
 		}).onFailure(t -> {
-			GMCServer.LOG.error(new FormattedMessage("Failed to listen on {}:{}", host,
-					this.config.getProperty("server.port")), t);
+			GMCServer.LOG.error(
+					new FormattedMessage("Failed to listen on {}:{}", host, this.config.getProperty("server.port")), t);
 		});
 	}
 
@@ -312,5 +314,9 @@ public class GMCServer {
 
 	public DeviceCalendarManager getDeviceCalendarManager() {
 		return this.deviceCalendarManager;
+	}
+
+	public ProxyManager getProxyManager() {
+		return this.proxyManager;
 	}
 }
