@@ -6,6 +6,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
+import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 
 public class RadmonProxy extends AbstractProxy {
@@ -15,7 +16,7 @@ public class RadmonProxy extends AbstractProxy {
 	}
 
 	@Override
-	public Future<Void> validateSettings(final JsonObject obj) {
+	public Future<Void> validateSettings(final Device dev, final JsonObject obj) {
 		return Future.future(p -> {
 			if (obj.size() != 2) {
 				p.fail("Invalid number of arguments");
@@ -37,7 +38,7 @@ public class RadmonProxy extends AbstractProxy {
 	}
 
 	@Override
-	public Future<Void> proxyRecord(final Record r, final Map<String, Object> proxySettings) {
+	public Future<Void> proxyRecord(final Record r, final Device dev, final Map<String, Object> proxySettings) {
 		// GET
 		// https://radmon.org/radmon.php?function=submit&user=vinceh121&password=owo&value=26&unit=CPM
 		return Future.future(p -> {

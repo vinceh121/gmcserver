@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
+import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 
 public class GmcmapProxy extends AbstractProxy {
@@ -16,7 +17,7 @@ public class GmcmapProxy extends AbstractProxy {
 	}
 
 	@Override
-	public Future<Void> validateSettings(final JsonObject obj) {
+	public Future<Void> validateSettings(final Device dev, final JsonObject obj) {
 		return Future.future(p -> {
 			if (obj.size() != 2) {
 				p.fail("Invalid number of arguments");
@@ -38,7 +39,7 @@ public class GmcmapProxy extends AbstractProxy {
 	}
 
 	@Override
-	public Future<Void> proxyRecord(final Record r, final Map<String, Object> proxySettings) {
+	public Future<Void> proxyRecord(final Record r, final Device dev, final Map<String, Object> proxySettings) {
 		return Future.future(p -> {
 			final HttpRequest<String> req = this.srv.getWebClient()
 				.get("gmcmap.com", "/log2.asp")
