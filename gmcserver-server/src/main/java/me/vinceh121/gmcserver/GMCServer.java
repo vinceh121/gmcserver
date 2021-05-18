@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 
 import org.apache.commons.codec.DecoderException;
@@ -44,6 +47,7 @@ import me.vinceh121.gmcserver.managers.ProxyManager;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.email.EmailManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
+import me.vinceh121.gmcserver.modules.AbstractModule;
 import me.vinceh121.gmcserver.modules.AdminModule;
 import me.vinceh121.gmcserver.modules.AuthModule;
 import me.vinceh121.gmcserver.modules.CaptchaModule;
@@ -76,6 +80,8 @@ public class GMCServer {
 	private final StrictAuthHandler strictAuthHandler;
 
 	private final AbstractAuthenticator authenticator;
+
+	private final Collection<AbstractModule> modules = new ArrayList<>();
 
 	//// Managers
 	private DatabaseManager databaseManager;
@@ -215,24 +221,25 @@ public class GMCServer {
 	}
 
 	private void registerModules() {
-		new LoggingModule(this);
-		new DeviceModule(this);
-		new AuthModule(this);
-		new GeoModule(this);
-		new UserModule(this);
-		new ImportExportModule(this);
-		new InstanceModule(this);
-		new AdminModule(this);
-		new CaptchaModule(this);
+		this.modules.addAll(Arrays.asList(new LoggingModule(this),
+				new DeviceModule(this),
+				new AuthModule(this),
+				new GeoModule(this),
+				new UserModule(this),
+				new ImportExportModule(this),
+				new InstanceModule(this),
+				new AdminModule(this),
+				new CaptchaModule(this)));
 	}
 
 	public void start() {
 		final String host = this.config.getProperty("server.host", "127.0.0.1");
-		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host).onSuccess(srv -> {
+		this.srv.listen(Integer.parseInt(this.config.getProperty("server.port")), host).onSuccess(s -> {
 			GMCServer.LOG.info("Listening on {}:{}", host, this.srv.actualPort());
 		}).onFailure(t -> {
 			GMCServer.LOG.error(
-					new FormattedMessage("Failed to listen on {}:{}", host, this.config.getProperty("server.port")), t);
+					new FormattedMessage("Failed to listen on {}:{}", host, this.config.getProperty("server.port")),
+					t);
 		});
 	}
 
@@ -286,6 +293,10 @@ public class GMCServer {
 
 	public AbstractAuthenticator getAuthenticator() {
 		return this.authenticator;
+	}
+
+	public Collection<AbstractModule> getModules() {
+		return modules;
 	}
 
 	public DatabaseManager getDatabaseManager() {

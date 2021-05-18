@@ -90,14 +90,14 @@ public class MFAManager extends AbstractManager {
 	}
 
 	public int generateOneTimePassword(final MFAKey key, final Instant timestamp) throws InvalidKeyException {
-		return this.generateOneTimePassword(this.mfaKeyToSecretKey(key), timestamp);
+		return this.generateOneTimePassword(MFAManager.mfaKeyToSecretKey(key), timestamp);
 	}
 
 	public int generateOneTimePassword(final Key key, final Instant timestamp) throws InvalidKeyException {
 		return this.generator.generateOneTimePassword(key, timestamp);
 	}
 
-	public SecretKey mfaKeyToSecretKey(final MFAKey key) {
+	public static SecretKey mfaKeyToSecretKey(final MFAKey key) {
 		final SecretKey secKey = new SecretKeySpec(key.getKey(), key.getAlgorithm());
 		return secKey;
 	}

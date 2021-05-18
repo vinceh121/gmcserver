@@ -133,10 +133,10 @@ public class DeviceCalendarManager extends AbstractManager {
 			return this;
 		}
 
-		private Date[] getDeviceDateBounds(final ObjectId deviceId) {
+		private Date[] getDeviceDateBounds(final ObjectId id) {
 			final Document doc = this.srv.getDatabaseManager()
 				.getCollection(Record.class)
-				.aggregate(Arrays.asList(Aggregates.match(Filters.eq("deviceId", deviceId)),
+				.aggregate(Arrays.asList(Aggregates.match(Filters.eq("deviceId", id)),
 						Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
 								Accumulators.max("max", "$date"))),
 						Document.class)

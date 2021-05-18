@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -225,33 +226,22 @@ public class ImportExportModule extends AbstractModule {
 								r.setUsv(Double.parseDouble(elmUsv.text()));
 							}
 
+							final List<Double> pos = new ArrayList<>(3);
+							
 							if (elmLat != null) {
-								if (r.getLocation() == null) {
-									r.setLocation(new Point(new Position(0, 0)));
-								}
-								r.setLocation(new Point(new Position(r.getLocation().getPosition().getValues().get(0),
-										Double.parseDouble(elmLon.text()))));
+								pos.set(1, Double.parseDouble(elmLat.text()));
 							}
 
 							if (elmLon != null) {
-								if (r.getLocation() == null) {
-									r.setLocation(new Point(new Position(0, 0)));
-								}
-								r.setLocation(new Point(new Position(Double.parseDouble(elmLat.text()),
-										r.getLocation().getPosition().getValues().get(1))));
+								pos.set(0, Double.parseDouble(elmLon.text()));
 							}
 
 							if (elmAlt != null) {
-								if (r.getLocation() == null) {
-									r.setLocation(new Point(new Position(0, 0, 0)));
-								} else if (r.getLocation().getPosition().getValues().size() != 3) {
-									r.setLocation(
-											new Point(new Position(r.getLocation().getPosition().getValues().get(0),
-													r.getLocation().getPosition().getValues().get(1), 0)));
-								}
-								r.setLocation(new Point(new Position(r.getLocation().getPosition().getValues().get(0),
-										r.getLocation().getPosition().getValues().get(2),
-										Double.parseDouble(elmAlt.text()))));
+								pos.set(3, Double.parseDouble(elmAlt.text()));
+							}
+							
+							if (pos.size() > 0) {
+								r.setLocation(new Point(new Position(pos)));
 							}
 
 							if (elmCO2 != null) {
