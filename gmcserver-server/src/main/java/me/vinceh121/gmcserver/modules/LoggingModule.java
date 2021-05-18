@@ -14,11 +14,6 @@ import me.vinceh121.gmcserver.entities.Record.Builder;
 import me.vinceh121.gmcserver.entities.User;
 
 public class LoggingModule extends AbstractModule {
-	/**
-	 * Hex device ID must be appended
-	 */
-	public static final String ADDRESS_PREFIX_RECORD_LOG = "me.vinceh121.gmcserver.RECORD_LOG.";
-
 	public static final String ERROR_OK = "OK.ERR0";
 	public static final String ERROR_SYNTAX = "The syntax of one of the logging parameters is incorrect";
 	public static final String ERROR_USER_ID = "Invalid user ID.ERR1";
@@ -56,7 +51,7 @@ public class LoggingModule extends AbstractModule {
 		try {
 			gmcUserId = Long.parseLong(ctx.request().getParam("AID"));
 		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
@@ -64,7 +59,7 @@ public class LoggingModule extends AbstractModule {
 		try {
 			gmcDeviceId = Long.parseLong(ctx.request().getParam("GID"));
 		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
 			return;
 		}
 
@@ -73,7 +68,7 @@ public class LoggingModule extends AbstractModule {
 			.find(Filters.eq("gmcId", gmcUserId))
 			.first();
 		if (user == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
+			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
@@ -82,18 +77,18 @@ public class LoggingModule extends AbstractModule {
 			.find(Filters.eq("gmcId", gmcDeviceId))
 			.first();
 		if (device == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
 			return;
 		}
 
 		if (device.getOwner() == null) {
 			this.log.error("Device with no owner: {}", device.getId());
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
 			return;
 		}
 
 		if (!user.getId().equals(device.getOwner())) {
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
 			return;
 		}
 
@@ -111,21 +106,18 @@ public class LoggingModule extends AbstractModule {
 		final Record rec = build.build();
 
 		this.log.debug("Inserting record {}", rec);
-
-		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
-		this.error(ctx, 200, LoggingModule.ERROR_OK);
-
-		this.publishRecord(rec);
-
-		this.srv.getAlertManager()
-			.checkAlert()
-			.setDev(device)
-			.setOwner(user)
-			.setLatestRecord(rec)
+		this.srv.getLoggingManager()
+			.insertRecord()
+			.setDevice(device)
+			.setUser(user)
+			.setRecord(rec)
 			.execute()
-			.onFailure(t -> this.log.error("Failed to check alert email", t));
-		
-		this.srv.getProxyManager().processDeviceProxies().setDevice(device).setRecord(rec).execute();
+			.onSuccess(v -> {
+				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
+			})
+			.onFailure(t -> {
+				this.gmcError(ctx, 200, t.getMessage() + ".ERR9999");
+			});
 	}
 
 	private void handleClassicLog(final RoutingContext ctx) {
@@ -134,14 +126,14 @@ public class LoggingModule extends AbstractModule {
 		final String rawParams = ctx.request().getParam("id");
 
 		if (rawParams == null) {
-			this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 			return;
 		}
 
 		final String[] splitParams = rawParams.split(" "); // netty parses the +
 
 		if (splitParams.length < 3 || splitParams.length > 5) {
-			this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 			return;
 		}
 
@@ -149,7 +141,7 @@ public class LoggingModule extends AbstractModule {
 		try {
 			userGmcId = Long.parseLong(splitParams[0]);
 		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 			return;
 		}
 
@@ -157,7 +149,7 @@ public class LoggingModule extends AbstractModule {
 		try {
 			deviceGmcId = Long.parseLong(splitParams[1]);
 		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 			return;
 		}
 
@@ -165,7 +157,7 @@ public class LoggingModule extends AbstractModule {
 		try {
 			cpm = Double.parseDouble(splitParams[2]);
 		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+			this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 			return;
 		}
 
@@ -174,7 +166,7 @@ public class LoggingModule extends AbstractModule {
 			try {
 				acpm = Double.parseDouble(splitParams[3]);
 			} catch (final NumberFormatException e) {
-				this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+				this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 				return;
 			}
 		} else {
@@ -186,7 +178,7 @@ public class LoggingModule extends AbstractModule {
 			try {
 				usv = Double.parseDouble(splitParams[4]);
 			} catch (final NumberFormatException e) {
-				this.error(ctx, 400, LoggingModule.ERROR_SYNTAX);
+				this.gmcError(ctx, 400, LoggingModule.ERROR_SYNTAX);
 				return;
 			}
 		} else {
@@ -199,7 +191,7 @@ public class LoggingModule extends AbstractModule {
 			.first();
 
 		if (user == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
+			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
@@ -209,12 +201,12 @@ public class LoggingModule extends AbstractModule {
 			.first();
 
 		if (device == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
 			return;
 		}
 
 		if (!user.getId().equals(device.getOwner())) {
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
 			return;
 		}
 
@@ -235,30 +227,27 @@ public class LoggingModule extends AbstractModule {
 
 		this.log.debug("Inserting record using old log {}", rec);
 
-		this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
-		ctx.response().setStatusCode(200).end();
-
-		this.publishRecord(rec);
-
-		this.srv.getAlertManager()
-			.checkAlert()
-			.setDev(device)
-			.setOwner(user)
-			.setLatestRecord(rec)
+		this.srv.getLoggingManager()
+			.insertRecord()
+			.setDevice(device)
+			.setUser(user)
+			.setRecord(rec)
 			.execute()
-			.onFailure(t -> this.log.error("Failed to check alert email", t));
-
-		this.srv.getProxyManager().processDeviceProxies().setDevice(device).setRecord(rec).execute();
+			.onSuccess(v -> {
+				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
+			})
+			.onFailure(t -> {
+				this.gmcError(ctx, 200, t.getMessage() + ".ERR9999");
+			});
 	}
 
-	private void publishRecord(final Record rec) {
-		this.srv.getEventBus().publish(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + rec.getDeviceId(), rec);
+	protected void gmcError(final RoutingContext ctx, final int status, final String desc) {
+		this.gmcError(ctx, status, desc, null);
 	}
 
-	@Override
-	protected void error(final RoutingContext ctx, final int status, final String desc, final JsonObject extra) {
+	protected void gmcError(final RoutingContext ctx, final int status, final String desc, final JsonObject extra) {
 		if ("application/json".equals(ctx.getAcceptableContentType())) {
-			super.error(ctx, status, desc, extra);
+			this.error(ctx, status, desc, extra);
 			return;
 		}
 

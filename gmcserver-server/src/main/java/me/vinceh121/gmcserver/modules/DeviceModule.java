@@ -20,6 +20,7 @@ import me.vinceh121.gmcserver.managers.DeviceManager.DeviceFullTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
+import me.vinceh121.gmcserver.managers.LoggingManager;
 import me.vinceh121.gmcserver.managers.UserManager.GetUserAction;
 
 public class DeviceModule extends AbstractModule {
@@ -318,7 +319,7 @@ public class DeviceModule extends AbstractModule {
 				final ServerWebSocket sock = webRes.result();
 
 				final MessageConsumer<Record> consumer = this.srv.getEventBus()
-					.consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
+					.consumer(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
 
 				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 
