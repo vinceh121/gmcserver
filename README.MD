@@ -53,7 +53,7 @@ cd gmcserver
 make
 sudo make install
 ```
-
+This will build all compenents of GMCServer (backend, frontend, emails), if you need to only build one specific component, cd to its folder and run make in it.
 ### Configuring web server
 GMCServer can act on its own as a web server, you just need to set the `web.enabled` setting to true in `config.properties`
 
