@@ -26,11 +26,12 @@ public class LoggingModule extends AbstractModule {
 		super(srv);
 		this.logIp = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"));
 		this.behindReverseProxy = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.behindReverseProxy"));
-		this.registerRoute(HttpMethod.GET, "/log2", this::handleLog2);
-		this.registerRoute(HttpMethod.GET, "/log", this::handleClassicLog);
+		this.registerRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
+		this.registerRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
+		this.registerRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
 	}
 
-	private void handleLog2(final RoutingContext ctx) {
+	private void handleGmcLog2(final RoutingContext ctx) {
 		// AID: user id
 		// GID: device id
 		// CPM: current counts per minute
@@ -95,15 +96,9 @@ public class LoggingModule extends AbstractModule {
 		final Builder build = new Record.Builder(ctx.request().params());
 		build.buildParameters().buildPosition().withCurrentDate().withDevice(device.getId());
 
-		if (this.logIp) {
-			if (this.behindReverseProxy) {
-				build.withIp(ctx.request().getHeader("X-Forwarded-For"));
-			} else {
-				build.withIp(ctx.request().remoteAddress().host());
-			}
-		}
-
 		final Record rec = build.build();
+
+		this.setRecordIp(ctx, rec);
 
 		this.log.debug("Inserting record {}", rec);
 		this.srv.getLoggingManager()
@@ -116,11 +111,11 @@ public class LoggingModule extends AbstractModule {
 				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
 			})
 			.onFailure(t -> {
-				this.gmcError(ctx, 200, t.getMessage() + ".ERR9999");
+				this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
 			});
 	}
 
-	private void handleClassicLog(final RoutingContext ctx) {
+	private void handleGmcClassicLog(final RoutingContext ctx) {
 		// /log.asp?id=UserAccountID+GeigerCounterID+CPM+ACPM+uSV
 		// ACPM and uSV optional
 		final String rawParams = ctx.request().getParam("id");
@@ -217,13 +212,7 @@ public class LoggingModule extends AbstractModule {
 		rec.setDeviceId(device.getId());
 		rec.setUsv(usv);
 
-		if (this.logIp) {
-			if (this.behindReverseProxy) {
-				rec.setIp(ctx.request().getHeader("X-Forwarded-For"));
-			} else {
-				rec.setIp(ctx.request().remoteAddress().host());
-			}
-		}
+		this.setRecordIp(ctx, rec);
 
 		this.log.debug("Inserting record using old log {}", rec);
 
@@ -237,8 +226,106 @@ public class LoggingModule extends AbstractModule {
 				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
 			})
 			.onFailure(t -> {
-				this.gmcError(ctx, 200, t.getMessage() + ".ERR9999");
+				this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
 			});
+	}
+
+	private void handleRadmon(final RoutingContext ctx) {
+		if ("submit".equals(ctx.request().getParam("function"))) {
+			this.error(ctx, 400, "Parameter function should be submit");
+			return;
+		}
+
+		if ("CPM".equals(ctx.request().getParam("unit"))) {
+			this.error(ctx, 400, "Parameter unit should be CPM");
+		}
+
+		final long gmcUserId;
+		try {
+			gmcUserId = Long.parseLong(ctx.request().getParam("AID"));
+		} catch (final NumberFormatException e) {
+			this.gmcError(ctx, 400, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final long gmcDeviceId;
+		try {
+			gmcDeviceId = Long.parseLong(ctx.request().getParam("GID"));
+		} catch (final NumberFormatException e) {
+			this.gmcError(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.eq("gmcId", gmcUserId))
+			.first();
+		if (user == null) {
+			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final Device device = this.srv.getDatabaseManager()
+			.getCollection(Device.class)
+			.find(Filters.eq("gmcId", gmcDeviceId))
+			.first();
+		if (device == null) {
+			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		if (device.getOwner() == null) {
+			this.log.error("Device with no owner: {}", device.getId());
+			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		if (!user.getId().equals(device.getOwner())) {
+			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		if (ctx.request().getParam("value") == null) {
+			this.error(ctx, 400, "Invalid value");
+			return;
+		}
+
+		final double cpm;
+		try {
+			cpm = Double.parseDouble(ctx.request().getParam("value"));
+		} catch (final NumberFormatException e) {
+			this.error(ctx, 400, "Invalid value");
+			return;
+		}
+
+		final Record rec = new Record();
+		rec.setCpm(cpm);
+		rec.setDeviceId(device.getId());
+		rec.setDate(new Date());
+		this.setRecordIp(ctx, rec);
+
+		this.srv.getLoggingManager()
+			.insertRecord()
+			.setDevice(device)
+			.setUser(user)
+			.setRecord(rec)
+			.execute()
+			.onSuccess(v -> {
+				ctx.response().setStatusCode(200).end("OK<br>");
+			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to insert record: " + t);
+			});
+	}
+
+	private void setRecordIp(final RoutingContext ctx, final Record r) {
+		if (this.logIp) {
+			if (this.behindReverseProxy) {
+				r.setIp(ctx.request().getHeader("X-Forwarded-For"));
+			} else {
+				r.setIp(ctx.request().remoteAddress().host());
+			}
+		}
 	}
 
 	protected void gmcError(final RoutingContext ctx, final int status, final String desc) {
