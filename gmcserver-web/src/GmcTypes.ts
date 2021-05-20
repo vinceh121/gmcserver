@@ -95,3 +95,18 @@ export const numericRecordFields = [
 export const exportTypes = [
 	"csv"
 ]
+
+export const proxySettingsModels = {
+	GmcmapProxy: {
+		userId: "number",
+		deviceId: "number"
+	},
+	RadmonProxy: {
+		user: "string",
+		password: "string"
+	},
+	SafecastProxy: {
+		deviceId: "number",
+		apiKey: "string"
+	}
+}

@@ -17,6 +17,7 @@ import NewDevice from "./pages/device/NewDevice";
 import Welcome from "./pages/Welcome";
 import Mfa from "./pages/Mfa";
 import ToolBar from "./components/ToolBar";
+import EditDevice from "./pages/device/EditDevice";
 
 const { Footer, Content, Header } = Layout;
 
@@ -38,6 +39,9 @@ function App() {
 						</Route>
 						<Route path="/device/new">
 							<NewDevice />
+						</Route>
+						<Route path="/device/:id/edit">
+							<EditDevice />
 						</Route>
 						<Route path="/device/:id">
 							<Device />

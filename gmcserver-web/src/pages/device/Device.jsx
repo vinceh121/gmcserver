@@ -88,7 +88,7 @@ function Device() {
 							Live timeline
 						</Link>
 					</Button>,
-					<Dropdown overlay={
+					<Dropdown key="1" overlay={
 						<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
 							{exportTypes.map(t => <Menu.Item key={t}>{t.toUpperCase()}</Menu.Item>)}
 						</Menu>
@@ -96,7 +96,14 @@ function Device() {
 						<Button>
 							Export <DownOutlined />
 						</Button>
-					</Dropdown>
+					</Dropdown>,
+					device.own ?
+						<Button key="2">
+							<Link to={"/device/" + id + "/edit"}>
+								Edit
+							</Link>
+						</Button>
+						: undefined
 				]}
 			>
 				<Descriptions
