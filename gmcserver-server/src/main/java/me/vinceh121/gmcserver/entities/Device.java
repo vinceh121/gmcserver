@@ -121,6 +121,7 @@ public class Device extends AbstractEntity {
 	public JsonObject toPublicJson() {
 		final JsonObject obj = super.toPublicJson();
 		obj.remove("gmcId");
+		obj.remove("proxiesSettings");
 		return obj;
 	}
 
