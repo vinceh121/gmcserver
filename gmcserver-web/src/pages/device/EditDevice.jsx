@@ -1,5 +1,5 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber, message } from "antd";
+import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber, message, Row } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
@@ -56,7 +56,7 @@ function EditDevice() {
 					<Button key="0" danger>
 						<Link to={"/device/" + id}>Cancel</Link>
 					</Button>,
-					<Button type="primary" onClick={onFinish}>
+					<Button key="1" type="primary" onClick={onFinish}>
 						Save
 					</Button>
 				]}
@@ -66,8 +66,8 @@ function EditDevice() {
 					initialValues={device}
 					form={form}
 					// onFinish={onFinish}
-					labelCol={{ span: 2 }}
-					wrapperCol={{ span: 6 }}
+					labelCol={{ span: 4 }}
+					wrapperCol={{ span: 8 }}
 				>
 					<Tabs>
 						<TabPane key="1" tab="General">
@@ -85,11 +85,24 @@ function EditDevice() {
 								<Input />
 							</Form.Item>
 							<Form.Item
-								name="disabled"
+								label="Location"
+							>
+								<Input.Group compact>
+									<Form.Item name={["location", 0]} noStyle>
+										<InputNumber />
+									</Form.Item>
+									<Form.Item name={["location", 1]} noStyle>
+										<InputNumber />
+									</Form.Item>
+								</Input.Group>
+							</Form.Item>
+							<Form.Item
 								label="Disabled"
 							>
 								<Space>
-									<Switch />
+									<Form.Item name="disabled" valuePropName="checked" noStyle>
+										<Switch />
+									</Form.Item>
 									<Tooltip title="When a device is disabled it won't be able to register new records nor proxy any">
 										<QuestionCircleOutlined />
 									</Tooltip>
@@ -109,13 +122,18 @@ function EditDevice() {
 								{Object.keys(proxySettingsModels).map(modelName => {
 									const model = proxySettingsModels[modelName];
 									return (
-										<Card title={modelName.replace("Proxy", "")}>
+										<Card key={modelName} title={modelName.replace("Proxy", "")}>
 											{Object.keys(model).map(valueName => {
 												const valueType = model[valueName];
 												return (
-													<Form.Item name={["proxiesSettings", modelName, valueName]} label={valueName}>
-														{valueType === "number" ? <InputNumber /> : <Input />}
-													</Form.Item>
+													<Row>
+														<Form.Item
+															col={{ span: 16 }} wrapperCol={{ span: 24 }}
+															key={valueName} name={["proxiesSettings", modelName, valueName]}
+															label={valueName}>
+															{valueType === "number" ? <InputNumber /> : <Input />}
+														</Form.Item>
+													</Row>
 												);
 											})}
 										</Card>
