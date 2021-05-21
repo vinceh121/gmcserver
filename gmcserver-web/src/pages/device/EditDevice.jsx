@@ -1,9 +1,9 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber } from "antd";
+import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber, message } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
-import { fetchDevice } from "../../GmcApi";
+import { fetchDevice, updateDevice } from "../../GmcApi";
 import { proxySettingsModels } from "../../GmcTypes";
 
 const { TabPane } = Tabs;
@@ -26,7 +26,24 @@ function EditDevice() {
 	}, [id]);
 
 	const onFinish = () => {
-		console.log(form);
+		const changedFields = [];
+		for (let f in form.getFieldValue()) {
+			if (form.isFieldTouched(f)) {
+				changedFields.push(f);
+			}
+		}
+		const patch = form.getFieldsValue(changedFields);
+		for (const proxy in patch.proxiesSettings) {
+			const vals = Object.values(patch.proxiesSettings[proxy]);
+			if (vals.every(v => v === null)
+				|| vals.every(v => v === "")) {
+				delete patch.proxiesSettings[proxy];
+			}
+		}
+		updateDevice(id, patch).then(
+			up => message.success("Device edited!"),
+			err => message.error("Failed to edit device: " + err, 5)
+		);
 	};
 
 	if (device && device.own) {
@@ -71,10 +88,12 @@ function EditDevice() {
 								name="disabled"
 								label="Disabled"
 							>
-								<Switch />{" "}
-								<Tooltip title="When a device is disabled it won't be able to register new records nor proxy any">
-									<QuestionCircleOutlined />
-								</Tooltip>
+								<Space>
+									<Switch />
+									<Tooltip title="When a device is disabled it won't be able to register new records nor proxy any">
+										<QuestionCircleOutlined />
+									</Tooltip>
+								</Space>
 							</Form.Item>
 							{device.importedFrom ?
 								<Form.Item
@@ -94,7 +113,7 @@ function EditDevice() {
 											{Object.keys(model).map(valueName => {
 												const valueType = model[valueName];
 												return (
-													<Form.Item name={"proxySettings." + modelName + "." + valueName} label={valueName}>
+													<Form.Item name={["proxiesSettings", modelName, valueName]} label={valueName}>
 														{valueType === "number" ? <InputNumber /> : <Input />}
 													</Form.Item>
 												);

@@ -21,6 +21,7 @@ export interface Device extends MapDevice {
 	model?: string;
 	importedFrom?: string;
 	timeline?: Record[];
+	proxiesSettings: object;
 }
 
 export interface Intent {
@@ -78,6 +79,10 @@ export interface DeviceCalendar {
 	lastCalculationDate: Date;
 	recs: Record[];
 	inProgress: boolean;
+}
+
+export interface DeviceUpdate {
+	changed: number;
 }
 
 export const numericRecordFields = [
