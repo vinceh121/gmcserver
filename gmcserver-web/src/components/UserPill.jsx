@@ -9,7 +9,12 @@ function UserPill(props) {
 		<Link to={"/user/" + user.id}>
 			<Button
 				shape="round"
-				icon={<Avatar size="small" icon={<UserOutlined />} />}
+				icon={
+					<Avatar size="small" style={{ marginRight: "4px" }}
+						icon={
+							<UserOutlined />
+						} />
+				}
 			>
 				{user.username}
 			</Button>
