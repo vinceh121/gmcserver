@@ -249,17 +249,17 @@ public class LoggingModule extends AbstractModule {
 
 		final long gmcUserId;
 		try {
-			gmcUserId = Long.parseLong(ctx.request().getParam("AID"));
+			gmcUserId = Long.parseLong(ctx.request().getParam("user"));
 		} catch (final NumberFormatException e) {
-			this.gmcError(ctx, 400, LoggingModule.ERROR_USER_ID);
+			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
 			return;
 		}
 
 		final long gmcDeviceId;
 		try {
-			gmcDeviceId = Long.parseLong(ctx.request().getParam("GID"));
+			gmcDeviceId = Long.parseLong(ctx.request().getParam("password"));
 		} catch (final NumberFormatException e) {
-			this.gmcError(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
+			this.error(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
 			return;
 		}
 
