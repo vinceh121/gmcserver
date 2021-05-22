@@ -1,6 +1,7 @@
 package me.vinceh121.gmcserver.entities;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.bson.types.ObjectId;
 
@@ -16,6 +17,7 @@ public class Device extends AbstractEntity {
 	private boolean disabled;
 	private Date lastEmailAlert = new Date(0L);
 	private double stdDevAlertLimit = Double.NaN;
+	private Map<String, Map<String, Object>> proxiesSettings;
 
 	public int getGmcId() {
 		return this.gmcId;
@@ -89,6 +91,22 @@ public class Device extends AbstractEntity {
 		this.stdDevAlertLimit = stdDevAlertLimit;
 	}
 
+	/**
+	 * @return map where keys are proxy names (their simple class names, also keys in
+	 * GMCServer#getProxies) and values are proxy-specific settings
+	 */
+	public Map<String, Map<String, Object>> getProxiesSettings() {
+		return proxiesSettings;
+	}
+
+	/**
+	 * @return map where keys are proxy names (their simple class names, also keys in
+	 * GMCServer#getProxies) and values are proxy-specific settings
+	 */
+	public void setProxiesSettings(final Map<String, Map<String, Object>> proxiesSettings) {
+		this.proxiesSettings = proxiesSettings;
+	}
+
 	@Override
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
@@ -103,6 +121,7 @@ public class Device extends AbstractEntity {
 	public JsonObject toPublicJson() {
 		final JsonObject obj = super.toPublicJson();
 		obj.remove("gmcId");
+		obj.remove("proxiesSettings");
 		return obj;
 	}
 

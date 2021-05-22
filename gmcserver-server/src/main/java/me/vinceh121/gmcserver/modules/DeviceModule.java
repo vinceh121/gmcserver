@@ -20,6 +20,7 @@ import me.vinceh121.gmcserver.managers.DeviceManager.DeviceFullTimelineAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.GetDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.UpdateDeviceAction;
+import me.vinceh121.gmcserver.managers.LoggingManager;
 import me.vinceh121.gmcserver.managers.UserManager.GetUserAction;
 
 public class DeviceModule extends AbstractModule {
@@ -59,16 +60,21 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final CreateDeviceAction action = this.srv.getDeviceManager()
+		final JsonObject objProxies = obj.getJsonObject("proxiesSettings");
+		this.srv.getProxyManager().validateProxiesSettings().setProxiesSettings(objProxies).execute().onSuccess(v -> {
+			final CreateDeviceAction action = this.srv.getDeviceManager()
 				.createDevice()
 				.setModel(model)
 				.setUser(user)
 				.setArrLocation(arrLoc)
 				.setName(name);
-		action.execute().onSuccess(dev -> {
-			ctx.response().end(dev.toJson().toBuffer());
+			action.execute().onSuccess(dev -> {
+				ctx.response().end(dev.toJson().toBuffer());
+			}).onFailure(t -> {
+				this.error(ctx, 400, t.getMessage());
+			});
 		}).onFailure(t -> {
-			this.error(ctx, 400, t.getMessage());
+			this.error(ctx, 400, "Couldn't validate proxiesSettings: " + t.getMessage());
 		});
 	}
 
@@ -95,16 +101,16 @@ public class DeviceModule extends AbstractModule {
 			final boolean delete = obj.getBoolean("delete");
 
 			this.srv.getDeviceManager()
-					.deleteDevice()
-					.setDelete(delete)
-					.setDeviceId(deviceId)
-					.execute()
-					.onSuccess(res -> {
-						ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
-					})
-					.onFailure(t -> {
-						this.error(ctx, 400, t.getMessage());
-					});
+				.deleteDevice()
+				.setDelete(delete)
+				.setDeviceId(deviceId)
+				.execute()
+				.onSuccess(res -> {
+					ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
+				})
+				.onFailure(t -> {
+					this.error(ctx, 400, t.getMessage());
+				});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "Device not found");
 		});
@@ -133,11 +139,12 @@ public class DeviceModule extends AbstractModule {
 			}
 
 			final UpdateDeviceAction action = this.srv.getDeviceManager()
-					.updateDevice()
-					.setDevice(dev)
-					.setArrLocation(obj.getJsonArray("location"))
-					.setModel(obj.getString("model"))
-					.setName(obj.getString("name"));
+				.updateDevice()
+				.setDevice(dev)
+				.setArrLocation(obj.getJsonArray("location"))
+				.setModel(obj.getString("model"))
+				.setName(obj.getString("name"))
+				.setProxiesSettings(obj.getJsonObject("proxiesSettings"));
 			action.execute().onSuccess(upRes -> {
 				ctx.response().end(new JsonObject().put("changed", upRes).toBuffer());
 			}).onFailure(t -> {
@@ -221,11 +228,11 @@ public class DeviceModule extends AbstractModule {
 			final boolean full = "y".equals(ctx.request().getParam("full"));
 
 			final DeviceFullTimelineAction histAction = this.srv.getDeviceManager()
-					.deviceFullTimeline()
-					.setStart(start)
-					.setEnd(end)
-					.setFull(full)
-					.setDev(dev);
+				.deviceFullTimeline()
+				.setStart(start)
+				.setEnd(end)
+				.setFull(full)
+				.setDev(dev);
 			histAction.execute().onSuccess(hist -> {
 				ctx.response().setChunked(true);
 
@@ -273,8 +280,10 @@ public class DeviceModule extends AbstractModule {
 
 		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
 		getDevAction.execute().onSuccess(dev -> {
-			final DeviceStatsAction action
-					= this.srv.getDeviceManager().deviceStats().setDevId(dev.getId()).setField(field);
+			final DeviceStatsAction action = this.srv.getDeviceManager()
+				.deviceStats()
+				.setDevId(dev.getId())
+				.setField(field);
 
 			action.execute().onSuccess(res -> {
 				final JsonObject obj = res.toJson();
@@ -310,7 +319,7 @@ public class DeviceModule extends AbstractModule {
 				final ServerWebSocket sock = webRes.result();
 
 				final MessageConsumer<Record> consumer = this.srv.getEventBus()
-						.consumer(LoggingModule.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
+					.consumer(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
 
 				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 

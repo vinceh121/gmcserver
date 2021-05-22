@@ -9,6 +9,7 @@ import {
 	MfaStartSetupResponse,
 	DeviceStats,
 	DeviceCalendar,
+	DeviceUpdate,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -162,6 +163,23 @@ export const createDevice = async (
 		body: JSON.stringify({ name: name, position: [lat, lon] }),
 	});
 	return (await res.json()) as Device;
+};
+
+export const updateDevice = async (
+	id: string,
+	data: Device
+): Promise<DeviceUpdate> => {
+	const res = await request("/device/" + id, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(data)
+	});
+	if (res.status !== 200) {
+		throw Error(res.statusText + ": " + (await res.json()).description);
+	}
+	return (await res.json()) as DeviceUpdate;
 };
 
 export const fetchTimeline = async (

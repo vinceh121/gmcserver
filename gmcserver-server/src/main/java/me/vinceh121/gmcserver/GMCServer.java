@@ -43,6 +43,8 @@ import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceCalendarManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
+import me.vinceh121.gmcserver.managers.LoggingManager;
+import me.vinceh121.gmcserver.managers.ProxyManager;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.email.EmailManager;
 import me.vinceh121.gmcserver.mfa.MFAManager;
@@ -90,6 +92,8 @@ public class GMCServer {
 	private EmailManager emailManager;
 	private AlertManager alertManager;
 	private DeviceCalendarManager deviceCalendarManager;
+	private LoggingManager loggingManager;
+	private ProxyManager proxyManager;
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
@@ -215,6 +219,8 @@ public class GMCServer {
 		this.emailManager = new EmailManager(this);
 		this.alertManager = new AlertManager(this);
 		this.deviceCalendarManager = new DeviceCalendarManager(this);
+		this.loggingManager = new LoggingManager(this);
+		this.proxyManager = new ProxyManager(this);
 	}
 
 	private void registerModules() {
@@ -291,7 +297,7 @@ public class GMCServer {
 	public AbstractAuthenticator getAuthenticator() {
 		return this.authenticator;
 	}
-	
+
 	public Collection<AbstractModule> getModules() {
 		return modules;
 	}
@@ -322,5 +328,13 @@ public class GMCServer {
 
 	public DeviceCalendarManager getDeviceCalendarManager() {
 		return this.deviceCalendarManager;
+	}
+
+	public LoggingManager getLoggingManager() {
+		return loggingManager;
+	}
+
+	public ProxyManager getProxyManager() {
+		return this.proxyManager;
 	}
 }

@@ -24,6 +24,7 @@ import com.mongodb.client.result.UpdateResult;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
@@ -207,6 +208,7 @@ public class DeviceManager extends AbstractManager {
 		private Device device;
 		private String name, model;
 		private JsonArray arrLocation;
+		private JsonObject proxiesSettings;
 
 		public UpdateDeviceAction(final GMCServer srv) {
 			super(srv);
@@ -226,6 +228,10 @@ public class DeviceManager extends AbstractManager {
 
 			if (this.arrLocation != null) {
 				updates.add(Updates.set("location", DeviceManager.jsonArrToPoint(this.arrLocation)));
+			}
+			
+			if (this.proxiesSettings != null) {
+				updates.add(Updates.set("proxiesSettings", this.proxiesSettings.getMap()));
 			}
 
 			final UpdateResult res = this.srv.getDatabaseManager()
@@ -272,6 +278,15 @@ public class DeviceManager extends AbstractManager {
 
 		public UpdateDeviceAction setArrLocation(final JsonArray arrLocation) {
 			this.arrLocation = arrLocation;
+			return this;
+		}
+
+		public JsonObject getProxiesSettings() {
+			return proxiesSettings;
+		}
+
+		public UpdateDeviceAction setProxiesSettings(final JsonObject proxiesSettings) {
+			this.proxiesSettings = proxiesSettings;
 			return this;
 		}
 

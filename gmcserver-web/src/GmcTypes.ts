@@ -21,6 +21,7 @@ export interface Device extends MapDevice {
 	model?: string;
 	importedFrom?: string;
 	timeline?: Record[];
+	proxiesSettings: object;
 }
 
 export interface Intent {
@@ -80,6 +81,10 @@ export interface DeviceCalendar {
 	inProgress: boolean;
 }
 
+export interface DeviceUpdate {
+	changed: number;
+}
+
 export const numericRecordFields = [
 	"cpm",
 	"acpm",
@@ -95,3 +100,18 @@ export const numericRecordFields = [
 export const exportTypes = [
 	"csv"
 ]
+
+export const proxySettingsModels = {
+	GmcmapProxy: {
+		userId: "number",
+		deviceId: "number"
+	},
+	RadmonProxy: {
+		user: "string",
+		password: "string"
+	},
+	SafecastProxy: {
+		deviceId: "number",
+		apiKey: "string"
+	}
+}
