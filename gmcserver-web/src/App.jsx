@@ -25,7 +25,7 @@ function App() {
 	return (
 		<Router>
 			<Layout>
-				<Header>
+				<Header style={{ height: "46px", lineHeight: "46px" }}>
 					{/* <GMCLogo /> */}
 					<ToolBar />
 				</Header>
