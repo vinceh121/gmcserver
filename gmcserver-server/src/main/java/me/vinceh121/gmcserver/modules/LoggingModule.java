@@ -1,8 +1,13 @@
 package me.vinceh121.gmcserver.modules;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +19,7 @@ import me.vinceh121.gmcserver.entities.Record.Builder;
 import me.vinceh121.gmcserver.entities.User;
 
 public class LoggingModule extends AbstractModule {
+	private static final DateFormat DATE_FORMAT_ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 	public static final String ERROR_OK = "OK.ERR0";
 	public static final String ERROR_SYNTAX = "The syntax of one of the logging parameters is incorrect";
 	public static final String ERROR_USER_ID = "Invalid user ID.ERR1";
@@ -29,6 +35,7 @@ public class LoggingModule extends AbstractModule {
 		this.registerRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
 		this.registerRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
 		this.registerRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
+		this.registerRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
 	}
 
 	private void handleGmcLog2(final RoutingContext ctx) {
@@ -313,6 +320,107 @@ public class LoggingModule extends AbstractModule {
 			.onSuccess(v -> {
 				ctx.response().setStatusCode(200).end("OK<br>");
 			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to insert record: " + t);
+			});
+	}
+
+	private void handleSafecast(final RoutingContext ctx) {
+		final long gmcUserId;
+		try {
+			gmcUserId = Long.parseLong(ctx.request().getParam("api_key"));
+		} catch (final NumberFormatException e) {
+			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final long gmcDeviceId;
+		try {
+			gmcDeviceId = obj.getLong("device_id");
+		} catch (final ClassCastException e) {
+			this.error(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.eq("gmcId", gmcUserId))
+			.first();
+		if (user == null) {
+			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final Device device = this.srv.getDatabaseManager()
+			.getCollection(Device.class)
+			.find(Filters.eq("gmcId", gmcDeviceId))
+			.first();
+		if (device == null) {
+			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		if (device.getOwner() == null) {
+			this.log.error("Device with no owner: {}", device.getId());
+			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		if (!user.getId().equals(device.getOwner())) {
+			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		if (!"cpm".equals(obj.getString("unit"))) {
+			this.error(ctx, 400, "Value of `unit` must be `cpm`");
+			return;
+		}
+
+		final Record r = new Record();
+		r.setDeviceId(device.getId());
+
+		try {
+			final String rawDate = obj.getString("captured_at");
+			final Date date = DATE_FORMAT_ISO_8601.parse(rawDate);
+			r.setDate(date);
+		} catch (final ClassCastException | ParseException e) {
+			this.error(ctx, 400, "Invalid date");
+			return;
+		}
+
+		try {
+			final Double lon = obj.getDouble("longitude");
+			final Double lat = obj.getDouble("latitude");
+			if (lon == null || lat == null) {
+				this.error(ctx, 400, "Location is required");
+				return;
+			}
+			r.setLocation(new Point(new Position(lon, lat)));
+		} catch (final ClassCastException e) {
+			this.error(ctx, 400, "Invalid location");
+			return;
+		}
+
+		try {
+			final Integer cpm = obj.getInteger("value");
+			if (cpm == null) {
+				this.error(ctx, 400, "Value is required");
+				return;
+			}
+		} catch (final ClassCastException e) {
+			this.error(ctx, 400, "Invalid value");
+			return;
+		}
+
+		this.srv.getLoggingManager()
+			.insertRecord()
+			.setRecord(r)
+			.setDevice(device)
+			.setUser(user)
+			.execute()
+			.onSuccess(v -> this.error(ctx, 200, ""))
 			.onFailure(t -> {
 				this.error(ctx, 500, "Failed to insert record: " + t);
 			});
