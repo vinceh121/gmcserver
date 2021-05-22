@@ -379,6 +379,7 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		final Record r = new Record();
+		this.setRecordIp(ctx, r);
 		r.setDeviceId(device.getId());
 
 		try {
