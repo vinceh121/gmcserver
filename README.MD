@@ -7,20 +7,23 @@
 [![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/vinceh121/gmcserver?style=for-the-badge)](https://lgtm.com/projects/g/vinceh121/gmcserver/)
 [![Most used swear](https://img.shields.io/badge/dynamic/json?color=yellow&label=Most%20used%20swear&query=%24.mostUsed.word&url=https%3A%2F%2Fswear.vinceh121.me%2Fcount.json%3Furi%3Dhttps%3A%2F%2Fgithub.com%2Fvinceh121%2Fgmcserver&style=for-the-badge)](https://github.com/vinceh121/git-swears)
 
-GMCServer is a lightweight service that allows logging, analysis and visualization of data recorded by [GMC Geiger counters](https://www.amazon.com/GQ-Radiation-Detector-Recorder-equipment/dp/B00ROHGWIQ)
+GMCServer is a lightweight service that allows logging, analysis, visualization and proxying of data recorded by [GMC Geiger counters](https://www.amazon.com/GQ-Radiation-Detector-Recorder-equipment/dp/B00ROHGWIQ), [Radmon counters](https://radmon.org) and [Safecast counters](https://safecast.org/devices/bgeigie-nano/)
 <br> Some of the features implemented so far:
  - User accounts
  - Device logging
  - Timeline visualization
  - Device World map
  - Simple statistical analysis (min, max, average, standard deviation)
+ - Proxy to other platforms
 
 A demo/main instance is available at **https://gmc.vinceh121.me**
 
 ## Motivation
 On top of not being self-hostable and closed-source, gmcmap.com lacks some features relating to data analysis, visualization, API access, and overall security. This project aims to create a compatible, open-source and self-hostable alternative to gmcmap.com implementing those missing features and security fixes.
+GMCServer can also *proxy* records, that is, report measurements itself to other platforms such as gmcmap.com and radmon.org simultaneously upon receiving a record from your counter.
 
 ## Setting up device
+### GQ Electronics' GMC
 You should first set up WiFi on your GMC device. In the `Server` settings, you should set the following values:
  - `Website` : to the hostname of the server where GMCServer is running (`gmc.vinceh121.me` for the main instance)
  - `URL` : to `api/v1/log2`
