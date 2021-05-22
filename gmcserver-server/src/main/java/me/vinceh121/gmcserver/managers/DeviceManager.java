@@ -419,7 +419,7 @@ public class DeviceManager extends AbstractManager {
 			dev.setName(this.name);
 			dev.setModel(this.model);
 			if (this.generateGmcId) {
-				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextInt()));
+				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()));
 			}
 			dev.setLocation(location);
 

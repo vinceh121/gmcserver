@@ -84,7 +84,7 @@ public class ImportExportModule extends AbstractModule {
 		dev.setImportedFrom(gmcmapId);
 		dev.setOwner(user.getId());
 		dev.setName("Imported from gmcmap ID " + gmcmapId);
-		dev.setGmcId(Math.abs(ImportExportModule.DEV_RANDOM.nextInt()));
+		dev.setGmcId(ImportExportModule.DEV_RANDOM.nextLong());
 
 		this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
 

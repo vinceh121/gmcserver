@@ -13,17 +13,17 @@ public class Device extends AbstractEntity {
 	private String model, name, importedFrom;
 	private Point location;
 	private ObjectId owner;
-	private int gmcId;
+	private long gmcId;
 	private boolean disabled;
 	private Date lastEmailAlert = new Date(0L);
 	private double stdDevAlertLimit = Double.NaN;
 	private Map<String, Map<String, Object>> proxiesSettings;
 
-	public int getGmcId() {
+	public long getGmcId() {
 		return this.gmcId;
 	}
 
-	public void setGmcId(final int gmcId) {
+	public void setGmcId(final long gmcId) {
 		this.gmcId = gmcId;
 	}
 
