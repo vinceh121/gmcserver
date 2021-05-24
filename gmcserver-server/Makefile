@@ -1,8 +1,13 @@
+PATH_CONFIG = /etc/gmcserver/config.properties
+PATH_CONFIG_VERTX = /etc/gmcserver/vertx.json
+PATH_CONFIG_MAIL = /etc/gmcserver/mail.json
+PATH_MAIL_TEMPLATES = /etc/gmcserver/mail-templates/
+
 server:
-		mvn -Dgmc.config.path=/etc/gmcserver/config.properties \
-		-Dgmc.vertx.config.path=/etc/gmcserver/vertx.json \
-		-Dgmc.vertx.mail.config.path=/etc/gmcserver/mail.json \
-		-Dgmc.vertx.mail.templates.path=/etc/gmcserver/mail-templates/ \
+		mvn -Dgmc.config.path=$(PATH_CONFIG) \
+		-Dgmc.vertx.config.path=$(PATH_CONFIG_VERTX) \
+		-Dgmc.vertx.mail.config.path=$(PATH_CONFIG_MAIL) \
+		-Dgmc.vertx.mail.templates.path=$(PATH_MAIL_TEMPLATES) \
 		compile assembly:single
 
 DEST_BIN = $(DESTDIR)/usr/bin
