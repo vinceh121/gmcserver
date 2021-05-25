@@ -3,6 +3,8 @@ package me.vinceh121.gmcserver.managers;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.logging.log4j.message.FormattedMessage;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -30,7 +32,8 @@ public class LoggingManager extends AbstractManager {
 		private Record record;
 		private Device device;
 		private User user;
-		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true;
+		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true,
+				differAlert = true, differProxy = true;
 
 		public InsertRecordAction(final GMCServer srv) {
 			super(srv);
@@ -39,10 +42,12 @@ public class LoggingManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
 			@SuppressWarnings("rawtypes")
-			final List<Future> futures = new Vector<>();
+			final List<Future> joinedFutures = new Vector<>();
+			@SuppressWarnings("rawtypes")
+			final List<Future> differedFutures = new Vector<>();
 
 			if (insertInDb) {
-				futures.add(Future.future(p -> {
+				joinedFutures.add(Future.future(p -> {
 					try {
 						this.srv.getDatabaseManager().getCollection(Record.class).insertOne(this.record);
 						p.complete();
@@ -53,7 +58,7 @@ public class LoggingManager extends AbstractManager {
 			}
 
 			if (checkAlert) {
-				futures.add(this.srv.getAlertManager()
+				(this.differAlert ? differedFutures : joinedFutures).add(this.srv.getAlertManager()
 					.checkAlert()
 					.setDev(this.device)
 					.setOwner(this.user)
@@ -62,7 +67,7 @@ public class LoggingManager extends AbstractManager {
 			}
 
 			if (processProxy) {
-				futures.add(this.srv.getProxyManager()
+				(this.differProxy ? differedFutures : joinedFutures).add(this.srv.getProxyManager()
 					.processDeviceProxies()
 					.setDevice(device)
 					.setRecord(this.record)
@@ -74,7 +79,10 @@ public class LoggingManager extends AbstractManager {
 					.publish(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + this.record.getDeviceId(), this.record);
 			}
 
-			CompositeFuture.join(futures).onSuccess(c -> promise.complete()).onFailure(promise::fail);
+			CompositeFuture.join(joinedFutures).onSuccess(c -> promise.complete()).onFailure(promise::fail);
+			CompositeFuture.join(differedFutures)
+				.onFailure(
+						t -> log.error(new FormattedMessage("Error while logging record {}", this.record.getId()), t));
 		}
 
 		public Record getRecord() {
