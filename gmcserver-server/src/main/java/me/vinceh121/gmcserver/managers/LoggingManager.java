@@ -58,8 +58,7 @@ public class LoggingManager extends AbstractManager {
 					.setDev(this.device)
 					.setOwner(this.user)
 					.setLatestRecord(this.record)
-					.execute()
-					.onFailure(t -> log.error("Failed to check alert email", t)));
+					.execute());
 			}
 
 			if (processProxy) {
