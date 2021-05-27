@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { ResponsiveCalendar } from '@nivo/calendar'
 import Loader from "./Loader";
 import { numericRecordFields } from "../GmcTypes";
-import { Result, Select } from "antd";
+import { message, Result, Select } from "antd";
 import { ClockCircleTwoTone } from "@ant-design/icons";
+import { fetchCalendar } from "../GmcApi";
 
 const { Option } = Select;
 
@@ -15,18 +16,28 @@ function fuckDates(date) {
 
 function DeviceCalendar(props) {
 	const [selectedCalendar, setSelectedCalendar] = useState("cpm")
-	const [bounds, setBounds] = useState(null);
+	const [rawCalendar, setRawCalendar] = useState();
+	const [bounds, setBounds] = useState();
 	const [calendars, setCalendars] = useState({});
 
 	useEffect(() => {
-		if (props.calendar.recs && !Object.keys(calendars).length) {
+		if (props.device) {
+			fetchCalendar(props.device.id).then(
+				(cal) => setRawCalendar(cal),
+				(err) => message.error("Failed to fetch calendar: " + err, 5000)
+			);
+		}
+	}, [props.device]);
+
+	useEffect(() => {
+		if (rawCalendar && rawCalendar.recs && !Object.keys(calendars).length) {
 			const cal = {};
 
 			for (let field of numericRecordFields) {
 				cal[field] = [];
 			}
 
-			for (let rec of props.calendar.recs) {
+			for (let rec of rawCalendar.recs) {
 				for (let field of numericRecordFields) {
 					cal[field].push({ day: fuckDates(new Date(rec.date)), value: rec[field] });
 				}
@@ -34,20 +45,24 @@ function DeviceCalendar(props) {
 
 			setCalendars(cal);
 		}
-	}, [props, props.calendar, calendars]);
+	}, [rawCalendar, calendars]);
 
 	useEffect(() => {
-		if (props.calendar.recs &&
-			props.calendar.recs.length && Object.keys(calendars).length && !bounds) {
+		if (
+			rawCalendar &&
+			rawCalendar.recs &&
+			rawCalendar.recs.length &&
+			Object.keys(calendars).length &&
+			!bounds
+		) {
 			setBounds({
-				min: fuckDates(new Date(props.calendar.recs[0].date)),
-				max: fuckDates(new Date(props.calendar.recs[props.calendar.recs.length - 1].date))
+				min: fuckDates(new Date(rawCalendar.recs[0].date)),
+				max: fuckDates(new Date(rawCalendar.recs[rawCalendar.recs.length - 1].date))
 			});
 		}
-	}, [calendars, props.calendar.recs, bounds]);
+	}, [calendars, rawCalendar, bounds]);
 
-
-	if (props.calendar.status === 202) {
+	if (rawCalendar && rawCalendar.status === 202) {
 		return (
 			<Result
 				title="The calendar is still loading"
@@ -56,7 +71,7 @@ function DeviceCalendar(props) {
 		);
 	}
 
-	if (props.calendar.recs && props.calendar.recs.length === 0) {
+	if (rawCalendar && rawCalendar.recs && rawCalendar.recs.length === 0) {
 		return (
 			<Result status="404"
 				title="Couldn't generate calendar"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { fetchDevice, fetchDeviceStats, fetchTimeline, fetchCalendar } from "../../GmcApi";
+import { fetchDevice, fetchDeviceStats, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
@@ -38,8 +38,6 @@ function Device() {
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
-	const [calendar, setCalendar] = useState(null);
-	// const [calendarError, setCalendarError] = useState(null);
 	const [input, setInput] = useState({});
 	const { id } = useParams();
 
@@ -58,15 +56,6 @@ function Device() {
 			);
 		}
 	}, [device, input.start, input.end]);
-
-	useEffect(() => {
-		if (device) {
-			fetchCalendar(device.id).then(
-				(cal) => setCalendar(cal)
-				// (err) => setCalendarError(err)
-			);
-		}
-	}, [device]);
 
 	function handleStatsChange(field) {
 		fetchDeviceStats(device.id, field).then(
@@ -143,8 +132,8 @@ function Device() {
 						<DeviceTable device={device} timeline={timeline} />
 					</TabPane>
 					<TabPane tab="Calendar" key="3">
-						<Card bodyStyle={{ height: "500px" }} loading={!calendar} style={{ marginBottom: "8px" }}>
-							<DeviceCalendar calendar={calendar} />
+						<Card bodyStyle={{ height: "500px" }} style={{ marginBottom: "8px" }}>
+							<DeviceCalendar device={device} />
 						</Card>
 					</TabPane>
 				</Tabs>
