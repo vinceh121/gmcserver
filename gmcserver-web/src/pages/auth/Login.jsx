@@ -43,7 +43,7 @@ function Login() {
 							name="username"
 							rules={[{ required: true, message: "Required" }]}
 						>
-							<Input prefix={<UserOutlined />} placeholder="Username" />
+							<Input prefix={<UserOutlined />} placeholder="Username or Email" />
 						</Form.Item>
 						<Form.Item
 							name="password"

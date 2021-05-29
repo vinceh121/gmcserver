@@ -17,9 +17,9 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 	public Future<User> login(final String username, final String password) {
 		return Future.future(promise -> {
 			final User user = this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.find(Filters.eq("username", username))
-					.first();
+				.getCollection(User.class)
+				.find(Filters.or(Filters.eq("username", username), Filters.eq("email", username)))
+				.first();
 
 			if (user == null) {
 				promise.fail("User not found");
@@ -43,10 +43,10 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 	public Future<User> register(final String username, final String email, final String password) {
 		return Future.future(promise -> {
 			final CreateUserAction action = this.srv.getUserManager()
-					.createUser()
-					.setUsername(username)
-					.setPassword(password)
-					.setEmail(email);
+				.createUser()
+				.setUsername(username)
+				.setPassword(password)
+				.setEmail(email);
 			action.execute().onSuccess(promise::complete).onFailure(t -> promise.fail("Failed to create user: " + t));
 		});
 	}
