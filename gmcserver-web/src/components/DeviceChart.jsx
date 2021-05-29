@@ -79,6 +79,7 @@ function DeviceChart(props) {
 				curve="linear"
 				useMesh={true}
 				enableSlices="x"
+				// onClick={(p) => props.onClick ? props.onClick(props.timeline[p.index]) : undefined} // sighhh onClick doesn't work with slices
 				xScale={{
 					type: "linear",
 					min: "auto",

@@ -50,7 +50,7 @@ function DeviceTable(props) {
 	}, [props.timeline])
 
 	return (
-		<Table dataSource={props.timeline} columns={cols} />
+		<Table onRow={(rec) => (props.onClick ? { onClick: () => props.onClick(rec) } : {})} dataSource={props.timeline} columns={cols} />
 	);
 }
 

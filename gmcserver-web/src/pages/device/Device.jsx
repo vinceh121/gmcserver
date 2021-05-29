@@ -26,6 +26,8 @@ import { exportTypes, numericRecordFields } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
 import { DownOutlined } from "@ant-design/icons";
 import DeviceTable from "../../components/DeviceTable";
+import Modal from "antd/lib/modal/Modal";
+import RecordView from "../../components/RecordView";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -39,6 +41,7 @@ function Device() {
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
 	const [input, setInput] = useState({});
+	const [viewRecord, setViewRecord] = useState();
 	const { id } = useParams();
 
 	useEffect(() => {
@@ -66,141 +69,151 @@ function Device() {
 
 	if (device) {
 		return (
-			<PageHeader
-				onBack={history.goBack}
-				title={device.name}
-				subTitle={device.gmcId}
-				tags={device.disabled || device.importedFrom ? <DeviceBadge device={device} /> : undefined}
-				extra={[
-					<Button key="0">
-						<Link to={"/device/" + id + "/live"}>
-							Live timeline
+			<>
+				<PageHeader
+					onBack={history.goBack}
+					title={device.name}
+					subTitle={device.gmcId}
+					tags={device.disabled || device.importedFrom ? <DeviceBadge device={device} /> : undefined}
+					extra={[
+						<Button key="0">
+							<Link to={"/device/" + id + "/live"}>
+								Live timeline
 						</Link>
-					</Button>,
-					<Dropdown key="1" overlay={
-						<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
-							{exportTypes.map(t => <Menu.Item key={t}>{t.toUpperCase()}</Menu.Item>)}
-						</Menu>
-					}>
-						<Button>
-							Export <DownOutlined />
-						</Button>
-					</Dropdown>,
-					device.own ?
-						<Button key="2">
-							<Link to={"/device/" + id + "/edit"}>
-								Edit
+						</Button>,
+						<Dropdown key="1" overlay={
+							<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
+								{exportTypes.map(t => <Menu.Item key={t}>{t.toUpperCase()}</Menu.Item>)}
+							</Menu>
+						}>
+							<Button>
+								Export <DownOutlined />
+							</Button>
+						</Dropdown>,
+						device.own ?
+							<Button key="2">
+								<Link to={"/device/" + id + "/edit"}>
+									Edit
 							</Link>
-						</Button>
-						: undefined
-				]}
-			>
-				<Descriptions
-					size="small"
-					extra={<UserPill user={device.owner} />}
+							</Button>
+							: undefined
+					]}
 				>
-					{device.importedFrom ? (
-						<Descriptions.Item label="Imported from">
-							{device.importedFrom}
-						</Descriptions.Item>
-					) : undefined}
+					<Descriptions
+						size="small"
+						extra={<UserPill user={device.owner} />}
+					>
+						{device.importedFrom ? (
+							<Descriptions.Item label="Imported from">
+								{device.importedFrom}
+							</Descriptions.Item>
+						) : undefined}
 
-					{device.model ? (
-						<Descriptions.Item label="Model">
-							{device.model}
-						</Descriptions.Item>
-					) : undefined}
+						{device.model ? (
+							<Descriptions.Item label="Model">
+								{device.model}
+							</Descriptions.Item>
+						) : undefined}
 
-					{device.location ? (
-						<Descriptions.Item label="Location">
-							{device.location[1]}, {device.location[0]}
-						</Descriptions.Item>
-					) : undefined}
-				</Descriptions>
-				<Tabs defaultActiveKey="1">
-					<TabPane tab="Timeline" key="1">
-						<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
-							<DeviceChart
-								full={input.full}
-								start={input.start}
-								end={input.end}
+						{device.location ? (
+							<Descriptions.Item label="Location">
+								{device.location[1]}, {device.location[0]}
+							</Descriptions.Item>
+						) : undefined}
+					</Descriptions>
+					<Tabs defaultActiveKey="1">
+						<TabPane tab="Timeline" key="1">
+							<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
+								<DeviceChart
+									full={input.full}
+									start={input.start}
+									end={input.end}
+									timeline={timeline}
+								// onClick={(r) => setViewRecord(r)} // sighhh onClick doesn't work with slices
+								/>
+							</Card>
+						</TabPane>
+						<TabPane tab="Table" key="2">
+							<DeviceTable
+								device={device}
 								timeline={timeline}
+								onClick={setViewRecord}
 							/>
-						</Card>
-					</TabPane>
-					<TabPane tab="Table" key="2">
-						<DeviceTable device={device} timeline={timeline} />
-					</TabPane>
-					<TabPane tab="Calendar" key="3">
-						<Card bodyStyle={{ height: "500px" }} style={{ marginBottom: "8px" }}>
-							<DeviceCalendar device={device} />
-						</Card>
-					</TabPane>
-				</Tabs>
-				<Space direction="vertical">
-					<RangePicker
-						showTime
-						onChange={(d) =>
-							setInput(
-								Object.assign({}, input, {
-									start: d[0].toDate(),
-									end: d[1].toDate(),
-								})
-							)
-						}
-					/>
+						</TabPane>
+						<TabPane tab="Calendar" key="3">
+							<Card bodyStyle={{ height: "500px" }} style={{ marginBottom: "8px" }}>
+								<DeviceCalendar device={device} />
+							</Card>
+						</TabPane>
+					</Tabs>
+					<Space direction="vertical">
+						<RangePicker
+							showTime
+							onChange={(d) =>
+								setInput(
+									Object.assign({}, input, {
+										start: d[0].toDate(),
+										end: d[1].toDate(),
+									})
+								)
+							}
+						/>
 
-					<div>
-						<Select
-							onChange={handleStatsChange}
-							style={{ width: "120px" }}
-						>
-							{numericRecordFields.map((f, i) => {
-								return (
-									<Option key={i} value={f}>
-										{f}
-									</Option>
-								);
-							})}
-						</Select>
-						<Row gutter={16}>
-							<Col span={12}>
-								<Statistic
-									title="Minimum"
-									value={stats.min}
-									suffix={stats.unit}
-								/>
-							</Col>
-							<Col span={12}>
-								<Statistic
-									title="Maximum"
-									value={stats.max}
-									suffix={stats.unit}
-								/>
-							</Col>
-						</Row>
-						<Row gutter={16}>
-							<Col span={12}>
-								<Statistic
-									title="Standard deviation"
-									value={stats.stdDev}
-								/>
-							</Col>
-							<Col span={12}>
-								<Statistic title="Average" value={stats.avg} />
-							</Col>
-						</Row>
-						<Row gutter={16}>
-							<Col span={12}>
-								<Statistic
-									title="Sample size"
-									value={stats.sampleSize}
-								/>
-							</Col>
-						</Row>
-					</div>
-				</Space>
-			</PageHeader>
+						<div>
+							<Select
+								onChange={handleStatsChange}
+								style={{ width: "120px" }}
+							>
+								{numericRecordFields.map((f, i) => {
+									return (
+										<Option key={i} value={f}>
+											{f}
+										</Option>
+									);
+								})}
+							</Select>
+							<Row gutter={16}>
+								<Col span={12}>
+									<Statistic
+										title="Minimum"
+										value={stats.min}
+										suffix={stats.unit}
+									/>
+								</Col>
+								<Col span={12}>
+									<Statistic
+										title="Maximum"
+										value={stats.max}
+										suffix={stats.unit}
+									/>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={12}>
+									<Statistic
+										title="Standard deviation"
+										value={stats.stdDev}
+									/>
+								</Col>
+								<Col span={12}>
+									<Statistic title="Average" value={stats.avg} />
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={12}>
+									<Statistic
+										title="Sample size"
+										value={stats.sampleSize}
+									/>
+								</Col>
+							</Row>
+						</div>
+					</Space>
+				</PageHeader>
+				<Modal visible={viewRecord} footer={null} onCancel={() => setViewRecord()} width="50vw">
+					<RecordView record={viewRecord} />
+				</Modal>
+			</>
 		);
 	} else if (deviceError) {
 		return (
