@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Card } from "antd";
+import { Card, PageHeader } from "antd";
 import Loader from "../../components/Loader";
-import { useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import DeviceChart from "../../components/DeviceChart";
 import { fetchDevice, openLiveTimeline } from "../../GmcApi";
 
 function LiveDevice() {
+	const history = useHistory();
 	const [device, setDevice] = useState(null);
 	const [timeline, setTimeline] = useState([]);
 	const [ws, setWs] = useState(null);
@@ -24,13 +25,17 @@ function LiveDevice() {
 
 	if (device) {
 		return (
-			<Card
+			<PageHeader
+				onBack={history.goBack}
 				title={"Live view: " + device.name}
-				style={{ margin: "16px" }}
-				bodyStyle={{ height: "500px" }}
 			>
-				<DeviceChart timeline={timeline} />
-			</Card>
+				<Card
+					style={{ margin: "16px" }}
+					bodyStyle={{ height: "500px" }}
+				>
+					<DeviceChart timeline={timeline} />
+				</Card>
+			</PageHeader>
 		);
 	} else {
 		return <Loader subTitle="Loading device live view..." />;
