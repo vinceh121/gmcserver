@@ -1,42 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { fetchDevice, fetchDeviceStats, fetchTimeline } from "../../GmcApi";
+import { fetchDevice, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
-	Col,
 	DatePicker,
 	Descriptions,
 	Dropdown,
 	Menu,
-	message,
 	PageHeader,
 	Result,
-	Row,
-	Select,
-	Space,
-	Statistic,
 	Tabs,
 } from "antd";
 import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
-import { exportTypes, numericRecordFields } from "../../GmcTypes";
+import { exportTypes } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
 import { DownOutlined } from "@ant-design/icons";
 import DeviceTable from "../../components/DeviceTable";
 import Modal from "antd/lib/modal/Modal";
 import RecordView from "../../components/RecordView";
+import DeviceStats from "../../components/DeviceStats";
 
 const { TabPane } = Tabs;
-const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 function Device() {
 	const history = useHistory();
 	const [device, setDevice] = useState(null);
-	const [stats, setStats] = useState({});
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
@@ -60,12 +53,17 @@ function Device() {
 		}
 	}, [device, input.start, input.end]);
 
-	function handleStatsChange(field) {
-		fetchDeviceStats(device.id, field).then(
-			(stats) => setStats(stats),
-			(err) => message.error("Failed to load device stats: " + err)
-		);
-	}
+	const MyTimeRange = () => (
+		<RangePicker
+			showTime onChange={(d) =>
+				setInput(
+					Object.assign({}, input, {
+						start: d[0].toDate(),
+						end: d[1].toDate(),
+					})
+				)
+			} />
+	);
 
 	if (device) {
 		return (
@@ -121,8 +119,8 @@ function Device() {
 							</Descriptions.Item>
 						) : undefined}
 					</Descriptions>
-					<Tabs defaultActiveKey="1">
-						<TabPane tab="Timeline" key="1">
+					<Tabs defaultActiveKey="timeline">
+						<TabPane tab="Timeline" key="timeline">
 							<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
 								<DeviceChart
 									full={input.full}
@@ -132,83 +130,25 @@ function Device() {
 								// onClick={(r) => setViewRecord(r)} // sighhh onClick doesn't work with slices
 								/>
 							</Card>
+							<MyTimeRange />
 						</TabPane>
-						<TabPane tab="Table" key="2">
+						<TabPane tab="Stats" key="stats">
+							<DeviceStats device={device} />
+						</TabPane>
+						<TabPane tab="Table" key="table">
 							<DeviceTable
 								device={device}
 								timeline={timeline}
 								onClick={setViewRecord}
 							/>
+							<MyTimeRange />
 						</TabPane>
-						<TabPane tab="Calendar" key="3">
+						<TabPane tab="Calendar" key="calendar">
 							<Card bodyStyle={{ height: "500px" }} style={{ marginBottom: "8px" }}>
 								<DeviceCalendar device={device} />
 							</Card>
 						</TabPane>
 					</Tabs>
-					<Space direction="vertical">
-						<RangePicker
-							showTime
-							onChange={(d) =>
-								setInput(
-									Object.assign({}, input, {
-										start: d[0].toDate(),
-										end: d[1].toDate(),
-									})
-								)
-							}
-						/>
-
-						<div>
-							<Select
-								onChange={handleStatsChange}
-								style={{ width: "120px" }}
-							>
-								{numericRecordFields.map((f, i) => {
-									return (
-										<Option key={i} value={f}>
-											{f}
-										</Option>
-									);
-								})}
-							</Select>
-							<Row gutter={16}>
-								<Col span={12}>
-									<Statistic
-										title="Minimum"
-										value={stats.min}
-										suffix={stats.unit}
-									/>
-								</Col>
-								<Col span={12}>
-									<Statistic
-										title="Maximum"
-										value={stats.max}
-										suffix={stats.unit}
-									/>
-								</Col>
-							</Row>
-							<Row gutter={16}>
-								<Col span={12}>
-									<Statistic
-										title="Standard deviation"
-										value={stats.stdDev}
-									/>
-								</Col>
-								<Col span={12}>
-									<Statistic title="Average" value={stats.avg} />
-								</Col>
-							</Row>
-							<Row gutter={16}>
-								<Col span={12}>
-									<Statistic
-										title="Sample size"
-										value={stats.sampleSize}
-									/>
-								</Col>
-							</Row>
-						</div>
-					</Space>
 				</PageHeader>
 				<Modal visible={viewRecord} footer={null} onCancel={() => setViewRecord()} width="50vw">
 					<RecordView record={viewRecord} />
