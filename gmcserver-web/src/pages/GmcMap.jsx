@@ -93,7 +93,7 @@ function GmcMap() {
 				<MapContainer
 					center={[48.743611, 18.930556]}
 					zoom={4}
-					style={{ height: "80vh" }}
+					style={{ height: "80vh", background: "#1f1f1f" }}
 					whenReady={(map) => {
 						updateInput(map.target);
 						map.target.on({
