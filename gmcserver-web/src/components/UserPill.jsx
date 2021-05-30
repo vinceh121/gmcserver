@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, Button } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { SafetyOutlined, UserOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 
 function UserPill(props) {
@@ -12,7 +12,7 @@ function UserPill(props) {
 				icon={
 					<Avatar size="small" style={{ marginRight: "4px" }}
 						icon={
-							<UserOutlined />
+							user.admin ? <SafetyOutlined style={{ color: "#F44336" }} /> : <UserOutlined />
 						} />
 				}
 			>
