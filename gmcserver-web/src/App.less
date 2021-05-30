@@ -1,6 +1,12 @@
-@import '~antd/dist/antd.less';
-@import '~antd/dist/antd.dark.less';
+@import "~antd/dist/antd.less";
+@import "~antd/dist/antd.dark.less";
 
 .leaflet-tile {
 	filter: invert(100%) hue-rotate(180deg) contrast(90%) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: #1f1f1f !important;
+	color: rgba(255, 255, 255, 0.85) !important;
 }
