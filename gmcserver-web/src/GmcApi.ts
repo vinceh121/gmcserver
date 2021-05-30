@@ -145,8 +145,11 @@ export const fetchDevice = async (id: string): Promise<Device> => {
 export const fetchDeviceStats = async (
 	id: string,
 	field: string
-): Promise<DeviceStats> => {
+): Promise<DeviceStats | null> => {
 	const res = await request("/device/" + id + "/stats/" + field);
+	if (res.status === 204) {
+		return null;
+	}
 	return (await res.json()) as DeviceStats;
 };
 

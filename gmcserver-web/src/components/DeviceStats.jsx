@@ -12,7 +12,14 @@ function DeviceStats(props) {
 	function handleStatsChange(field) {
 		setStats(null);
 		fetchDeviceStats(device.id, field).then(
-			(stats) => setStats(stats),
+			(stats) => {
+				if (stats === null) {
+					message.info("Recent records do not posses such data points");
+					setStats(undefined);
+				} else {
+					setStats(stats);
+				}
+			},
 			(err) => message.error("Failed to load device stats: " + err)
 		);
 	}
