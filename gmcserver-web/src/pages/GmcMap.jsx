@@ -12,7 +12,7 @@ function DeviceMarker(props) {
 	const device = props.device;
 	return (
 		<Marker
-			position={device.location.reverse()}
+			position={device.location}
 			icon={L.icon({
 				iconSize: [42, 42],
 				iconAnchor: [16, 32],
@@ -56,10 +56,10 @@ function GmcMap() {
 			const bounds = map.getBounds();
 			setInput({
 				rect: [
-					bounds.getSouthWest().lat,
 					bounds.getSouthWest().lng,
-					bounds.getNorthEast().lat,
+					bounds.getSouthWest().lat,
 					bounds.getNorthEast().lng,
+					bounds.getNorthEast().lat,
 				],
 			});
 		}

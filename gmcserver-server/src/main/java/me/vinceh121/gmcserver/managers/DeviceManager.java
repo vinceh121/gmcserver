@@ -39,8 +39,8 @@ public class DeviceManager extends AbstractManager {
 		super(srv);
 	}
 
-	private static Point jsonArrToPoint(final JsonArray arr) { // standard lat lon in array -> lon lat for mongo
-		final Position pos = new Position(arr.getDouble(1), arr.getDouble(0));
+	private static Point jsonArrToPoint(final JsonArray arr) {
+		final Position pos = new Position(arr.getDouble(0), arr.getDouble(1));
 		final Point point = new Point(pos);
 		return point;
 	}

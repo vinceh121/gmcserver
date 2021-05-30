@@ -299,16 +299,16 @@ public class Record extends AbstractEntity {
 		}
 
 		public Builder buildPosition() {
-			final String rawLat = this.params.get("lat");
 			final String rawLon = this.params.get("lon");
+			final String rawLat = this.params.get("lat");
 			final String rawAlt = this.params.get("alt");
 
 			if (rawLat == null || rawLon == null) {
 				return this;
 			}
 
-			final double lat = Double.parseDouble(rawLat);
 			final double lon = Double.parseDouble(rawLon);
+			final double lat = Double.parseDouble(rawLat);
 
 			final List<Double> values = new Vector<>();
 			values.add(lon);

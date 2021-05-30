@@ -59,8 +59,8 @@ public class GeoModule extends AbstractModule {
 
 		final FindIterable<Device> it = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
-				.find(Filters.geoWithinBox("location", bb.getDouble(1), bb.getDouble(0), bb.getDouble(3),
-						bb.getDouble(2)));
+				.find(Filters.geoWithinBox("location", bb.getDouble(0), bb.getDouble(1), bb.getDouble(2),
+						bb.getDouble(3)));
 
 		final JsonArray res = new JsonArray();
 		it.forEach(d -> {

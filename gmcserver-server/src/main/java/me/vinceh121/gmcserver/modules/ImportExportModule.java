@@ -171,14 +171,14 @@ public class ImportExportModule extends AbstractModule {
 							final Element elmAcpm = tr.child(colIndexes.get("ACPM"));
 							final Element elmUsv = tr.child(colIndexes.get("uSv/h"));
 
-							Element elmLat = null;
-							if (colIndexes.containsKey("Latitude")) {
-								elmLat = tr.child(colIndexes.get("Latitude"));
-							}
-
 							Element elmLon = null;
 							if (colIndexes.containsKey("Longitude")) {
 								elmLon = tr.child(colIndexes.get("Longitude"));
+							}
+
+							Element elmLat = null;
+							if (colIndexes.containsKey("Latitude")) {
+								elmLat = tr.child(colIndexes.get("Latitude"));
 							}
 
 							Element elmAlt = null;
@@ -227,19 +227,19 @@ public class ImportExportModule extends AbstractModule {
 							}
 
 							final List<Double> pos = new ArrayList<>(3);
-							
-							if (elmLat != null) {
-								pos.set(1, Double.parseDouble(elmLat.text()));
-							}
 
 							if (elmLon != null) {
 								pos.set(0, Double.parseDouble(elmLon.text()));
 							}
 
+							if (elmLat != null) {
+								pos.set(1, Double.parseDouble(elmLat.text()));
+							}
+
 							if (elmAlt != null) {
 								pos.set(3, Double.parseDouble(elmAlt.text()));
 							}
-							
+
 							if (pos.size() > 0) {
 								r.setLocation(new Point(new Position(pos)));
 							}
@@ -266,8 +266,11 @@ public class ImportExportModule extends AbstractModule {
 					} catch (final NumberFormatException e) {
 						p.fail(new RuntimeException("Failed to import device", e));
 					} catch (Exception e) {
-						log.error(new FormattedMessage("ohno oopsie fucky wucky with import {} at page {}", gmcmapId,
-								page), e);
+						log.error(
+								new FormattedMessage("ohno oopsie fucky wucky with import {} at page {}",
+										gmcmapId,
+										page),
+								e);
 					}
 				});
 		});
@@ -294,21 +297,36 @@ public class ImportExportModule extends AbstractModule {
 		this.srv.getDeviceManager().getDevice().setId(deviceId).execute().onSuccess(device -> {
 			this.srv.getDeviceManager().deviceFullTimeline().setFull(true).setDev(device).execute().onSuccess(recs -> {
 				if (user == null) {
-					ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LAT,LON\n");
+					ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LON,LAT\n");
 					for (final Record r : recs) {
 						ctx.response()
-							.write(String.format("%f,%f,%f,%s,%s,%s,%s\n", r.getCpm(), r.getAcpm(), r.getUsv(),
-									r.getDate().getTime(), r.getType(),
+							.write(String.format("%f,%f,%f,%s,%s,%s,%s\n",
+									r.getCpm(),
+									r.getAcpm(),
+									r.getUsv(),
+									r.getDate().getTime(),
+									r.getType(),
 									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
 									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : ""));
 					}
 				} else {
-					ctx.response().write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LAT,LON\n");
+					ctx.response().write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LON,LAT\n");
 					for (final Record r : recs) {
 						ctx.response()
-							.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n", r.getId(),
-									r.getDeviceId(), r.getCpm(), r.getAcpm(), r.getUsv(), r.getCo2(), r.getHcho(),
-									r.getTmp(), r.getAp(), r.getHmdt(), r.getAccy(), r.getDate().getTime(), r.getIp(),
+							.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n",
+									r.getId(),
+									r.getDeviceId(),
+									r.getCpm(),
+									r.getAcpm(),
+									r.getUsv(),
+									r.getCo2(),
+									r.getHcho(),
+									r.getTmp(),
+									r.getAp(),
+									r.getHmdt(),
+									r.getAccy(),
+									r.getDate().getTime(),
+									r.getIp(),
 									r.getType(),
 									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : null,
 									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : null));

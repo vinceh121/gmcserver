@@ -1,6 +1,7 @@
 package me.vinceh121.gmcserver.entities;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.bson.types.ObjectId;
@@ -92,16 +93,16 @@ public class Device extends AbstractEntity {
 	}
 
 	/**
-	 * @return map where keys are proxy names (their simple class names, also keys in
-	 * GMCServer#getProxies) and values are proxy-specific settings
+	 * @return map where keys are proxy names (their simple class names, also keys
+	 *         in GMCServer#getProxies) and values are proxy-specific settings
 	 */
 	public Map<String, Map<String, Object>> getProxiesSettings() {
 		return proxiesSettings;
 	}
 
 	/**
-	 * @return map where keys are proxy names (their simple class names, also keys in
-	 * GMCServer#getProxies) and values are proxy-specific settings
+	 * @return map where keys are proxy names (their simple class names, also keys
+	 *         in GMCServer#getProxies) and values are proxy-specific settings
 	 */
 	public void setProxiesSettings(final Map<String, Map<String, Object>> proxiesSettings) {
 		this.proxiesSettings = proxiesSettings;
@@ -111,7 +112,7 @@ public class Device extends AbstractEntity {
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
 		if (this.location != null) {
-			obj.put("location", this.location.getPosition().getValues());
+			obj.put("location", this.location.getCoordinates().getValues());
 		}
 		obj.put("owner", this.getOwner().toHexString());
 		return obj;
