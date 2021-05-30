@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.less";
 import { BrowserRouter as Router, Switch, Route, } from "react-router-dom";
-import { Layout } from "antd";
+import { Button, Layout } from "antd";
 // import GMCLogo from "./logo.svg";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
@@ -18,6 +18,7 @@ import Welcome from "./pages/Welcome";
 import Mfa from "./pages/Mfa";
 import ToolBar from "./components/ToolBar";
 import EditDevice from "./pages/device/EditDevice";
+import { GithubFilled } from "@ant-design/icons";
 
 const { Footer, Content, Header } = Layout;
 
@@ -76,6 +77,7 @@ function App() {
 					Powered by{" "}
 					<a href="https://home.gmc.vinceh121.me">GMCServer</a> &copy;
 					2020 - 2021 vinceh121
+					<br /><a href="https://github.com/vinceh121/gmcserver"><Button type="text" icon={<GithubFilled />} /></a>
 				</Footer>
 			</Layout>
 		</Router>
