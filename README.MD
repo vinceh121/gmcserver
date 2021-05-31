@@ -26,7 +26,7 @@ GMCServer can also *proxy* records, that is, report measurements itself to other
 ### GQ Electronics' GMC
 You should first set up WiFi on your GMC device. In the `Server` settings, you should set the following values:
  - `Website` : to the hostname of the server where GMCServer is running (`gmc.vinceh121.me` for the main instance)
- - `URL` : to `api/v1/log2`
+ - `URL` : to `log2.asp`
  - `User ID` : to the "GMC ID" of your account, visible next to your username when logged in on your user page. This ID is supposed to stay secret.
  - `Counter ID` : to the "GMC ID" of your device, visible next to the device's name when logged in on its page. This ID is supposed to stay secret.
 
