@@ -246,6 +246,10 @@ public class GMCServer {
 		});
 	}
 
+	public Router getBaseRouter() {
+		return baseRouter;
+	}
+
 	public Router getApiRouter() {
 		return this.apiRouter;
 	}

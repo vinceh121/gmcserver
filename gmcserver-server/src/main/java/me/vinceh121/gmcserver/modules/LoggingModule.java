@@ -9,8 +9,10 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
@@ -32,8 +34,9 @@ public class LoggingModule extends AbstractModule {
 		super(srv);
 		this.logIp = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"));
 		this.behindReverseProxy = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.behindReverseProxy"));
-		this.registerRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
-		this.registerRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
+
+		this.registerRoute(HttpMethod.GET, "/log2.asp", this::handleGmcLog2);
+		this.registerRoute(HttpMethod.GET, "/log.asp", this::handleGmcClassicLog);
 		this.registerRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
 		this.registerRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
 	}
@@ -452,5 +455,15 @@ public class LoggingModule extends AbstractModule {
 			.putHeader("X-GMC-Extras", extra == null ? null : extra.encode())
 			.putHeader("Content-Type", "text/plain")
 			.end(desc);
+	}
+
+	@Override
+	protected Route registerRoute(HttpMethod method, String path, Handler<RoutingContext> handler) {
+		return this.srv.getBaseRouter()
+			.route(method, path)
+			.handler(this.srv.getApiHandler())
+			.handler(this.srv.getBodyHandler())
+			.handler(handler)
+			.enable();
 	}
 }
