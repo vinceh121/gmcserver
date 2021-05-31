@@ -8,8 +8,7 @@ WORKDIR /build
 COPY gmcserver-server/ .
 # dirty hack for maven git plugin
 COPY .git/ ./.git
-RUN apt-get install tree && pwd && tree && \
-	PATH_CONFIG=./config.properties \
+RUN PATH_CONFIG=./config.properties \
 	PATH_CONFIG_VERTX=./vertx.json \
 	PATH_CONFIG_MAIL=./mail.json \
 	PATH_MAIL_TEMPLATES=./gmcserver-email/ \
