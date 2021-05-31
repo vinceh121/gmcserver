@@ -37,13 +37,13 @@ public class LoggingModule extends AbstractModule {
 		this.logIp = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.log-ip"));
 		this.behindReverseProxy = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.behindReverseProxy"));
 
-		this.registerRoute(HttpMethod.GET, "/log2.asp", this::handleGmcLog2);
-		this.registerRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
-		this.registerRoute(HttpMethod.GET, "/log.asp", this::handleGmcClassicLog);
-		this.registerRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
-		
-		this.registerRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
-		this.registerRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
+		this.registerLogRoute(HttpMethod.GET, "/log2.asp", this::handleGmcLog2);
+		this.registerLogRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
+		this.registerLogRoute(HttpMethod.GET, "/log.asp", this::handleGmcClassicLog);
+		this.registerLogRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
+
+		this.registerLogRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
+		this.registerLogRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
 	}
 
 	private void handleGmcLog2(final RoutingContext ctx) {
