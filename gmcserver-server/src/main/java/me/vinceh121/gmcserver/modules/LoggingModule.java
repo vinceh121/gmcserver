@@ -3,7 +3,9 @@ package me.vinceh121.gmcserver.modules;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.geojson.Point;
@@ -36,7 +38,10 @@ public class LoggingModule extends AbstractModule {
 		this.behindReverseProxy = Boolean.parseBoolean(this.srv.getConfig().getProperty("geiger.behindReverseProxy"));
 
 		this.registerRoute(HttpMethod.GET, "/log2.asp", this::handleGmcLog2);
+		this.registerRoute(HttpMethod.GET, "/log2", this::handleGmcLog2);
 		this.registerRoute(HttpMethod.GET, "/log.asp", this::handleGmcClassicLog);
+		this.registerRoute(HttpMethod.GET, "/log", this::handleGmcClassicLog);
+		
 		this.registerRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
 		this.registerRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
 	}
@@ -457,13 +462,8 @@ public class LoggingModule extends AbstractModule {
 			.end(desc);
 	}
 
-	@Override
-	protected Route registerRoute(HttpMethod method, String path, Handler<RoutingContext> handler) {
-		return this.srv.getBaseRouter()
-			.route(method, path)
-			.handler(this.srv.getApiHandler())
-			.handler(this.srv.getBodyHandler())
-			.handler(handler)
-			.enable();
+	protected List<Route> registerLogRoute(HttpMethod method, String path, Handler<RoutingContext> handler) {
+		return Arrays.asList(this.registerRoute(this.srv.getBaseRouter(), method, path, handler),
+				this.registerRoute(this.srv.getApiRouter(), method, path, handler));
 	}
 }

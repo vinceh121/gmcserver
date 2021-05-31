@@ -7,6 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 
@@ -30,12 +31,16 @@ public abstract class AbstractModule {
 	}
 
 	protected Route registerRoute(final HttpMethod method, final String path, final Handler<RoutingContext> handler) {
-		return this.srv.getApiRouter()
-				.route(method, path)
-				.handler(this.srv.getApiHandler())
-				.handler(this.srv.getBodyHandler())
-				.handler(handler)
-				.enable();
+		return this.registerRoute(this.srv.getApiRouter(), method, path, handler);
+	}
+
+	protected Route registerRoute(final Router router, final HttpMethod method, final String path,
+			final Handler<RoutingContext> handler) {
+		return router.route(method, path)
+			.handler(this.srv.getApiHandler())
+			.handler(this.srv.getBodyHandler())
+			.handler(handler)
+			.enable();
 	}
 
 	protected void error(final RoutingContext ctx, final int status, final String desc) {
