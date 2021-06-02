@@ -6,6 +6,7 @@ specifiers:
   '@nivo/calendar': ^0.68.0
   '@nivo/core': ^0.68.0
   '@nivo/line': ^0.68.0
+  '@nivo/tooltip': ^0.68.0
   '@testing-library/jest-dom': ^4.2.4
   '@testing-library/react': ^9.3.2
   '@testing-library/user-event': ^7.1.2
@@ -26,8 +27,9 @@ dependencies:
   '@ant-design/icons': 4.3.0_react-dom@16.14.0+react@16.14.0
   '@craco/craco': 6.1.2_react-scripts@4.0.3
   '@nivo/calendar': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
-  '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+  '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
   '@nivo/line': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
+  '@nivo/tooltip': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
   '@testing-library/jest-dom': 4.2.4
   '@testing-library/react': 9.5.0_react-dom@16.14.0+react@16.14.0
   '@testing-library/user-event': 7.2.1
@@ -1631,7 +1633,7 @@ packages:
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
       '@nivo/colors': 0.68.0_@nivo+core@0.68.0+react@16.14.0
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       lodash: 4.17.21
       react: 16.14.0
       react-spring: 9.1.2_react-dom@16.14.0+react@16.14.0
@@ -1653,7 +1655,7 @@ packages:
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       '@nivo/scales': 0.68.0
       d3-format: 1.4.5
       d3-time: 1.1.0
@@ -1678,7 +1680,7 @@ packages:
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       '@nivo/legends': 0.68.0_@nivo+core@0.68.0+react@16.14.0
       '@nivo/tooltip': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
       d3-scale: 3.3.0
@@ -1706,7 +1708,7 @@ packages:
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 <= 17.0.0'
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       d3-color: 2.0.0
       d3-scale: 3.3.0
       d3-scale-chromatic: 2.0.0
@@ -1715,13 +1717,14 @@ packages:
       react-motion: 0.5.2_react@16.14.0
     dev: false
 
-  /@nivo/core/0.68.0_react-dom@16.14.0+react@16.14.0:
+  /@nivo/core/0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4:
     resolution: {integrity: sha512-HCi6Rcut1/hzDm3Kwqa6WWk9luoHNhcTelv1CLHRvVGUi4PywrEli6dumDytfKEfXHBCVCGyZy0dYaV7bVUVdw==}
     peerDependencies:
       '@nivo/tooltip': 0.68.0
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
+      '@nivo/tooltip': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
       d3-color: 2.0.0
       d3-format: 1.4.5
       d3-hierarchy: 1.1.9
@@ -1753,7 +1756,7 @@ packages:
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       lodash: 4.17.21
       react: 16.14.0
     dev: false
@@ -1768,7 +1771,7 @@ packages:
       '@nivo/annotations': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
       '@nivo/axes': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
       '@nivo/colors': 0.68.0_@nivo+core@0.68.0+react@16.14.0
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       '@nivo/legends': 0.68.0_@nivo+core@0.68.0+react@16.14.0
       '@nivo/scales': 0.68.0
       '@nivo/tooltip': 0.68.0_46319c7d739b3e4ee8969077f1856fa0
@@ -1803,7 +1806,7 @@ packages:
     peerDependencies:
       '@nivo/core': 0.68.0
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       react-spring: 9.1.2_react-dom@16.14.0+react@16.14.0
     transitivePeerDependencies:
       - '@react-three/fiber'
@@ -1824,7 +1827,7 @@ packages:
       prop-types: '>= 15.5.10 < 16.0.0'
       react: '>= 16.8.4 < 18.0.0'
     dependencies:
-      '@nivo/core': 0.68.0_react-dom@16.14.0+react@16.14.0
+      '@nivo/core': 0.68.0_e62f93d30f56d7c4b96cdb46ceb5f9e4
       d3-delaunay: 5.3.0
       d3-scale: 3.3.0
       react: 16.14.0

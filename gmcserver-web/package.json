@@ -5,9 +5,10 @@
 	"dependencies": {
 		"@ant-design/icons": "^4.2.2",
 		"@craco/craco": "^6.1.2",
+		"@nivo/calendar": "^0.68.0",
 		"@nivo/core": "^0.68.0",
 		"@nivo/line": "^0.68.0",
-		"@nivo/calendar": "^0.68.0",
+		"@nivo/tooltip": "^0.68.0",
 		"@testing-library/jest-dom": "^4.2.4",
 		"@testing-library/react": "^9.3.2",
 		"@testing-library/user-event": "^7.1.2",

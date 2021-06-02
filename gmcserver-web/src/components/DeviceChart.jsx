@@ -2,7 +2,34 @@ import React, { useEffect, useState } from "react";
 
 import Loader from "./Loader";
 import { ResponsiveLine } from "@nivo/line";
+import { TableTooltip, Chip } from "@nivo/tooltip";
 import { numericRecordFields } from "../GmcTypes";
+
+const SliceTooltip = ({slice, axis}) => {
+	const otherAxis = axis === 'x' ? 'y' : 'x'
+
+	const rows = slice.points.map(point => [
+		<Chip key="chip" color={point.serieColor} />,
+		point.serieId,
+		<span key="value">
+			{point.data[otherAxis + "Formatted"]}
+		</span>,
+	]);
+
+	const date = new Date(slice.points[0].data.x);
+
+	rows.unshift([
+		<Chip key="chip" color="#ff5722" />,
+		"Date",
+		<span>{date.toLocaleDateString() + " " + date.toLocaleTimeString()}</span>
+	]);
+
+	return (
+		<TableTooltip
+			rows={rows}
+		/>
+	)
+}
 
 function DeviceChart(props) {
 	// we need to transform the timeline from 'record' format
@@ -74,12 +101,13 @@ function DeviceChart(props) {
 					},
 				}}
 				data={timeline}
-				margin={{ top: 5, right: 5, bottom: 60, left: 30 }}
+				margin={{ top: 5, right: 5, bottom: 90, left: 5 }}
 				animate={true}
 				curve="linear"
 				useMesh={true}
 				enableSlices="x"
 				// onClick={(p) => props.onClick ? props.onClick(props.timeline[p.index]) : undefined} // sighhh onClick doesn't work with slices
+				sliceTooltip={SliceTooltip}
 				xScale={{
 					type: "linear",
 					min: "auto",
@@ -100,6 +128,33 @@ function DeviceChart(props) {
 					},
 					tickRotation: -25,
 				}}
+				pointSize={4}
+				legends={[
+					{
+						anchor: 'bottom',
+						direction: 'row',
+						justify: false,
+						translateX: 0,
+						translateY: 90,
+						itemsSpacing: 0,
+						itemDirection: 'left-to-right',
+						itemWidth: 80,
+						itemHeight: 20,
+						itemOpacity: 0.75,
+						symbolSize: 12,
+						symbolShape: 'circle',
+						symbolBorderColor: 'rgba(0, 0, 0, .5)',
+						effects: [
+							{
+								on: 'hover',
+								style: {
+									itemBackground: 'rgba(0, 0, 0, .03)',
+									itemOpacity: 1
+								}
+							}
+						]
+					}
+				]}
 			/>
 		);
 	} else {
