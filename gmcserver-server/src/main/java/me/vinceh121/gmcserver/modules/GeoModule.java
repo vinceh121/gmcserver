@@ -72,8 +72,8 @@ public class GeoModule extends AbstractModule {
 					.find(Filters.eq("deviceId", d.getId()))
 					.sort(Sorts.descending("date"))
 					.first();
-			if (lastRec != null && !Double.isNaN(lastRec.getAcpm())) {
-				mapJson.put("cpm", lastRec.getAcpm());
+			if (lastRec != null && !Double.isNaN(lastRec.getCpm())) {
+				mapJson.put("cpm", lastRec.getCpm());
 			}
 		});
 		ctx.response().end(res.toBuffer());
