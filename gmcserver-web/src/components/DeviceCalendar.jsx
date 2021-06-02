@@ -9,7 +9,7 @@ import { fetchCalendar } from "../GmcApi";
 const { Option } = Select;
 
 function fuckDates(date) {
-	const m = date.getMonth().toString();
+	const m = (date.getMonth() + 1).toString();
 	const d = date.getDate().toString();
 	return date.getFullYear() + "-" + (m.length === 1 ? "0" + m : m) + "-" + (d.length === 1 ? "0" + d : d);
 }

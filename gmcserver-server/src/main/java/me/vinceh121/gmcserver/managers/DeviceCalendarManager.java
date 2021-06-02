@@ -77,7 +77,7 @@ public class DeviceCalendarManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<DeviceCalendar> promise) {
-			final ZoneId zone = ZoneId.systemDefault();
+			final ZoneId zone = ZoneId.of("GMT");
 			final List<Document> recs = new Vector<>();
 			final DeviceCalendar cal = new DeviceCalendar();
 			cal.setDeviceId(this.deviceId);
@@ -97,6 +97,7 @@ public class DeviceCalendarManager extends AbstractManager {
 			return Future.future(promise -> {
 				final LocalDateTime curDayTime = currentDay.atStartOfDay();
 				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000);
+				System.out.println(curDate);
 				final Document rec = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
 					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
