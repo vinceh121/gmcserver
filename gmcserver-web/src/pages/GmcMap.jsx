@@ -12,7 +12,7 @@ function DeviceMarker(props) {
 	const device = props.device;
 	return (
 		<Marker
-			position={device.location}
+			position={device.location.reverse()} // we return lon/lat, leaflet wants lat/lon
 			icon={L.icon({
 				iconSize: [42, 42],
 				iconAnchor: [16, 32],
