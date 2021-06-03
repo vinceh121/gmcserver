@@ -345,15 +345,20 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		this.srv.getDeviceCalendarManager().getCalendar().setDeviceId(devId).execute().onSuccess(cal -> {
-			if (cal == null || cal.isInProgress()) {
-				this.error(ctx, 202, "Calendar is loading");
-				return;
-			}
+		this.srv.getDeviceManager().getDevice().setId(devId).execute().onSuccess(dev -> {
+			this.srv.getDeviceCalendarManager().getCalendar().setDeviceId(dev.getId()).execute().onSuccess(cal -> {
+				if (cal == null || cal.isInProgress()) {
+					this.error(ctx, 202, "Calendar is loading");
+					return;
+				}
 
-			ctx.response().end(cal.toPublicJson().toBuffer());
+				ctx.response().end(cal.toPublicJson().toBuffer());
+			}).onFailure(t -> {
+				this.error(ctx, 500, "Failed to get calendar: " + t);
+			});
 		}).onFailure(t -> {
-			this.error(ctx, 500, "Failed to get calendar: " + t);
+			this.error(ctx, 404, "Device not found: " + t);
+			return;
 		});
 	}
 }
