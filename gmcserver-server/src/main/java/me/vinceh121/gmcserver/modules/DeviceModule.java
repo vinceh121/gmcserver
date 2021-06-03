@@ -148,7 +148,11 @@ public class DeviceModule extends AbstractModule {
 			action.execute().onSuccess(upRes -> {
 				ctx.response().end(new JsonObject().put("changed", upRes).toBuffer());
 			}).onFailure(t -> {
-				this.error(ctx, 500, t.getMessage());
+				if (t instanceof IllegalArgumentException) {
+					this.error(ctx, 404, t.getMessage());
+				} else {
+					this.error(ctx, 500, t.getMessage());
+				}
 			});
 		}).onFailure(t -> {
 			this.error(ctx, 404, t.getMessage());

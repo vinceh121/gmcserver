@@ -231,6 +231,12 @@ public class DeviceManager extends AbstractManager {
 			}
 			
 			if (this.proxiesSettings != null) {
+				for (final String field : this.proxiesSettings.fieldNames()) {
+					if (!this.srv.getProxyManager().getProxies().containsKey(field)) {
+						promise.fail(new IllegalArgumentException("Unknown proxy type: '" + field + "'"));
+						return;
+					}
+				}
 				updates.add(Updates.set("proxiesSettings", this.proxiesSettings.getMap()));
 			}
 
