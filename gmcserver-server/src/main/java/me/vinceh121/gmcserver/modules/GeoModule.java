@@ -42,6 +42,13 @@ public class GeoModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid BB");
 			return;
 		}
+		
+		for (final Object obj : bb) {
+			if (!(obj instanceof Number)) {
+				this.error(ctx, 400, "Invalid BB");
+				return;
+			}
+		}
 
 		// final List<Position> ext = new Vector<>();
 		//
