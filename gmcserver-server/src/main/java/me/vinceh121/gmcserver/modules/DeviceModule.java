@@ -55,7 +55,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final JsonArray arrLoc = obj.getJsonArray("position");
-		if (arrLoc == null || arrLoc.size() != 2) {
+		if (arrLoc == null || (arrLoc.size() != 2 && arrLoc.size() != 3)) {
 			this.error(ctx, 400, "Invalid position");
 			return;
 		}
@@ -128,7 +128,41 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final JsonObject obj = ctx.getBodyAsJson();
+		
+		final String name = obj.getString("name");
+		if (name == null || name.length() > 2 && name.length() < 64) {
+			this.error(ctx, 400, "Invalid name");
+			return;
+		}
 
+		final String model = obj.getString("model");
+		if (model == null || name.length() > 2 && name.length() < 64) {
+			this.error(ctx, 400, "Invalid model");
+			return;
+		}
+
+		if (obj.containsKey("proxiesSettings") && !(obj.getValue("proxiesSettings") instanceof JsonObject)) {
+			this.error(ctx, 400, "Invalid proxiesSettings");
+			return;
+		}
+		
+		final JsonArray loc;
+		if (obj.containsKey("location") && !(obj.getValue("location") instanceof JsonArray)) {
+			loc = obj.getJsonArray("location");
+			if (loc.size() != 2 && loc.size() != 3) {
+				this.error(ctx, 400, "Invalid location");
+				return;
+			}
+			for (final Object o : obj.getJsonArray("location")) {
+				if (!(o instanceof Number)) {
+					this.error(ctx, 400, "Invalid location");
+					return;
+				}
+			}
+		} else {
+			loc = null;
+		}
+		
 		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
 		getAction.execute().onSuccess(dev -> {
 			final User user = ctx.get(AuthHandler.USER_KEY);
@@ -141,9 +175,9 @@ public class DeviceModule extends AbstractModule {
 			final UpdateDeviceAction action = this.srv.getDeviceManager()
 				.updateDevice()
 				.setDevice(dev)
-				.setArrLocation(obj.getJsonArray("location"))
-				.setModel(obj.getString("model"))
-				.setName(obj.getString("name"))
+				.setArrLocation(loc)
+				.setModel(model)
+				.setName(name)
 				.setProxiesSettings(obj.getJsonObject("proxiesSettings"));
 			action.execute().onSuccess(upRes -> {
 				ctx.response().end(new JsonObject().put("changed", upRes).toBuffer());
