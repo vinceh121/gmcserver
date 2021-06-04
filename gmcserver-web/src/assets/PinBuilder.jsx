@@ -21,12 +21,13 @@ function getColor(cpm) {
 
 function gmcCpmPin(props) {
 	const device = props.device;
+	const cpm = device.cpm ? device.cpm : "";
 	return (
 		"data:image/svg+xml," +
 		encodeURIComponent(
 			cpmPinSvg
 				.replace("{color}", getColor(device.cpm))
-				.replace("{cpm}", device.cpm)
+				.replace("{cpm}", cpm)
 		)
 	);
 }
