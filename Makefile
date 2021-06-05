@@ -17,6 +17,11 @@ install-web:
 install-emails:
 	$(MAKE) DESTDIR=$(DESTDIR) -C gmcserver-email install-emails
 
+DEST_HTTPD_NGINX = $(DESTDIR)/etc/nginx/sites-available/gmcserver
+
+install-httpd-nginx:
+	install -T -D nginx.example.conf $(DEST_HTTPD_NGINX)
+
 install: | install-server install-web install-emails
 
 #clean:
