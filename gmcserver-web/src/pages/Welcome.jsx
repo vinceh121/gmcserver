@@ -8,7 +8,7 @@ function Welcome() {
 			status="success"
 			title="Thank you for creating an account"
 			extra={
-				<Link to="/welcome">
+				<Link to="/">
 					<Button type="primary" key="home">
 						Go home
 					</Button>
