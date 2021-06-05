@@ -18,6 +18,10 @@ GMCServer is a lightweight service that allows logging, analysis, visualization 
 
 A demo/main instance is available at **https://gmc.vinceh121.me**
 
+![Map view](https://i.vinceh121.me/Azh698yB.png)
+![Timeline view](https://i.vinceh121.me/BV7wt5Dm.png)
+![Calendar view](https://i.vinceh121.me/H1mENyIi.png)
+
 ## Motivation
 On top of not being self-hostable and closed-source, gmcmap.com lacks some features relating to data analysis, visualization, API access, and overall security. This project aims to create a compatible, open-source and self-hostable alternative to gmcmap.com implementing those missing features and security fixes.
 GMCServer can also *proxy* records, that is, report measurements itself to other platforms such as gmcmap.com and radmon.org simultaneously upon receiving a record from your counter.
