@@ -100,6 +100,8 @@ export const register = async (
 		throw errres;
 	}
 
+	apiDispatcher.dispatchEvent(new Event("login"));
+
 	const login = (await res.json()) as LoginResult;
 	saveSession(login);
 	return login;
