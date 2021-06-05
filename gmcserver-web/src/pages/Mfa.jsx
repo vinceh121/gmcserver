@@ -11,8 +11,9 @@ import {
 	InputNumber,
 } from "antd";
 import Loader from "../components/Loader";
-import { fetchMe, mfaFinishSetup, mfaStartSetup } from "../GmcApi";
+import { fetchMe, mfaDisable, mfaFinishSetup, mfaStartSetup } from "../GmcApi";
 import QRCode from "react-qr-code";
+import { useHistory } from "react-router-dom";
 
 const { Step } = Steps;
 const { Text } = Typography;
@@ -85,6 +86,7 @@ function MfaSetup(props) {
 }
 
 function Mfa(props) {
+	const history = useHistory();
 	const [state, setState] = useState({ step: 0 });
 
 	useEffect(() => {
@@ -97,10 +99,31 @@ function Mfa(props) {
 		);
 	}, []);
 
+	const disableMfa = (values) => {
+		mfaDisable(values.pass).then(
+			res => {
+				message.success("MFA disabled!");
+				history.push("/profile");
+			},
+			err => message.error("Failed to disable MFA: " + String(err))
+		)
+	};
+
 	if (state.mfa == null) {
 		return <Loader />;
 	} else if (state.mfa) {
-		return <Result title="TODO: disable MFA" status="404" />; // TODO
+		return (
+			<Card title="Disable MFA">
+				<Form onFinish={disableMfa}>
+					<Form.Item name="pass">
+						<InputNumber placeholder="MFA code" />
+					</Form.Item>
+					<Form.Item>
+						<Button type="primary" htmlType="submit">Submit</Button>
+					</Form.Item>
+				</Form>
+			</Card>
+		);
 	} else {
 		return (
 			<Card

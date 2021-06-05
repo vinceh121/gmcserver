@@ -10,7 +10,6 @@ import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.GenerateTokenAction;
 import me.vinceh121.gmcserver.mfa.MFAManager.SetupMFAAction;
-import me.vinceh121.gmcserver.mfa.MFAManager.VerifyCodeAction;
 import xyz.bowser65.tokenize.Token;
 
 public class AuthModule extends AbstractModule {
@@ -23,6 +22,7 @@ public class AuthModule extends AbstractModule {
 		this.registerRoute(HttpMethod.POST, "/auth/login", this::handleLogin);
 		this.registerAuthedRoute(HttpMethod.POST, "/auth/mfa", this::handleSubmitMfa);
 		this.registerStrictAuthedRoute(HttpMethod.PUT, "/auth/mfa", this::handleActivateMfa);
+		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/auth/mfa", this::handleDisableMfa);
 	}
 
 	private void handleRegister(final RoutingContext ctx) {
@@ -71,26 +71,27 @@ public class AuthModule extends AbstractModule {
 		if (captchaEnabled) {
 			final String captchaAnswer = obj.getString("captchaAnswer");
 			final String captchaId = obj.getString("captchaId");
-			this.srv.getWebClient().postAbs(this.srv.getConfig().getProperty("captcha.url") + "/answer")
-					.as(BodyCodec.jsonObject())
-					.sendJsonObject(new JsonObject().put("answer", captchaAnswer).put("id", captchaId))
-					.onSuccess(res -> {
-						final String captchaRes = res.body().getString("result");
-						if ("True".equals(captchaRes)) {
-							this.handleRegisterLogin(ctx, username, email, password);
-						} else if ("False".equals(captchaRes)) {
-							this.error(ctx, 400, "Captcha failed", new JsonObject().put("captchaResponse", captchaRes));
-						} else if ("Expired".equals(captchaRes)) {
-							this.error(ctx, 400, "Captcha expired",
-									new JsonObject().put("captchaResponse", captchaRes));
-						} else {
-							this.log.error("Received unexpected response from LibreCaptcha: '{}'", captchaRes);
-							this.error(ctx, 502, "Received unexpected response from LibreCaptcha");
-						}
-					}).onFailure(t -> {
-						this.log.info("Failed to verify captcha", t);
-						this.error(ctx, 502, "Failed to verify captcha");
-					});
+			this.srv.getWebClient()
+				.postAbs(this.srv.getConfig().getProperty("captcha.url") + "/answer")
+				.as(BodyCodec.jsonObject())
+				.sendJsonObject(new JsonObject().put("answer", captchaAnswer).put("id", captchaId))
+				.onSuccess(res -> {
+					final String captchaRes = res.body().getString("result");
+					if ("True".equals(captchaRes)) {
+						this.handleRegisterLogin(ctx, username, email, password);
+					} else if ("False".equals(captchaRes)) {
+						this.error(ctx, 400, "Captcha failed", new JsonObject().put("captchaResponse", captchaRes));
+					} else if ("Expired".equals(captchaRes)) {
+						this.error(ctx, 400, "Captcha expired", new JsonObject().put("captchaResponse", captchaRes));
+					} else {
+						this.log.error("Received unexpected response from LibreCaptcha: '{}'", captchaRes);
+						this.error(ctx, 502, "Received unexpected response from LibreCaptcha");
+					}
+				})
+				.onFailure(t -> {
+					this.log.info("Failed to verify captcha", t);
+					this.error(ctx, 502, "Failed to verify captcha");
+				});
 		} else {
 			handleRegisterLogin(ctx, username, email, password);
 		}
@@ -101,8 +102,8 @@ public class AuthModule extends AbstractModule {
 		this.srv.getAuthenticator().register(username, email, password).onSuccess(user -> {
 			final GenerateTokenAction action = this.srv.getUserManager().userLogin().setUser(user);
 			action.execute().onSuccess(token -> {
-				ctx.response().end(
-						new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
+				ctx.response()
+					.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
 			}).onFailure(t -> this.error(ctx, 500, "Failed to login after creating account: " + t.getMessage()));
 		}).onFailure(t -> this.error(ctx, 500, "Failed to create account: " + t.getMessage()));
 	}
@@ -127,9 +128,11 @@ public class AuthModule extends AbstractModule {
 			final GenerateTokenAction action = this.srv.getUserManager().userLogin().setUser(user);
 			action.execute().onSuccess(token -> {
 				ctx.response()
-						// .setStatusCode(user.isMfa() ? 100 : 200)
-						.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString())
-								.put("mfa", user.isMfa()).toBuffer());
+					// .setStatusCode(user.isMfa() ? 100 : 200)
+					.end(new JsonObject().put("token", token.toString())
+						.put("id", user.getId().toString())
+						.put("mfa", user.isMfa())
+						.toBuffer());
 			}).onFailure(t -> this.error(ctx, 500, "Login failed: " + t.getMessage()));
 		}).onFailure(t -> this.error(ctx, 403, "Authentication failed: " + t.getMessage()));
 	}
@@ -149,19 +152,17 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (mfaToken.getPrefix().equals("mfa")) {
+		if (!"mfa".equals(mfaToken.getPrefix())) {
 			this.error(ctx, 400, "Token is already valid");
 			return;
 		}
 
 		final User user = (User) mfaToken.getAccount();
 
-		final VerifyCodeAction action = this.srv.getMfaManager().verifyCode().setPass(pass).setUser(user);
-		action.execute().onSuccess(res -> {
-			final GenerateTokenAction tokenAction = this.srv.getUserManager().userLogin().setUser(user);
-			tokenAction.execute().onSuccess(token -> {
-				ctx.response().end(
-						new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
+		this.srv.getMfaManager().verifyCode().setPass(pass).setUser(user).execute().onSuccess(res -> {
+			this.srv.getUserManager().userLogin().setUser(user).setMfaPass(true).execute().onSuccess(token -> {
+				ctx.response()
+					.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
 			}).onFailure(t -> this.error(ctx, 500, "Failed to login: " + t.getMessage()));
 		}).onFailure(t -> this.error(ctx, 401, "Failed to verify code: " + t.getMessage()));
 	}
@@ -186,8 +187,35 @@ public class AuthModule extends AbstractModule {
 				this.error(ctx, 400, "Missing pass");
 				return;
 			}
-			action.setPass(pass).execute().onSuccess(res -> ctx.response().end(new JsonObject().toBuffer()))
-					.onFailure(t -> this.error(ctx, 403, "Failed to confirm MFA setup: " + t.getMessage()));
+			action.setPass(pass)
+				.execute()
+				.onSuccess(res -> ctx.response().end(new JsonObject().toBuffer()))
+				.onFailure(t -> this.error(ctx, 403, "Failed to confirm MFA setup: " + t.getMessage()));
 		}
+	}
+
+	private void handleDisableMfa(final RoutingContext ctx) {
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		if (!user.isMfa()) {
+			this.error(ctx, 400, "You don't have MFA enabled");
+			return;
+		}
+
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final Integer pass = obj.getInteger("pass");
+		if (pass == null) {
+			this.error(ctx, 400, "Missing pass");
+			return;
+		}
+
+		this.srv.getMfaManager()
+			.disableMfa()
+			.setCode(pass)
+			.setUser(user)
+			.execute()
+			.onSuccess(v -> this.error(ctx, 200, "MFA has been disabled"))
+			.onFailure(t -> this.error(ctx, 400, "Failed to disable MFA: " + t.getMessage()));
 	}
 }

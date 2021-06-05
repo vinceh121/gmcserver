@@ -97,11 +97,6 @@ public class UserManager extends AbstractManager {
 				return;
 			}
 
-			// if ("mfa".equals(token.getPrefix())) { // XXX need to think about that
-			// promise.fail("MFA auth not complete");
-			// return;
-			// }
-
 			promise.complete(token);
 		}
 
@@ -122,6 +117,7 @@ public class UserManager extends AbstractManager {
 
 	public class GenerateTokenAction extends AbstractAction<Token> {
 		private User user;
+		private boolean mfaPass;
 
 		public GenerateTokenAction(final GMCServer srv) {
 			super(srv);
@@ -130,7 +126,7 @@ public class UserManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Token> promise) {
 			final Token token;
-			if (this.user.isMfa()) {
+			if (this.user.isMfa() && !mfaPass) {
 				token = this.srv.getTokenize().generateToken(this.user, "mfa");
 			} else {
 				token = this.srv.getTokenize().generateToken(this.user);
@@ -144,6 +140,15 @@ public class UserManager extends AbstractManager {
 
 		public GenerateTokenAction setUser(final User user) {
 			this.user = user;
+			return this;
+		}
+
+		public boolean isMfaPass() {
+			return mfaPass;
+		}
+
+		public GenerateTokenAction setMfaPass(boolean mfaPass) {
+			this.mfaPass = mfaPass;
 			return this;
 		}
 	}

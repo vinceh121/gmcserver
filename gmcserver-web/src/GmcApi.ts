@@ -120,6 +120,31 @@ export const mfaFinishSetup = async (pass: number): Promise<object> => {
 	return (await res.json()) as object;
 };
 
+export const mfaSubmit = async (pass: number): Promise<LoginResult> => {
+	const res = await request("/auth/mfa", {
+		method: "POST",
+		body: JSON.stringify({ pass })
+	});
+
+	apiDispatcher.dispatchEvent(new Event("login"));
+
+	const mfa = (await res.json()) as LoginResult;
+	saveSession(mfa);
+	return mfa;
+}
+
+export const mfaDisable = async (pass: number): Promise<object> => {
+	const res = await request("/auth/mfa", {
+		method: "DELETE",
+		body: JSON.stringify({ pass }),
+	});
+	const obj = (await res.json()) as object;
+	if (res.status !== 200) {
+		throw obj;
+	}
+	return obj;
+}
+
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
 	return (await res.json()) as InstanceInfo;

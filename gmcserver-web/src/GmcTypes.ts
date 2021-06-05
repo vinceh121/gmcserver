@@ -50,7 +50,7 @@ export interface InstanceInfo {
 export interface LoginResult {
 	token: string;
 	id: string;
-	mfa: boolean;
+	mfa?: boolean;
 }
 
 export interface ErrorResult extends Error {

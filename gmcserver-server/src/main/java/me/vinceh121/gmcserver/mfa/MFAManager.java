@@ -46,7 +46,8 @@ public class MFAManager extends AbstractManager {
 
 	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
 		return this.passwordMatches(
-				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(), pass);
+				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(),
+				pass);
 	}
 
 	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {
@@ -61,8 +62,8 @@ public class MFAManager extends AbstractManager {
 	public MFAKey setupMFA(final User user) {
 		final MFAKey key = this.generateKey();
 		this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
+			.getCollection(User.class)
+			.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
 		user.setMfaKey(key);
 		return key;
 	}
@@ -72,8 +73,8 @@ public class MFAManager extends AbstractManager {
 		final boolean matches = actualPassword == pass;
 		if (matches) {
 			this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
+				.getCollection(User.class)
+				.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
 			user.setMfa(true);
 		}
 		return matches;
@@ -108,6 +109,10 @@ public class MFAManager extends AbstractManager {
 
 	public VerifyCodeAction verifyCode() {
 		return new VerifyCodeAction(this.srv);
+	}
+
+	public DisableMFAAction disableMfa() {
+		return new DisableMFAAction(this.srv);
 	}
 
 	public class SetupMFAAction extends AbstractAction<String> {
@@ -195,6 +200,44 @@ public class MFAManager extends AbstractManager {
 
 		public VerifyCodeAction setPass(final int pass) {
 			this.pass = pass;
+			return this;
+		}
+	}
+
+	public class DisableMFAAction extends AbstractAction<Void> {
+		private User user;
+		private int code;
+
+		public DisableMFAAction(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<Void> promise) {
+			verifyCode().setPass(this.code).setUser(this.user).execute().onSuccess(v -> {
+				this.srv.getDatabaseManager()
+					.getCollection(User.class)
+					.updateOne(Filters.eq(this.user.getId()),
+							Updates.combine(Updates.unset("mfaKey"), Updates.set("mfa", false)));
+				promise.complete();
+			}).onFailure(promise::fail);
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public DisableMFAAction setUser(final User user) {
+			this.user = user;
+			return this;
+		}
+
+		public int getCode() {
+			return code;
+		}
+
+		public DisableMFAAction setCode(final int code) {
+			this.code = code;
 			return this;
 		}
 	}

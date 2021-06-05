@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Alert, Button, Card, Form, Input, Space } from "antd";
+import { Alert, Button, Card, Form, Input, InputNumber, Space } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Link, useHistory } from "react-router-dom";
-import { login } from "../../GmcApi";
+import { login, mfaSubmit } from "../../GmcApi";
 import Modal from "antd/lib/modal/Modal";
 
 function Login() {
@@ -14,13 +14,23 @@ function Login() {
 		login(values.username, values.password).then(
 			(res) => {
 				setState(res);
-				if (!state.mfa) {
+				if (!res.mfa) {
 					history.push("/");
 				}
 			},
 			(err) => setState({ error: err })
 		);
 	};
+
+	const doMfa = (values) => {
+		mfaSubmit(values.pass).then(
+			res => {
+				setState(res);
+				history.push("/");
+			},
+			err => setState({ error: err })
+		)
+	}
 
 	return (
 		<>
@@ -64,7 +74,16 @@ function Login() {
 					</Form>
 				</Space>
 			</Card>
-			<Modal title="2FA" visible={state.mfa}></Modal> {/* TODO */}
+			<Modal title="2FA" visible={state.mfa}>
+				<Form onFinish={doMfa}>
+					<Form.Item name="pass">
+						<InputNumber placeholder="MFA code" />
+					</Form.Item>
+					<Form.Item>
+						<Button type="primary" htmlType="submit">Submit</Button>
+					</Form.Item>
+				</Form>
+			</Modal>
 		</>
 	);
 }
