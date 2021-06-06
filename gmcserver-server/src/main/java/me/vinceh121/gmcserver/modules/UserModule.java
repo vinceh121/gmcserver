@@ -13,6 +13,7 @@ import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
+import me.vinceh121.gmcserver.managers.UserManager;
 
 public class UserModule extends AbstractModule {
 
@@ -20,6 +21,7 @@ public class UserModule extends AbstractModule {
 		super(srv);
 		this.registerAuthedRoute(HttpMethod.GET, "/user/me", this::handleMe);
 		this.registerAuthedRoute(HttpMethod.GET, "/user/:id", this::handleUser);
+		this.registerStrictAuthedRoute(HttpMethod.PUT, "/user/me", this::handleUpdateMe);
 	}
 
 	private void handleMe(final RoutingContext ctx) {
@@ -67,8 +69,9 @@ public class UserModule extends AbstractModule {
 
 		final JsonArray devs = new JsonArray();
 
-		final FindIterable<Device> it
-				= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq("owner", user.getId()));
+		final FindIterable<Device> it = this.srv.getDatabaseManager()
+			.getCollection(Device.class)
+			.find(Filters.eq("owner", user.getId()));
 		it.forEach(d -> devs.add(d.toPublicJson()));
 
 		obj.put("devices", devs);
@@ -76,4 +79,51 @@ public class UserModule extends AbstractModule {
 		ctx.response().end(obj.toBuffer());
 	}
 
+	private void handleUpdateMe(final RoutingContext ctx) {
+		final User user = ctx.get(AuthHandler.USER_KEY);
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final String username = obj.getString("username");
+
+		if (username != null && (username.length() < 4 || username.length() > 32)) {
+			this.error(ctx, 400, "Username is invalid length");
+			return;
+		}
+
+		if (username != null && !UserManager.USERNAME_REGEX.matcher(username).matches()) {
+			this.error(ctx, 400, "Invalid username");
+			return;
+		}
+
+		final String newPassword = obj.getString("newPassword");
+		final String currentPassword = obj.getString("currentPassword");
+
+		if (newPassword != null && (newPassword.length() < 4 || newPassword.length() > 128)) {
+			this.error(ctx, 400, "Invalid password length");
+			return;
+		}
+
+		if (newPassword != null && currentPassword == null) {
+			this.error(ctx, 400, "Changing password requires current password to be entered");
+			return;
+		}
+
+		final String email = obj.getString("email");
+
+		if (email != null && !UserManager.EMAIL_REGEX.matcher(email).matches()) {
+			this.error(ctx, 400, "Invalid email");
+			return;
+		}
+
+		this.srv.getUserManager()
+			.updateUser()
+			.setUser(user)
+			.setEmail(email)
+			.setUsername(username)
+			.setCurrentPassword(currentPassword)
+			.setNewPassword(newPassword)
+			.execute()
+			.onSuccess(v -> this.error(ctx, 200, "Successfully updated user"))
+			.onFailure(t -> this.error(ctx, 500, "Failed to update user: " + t.getMessage()));
+	}
 }

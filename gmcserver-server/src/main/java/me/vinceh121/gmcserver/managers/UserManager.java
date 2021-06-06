@@ -2,11 +2,17 @@ package me.vinceh121.gmcserver.managers;
 
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.List;
+import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
@@ -39,6 +45,10 @@ public class UserManager extends AbstractManager {
 
 	public CreateUserAction createUser() {
 		return new CreateUserAction(this.srv);
+	}
+
+	public UpdateUserAction updateUser() {
+		return new UpdateUserAction(this.srv);
 	}
 
 	public class GetUserAction extends AbstractAction<User> {
@@ -260,6 +270,111 @@ public class UserManager extends AbstractManager {
 			this.email = email;
 			return this;
 		}
+	}
 
+	public class UpdateUserAction extends AbstractAction<Void> {
+		private User user;
+		private String username, email, currentPassword, newPassword;
+
+		public UpdateUserAction(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<Void> promise) {
+			final List<Bson> updates = new Vector<>();
+
+			if (username != null) {
+				if (this.srv.getDatabaseManager()
+					.getCollection(User.class)
+					.find(Filters.eq("username", this.username)).first() != null) {
+					promise.fail("Username is taken");
+					return;
+				}
+
+				updates.add(Updates.set("username", this.username));
+			}
+
+			if (email != null) {
+				if (this.srv.getDatabaseManager()
+					.getCollection(User.class)
+					.find(Filters.eq("email", this.email)).first() != null) {
+					promise.fail("Email is taken");
+					return;
+				}
+
+				updates.add(Updates.set("email", this.email));
+			}
+
+			if (this.newPassword != null && this.currentPassword != null) {
+				try {
+					final CompletableFuture<User> fut = this.srv.getAuthenticator()
+						.login(this.user.getUsername(), this.currentPassword)
+						.toCompletionStage() // i mean fuck me right
+						.toCompletableFuture();
+
+					if (fut.get() == null && fut.isCompletedExceptionally()) {
+						promise.fail("Failed to authenticate");
+						return;
+					}
+
+					updates.add(Updates.set("password",
+							this.srv.getArgon().hash(10, 65536, 1, this.newPassword.toCharArray())));
+				} catch (final InterruptedException | ExecutionException e) {
+					promise.fail(e);
+					return;
+				}
+			}
+
+			this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.updateOne(Filters.eq(this.user.getId()), Updates.combine(updates));
+			promise.complete();
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public UpdateUserAction setUser(User user) {
+			this.user = user;
+			return this;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public UpdateUserAction setUsername(String username) {
+			this.username = username;
+			return this;
+		}
+
+		public String getEmail() {
+			return email;
+		}
+
+		public UpdateUserAction setEmail(String email) {
+			this.email = email;
+			return this;
+		}
+
+		public String getCurrentPassword() {
+			return currentPassword;
+		}
+
+		public UpdateUserAction setCurrentPassword(String currentPassword) {
+			this.currentPassword = currentPassword;
+			return this;
+		}
+
+		public String getNewPassword() {
+			return newPassword;
+		}
+
+		public UpdateUserAction setNewPassword(String newPassword) {
+			this.newPassword = newPassword;
+			return this;
+		}
 	}
 }
