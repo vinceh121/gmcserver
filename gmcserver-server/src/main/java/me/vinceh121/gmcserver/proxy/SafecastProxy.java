@@ -48,6 +48,19 @@ public class SafecastProxy extends AbstractProxy {
 	@Override
 	public Future<Void> proxyRecord(final Record r, final Device dev, final Map<String, Object> proxySettings) {
 		return Future.future(p -> {
+			final double latitude, longitude;
+
+			if (r.getLocation() != null) { // prioritize location from individual record, else use device's location
+				longitude = r.getLocation().getPosition().getValues().get(0);
+				latitude = r.getLocation().getPosition().getValues().get(1);
+			} else if (dev.getLocation() != null) {
+				longitude = dev.getLocation().getPosition().getValues().get(0);
+				latitude = dev.getLocation().getPosition().getValues().get(1);
+			} else {
+				p.fail("Nor record or device have position set");
+				return;
+			}
+
 			this.srv.getWebClient()
 				.post("api.safecast.org", "/measurements.json")
 				.as(BodyCodec.jsonObject())
@@ -56,11 +69,11 @@ public class SafecastProxy extends AbstractProxy {
 					.put("device_id", proxySettings.get("deviceId"))
 					.put("value", r.getCpm())
 					.put("unit", "cpm")
-					.put("latitude", dev.getLocation().getPosition().getValues().get(1))
-					.put("longitude", dev.getLocation().getPosition().getValues().get(0)))
+					.put("longitude", longitude)
+					.put("latitude", latitude))
 				.onSuccess(res -> {
 					if (res.statusCode() != 201) {
-						p.fail("Safecast returned non-200: " + res.statusCode() + ": " + res.body().toString());
+						p.fail("Safecast returned non-201: " + res.statusCode() + ": " + res.body().toString());
 					} else {
 						p.complete();
 					}

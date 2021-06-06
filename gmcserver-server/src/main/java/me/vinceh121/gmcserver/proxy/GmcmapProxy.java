@@ -41,6 +41,19 @@ public class GmcmapProxy extends AbstractProxy {
 	@Override
 	public Future<Void> proxyRecord(final Record r, final Device dev, final Map<String, Object> proxySettings) {
 		return Future.future(p -> {
+			final double latitude, longitude;
+
+			if (r.getLocation() != null) { // prioritize location from individual record, else use device's location
+				longitude = r.getLocation().getPosition().getValues().get(0);
+				latitude = r.getLocation().getPosition().getValues().get(1);
+			} else if (dev.getLocation() != null) {
+				longitude = dev.getLocation().getPosition().getValues().get(0);
+				latitude = dev.getLocation().getPosition().getValues().get(1);
+			} else {
+				p.fail("Nor record or device have position set");
+				return;
+			}
+
 			final HttpRequest<String> req = this.srv.getWebClient()
 				.get("gmcmap.com", "/log2.asp")
 				.as(BodyCodec.string());
@@ -54,12 +67,10 @@ public class GmcmapProxy extends AbstractProxy {
 				}
 			}
 
-			if (r.getLocation() != null) {
-				req.setQueryParam("lon", Double.toString(r.getLocation().getPosition().getValues().get(0)));
-				req.setQueryParam("lat", Double.toString(r.getLocation().getPosition().getValues().get(1)));
-				if (r.getLocation().getPosition().getValues().size() > 2) {
-					req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
-				}
+			req.setQueryParam("lon", Double.toString(longitude));
+			req.setQueryParam("lat", Double.toString(latitude));
+			if (r.getLocation().getPosition().getValues().size() > 2) {
+				req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
 			}
 
 			req.send().onSuccess(res -> p.complete()).onSuccess(res -> {
