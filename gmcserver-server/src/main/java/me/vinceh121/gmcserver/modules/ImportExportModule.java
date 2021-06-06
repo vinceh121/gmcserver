@@ -237,7 +237,7 @@ public class ImportExportModule extends AbstractModule {
 							}
 
 							if (elmAlt != null) {
-								pos.set(3, Double.parseDouble(elmAlt.text()));
+								pos.set(2, Double.parseDouble(elmAlt.text()));
 							}
 
 							if (pos.size() > 0) {
