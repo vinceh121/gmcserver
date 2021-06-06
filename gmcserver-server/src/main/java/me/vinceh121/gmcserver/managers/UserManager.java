@@ -18,10 +18,8 @@ import xyz.bowser65.tokenize.Token;
 public class UserManager extends AbstractManager {
 	private static final SecureRandom USER_RANDOM = new SecureRandom();
 	public static final Pattern USERNAME_REGEX = Pattern.compile("[a-zA-Z]{2,}[a-zA-Z0-9]{2,}"),
-			EMAIL_REGEX = Pattern.compile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]"
-					+ "+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\"
-					+ ".[0-9]{1,3}\\.[0-9]{1,3}])|(([a-"
-					+ "zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$");
+			EMAIL_REGEX = Pattern.compile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]" + "+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\"
+					+ ".[0-9]{1,3}\\.[0-9]{1,3}])|(([a-" + "zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$");
 
 	public UserManager(final GMCServer srv) {
 		super(srv);
@@ -156,7 +154,7 @@ public class UserManager extends AbstractManager {
 	public class CreateUserAction extends AbstractAction<User> {
 		private String username, password, email;
 		private boolean admin, generateGmcId = true, insertInDb = true;
-		private final boolean checkUsernameAvailable = true;
+		private final boolean checkUsernameAvailable = true, checkEmailAvailable = true;
 		private long gmcId;
 
 		private CreateUserAction(final GMCServer srv) {
@@ -178,10 +176,18 @@ public class UserManager extends AbstractManager {
 			user.setGmcId(this.gmcId);
 
 			if (this.checkUsernameAvailable && this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.find(Filters.eq("username", this.username))
-					.first() != null) {
+				.getCollection(User.class)
+				.find(Filters.eq("username", this.username))
+				.first() != null) {
 				promise.fail("Username taken");
+				return;
+			}
+
+			if (this.checkEmailAvailable && this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("email", this.email))
+				.first() != null) {
+				promise.fail("Email taken");
 				return;
 			}
 
