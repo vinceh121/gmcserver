@@ -97,7 +97,6 @@ public class DeviceCalendarManager extends AbstractManager {
 			return Future.future(promise -> {
 				final LocalDateTime curDayTime = currentDay.atStartOfDay();
 				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000);
-				System.out.println(curDate);
 				final Document rec = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
 					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
