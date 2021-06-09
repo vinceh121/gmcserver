@@ -75,7 +75,6 @@ function GmcMap() {
 	} else {
 		return (
 			<Card
-				title="World Map"
 				style={{ margin: "16px" }}
 				extra={
 					loading ? (
