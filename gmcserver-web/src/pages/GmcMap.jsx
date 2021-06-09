@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Button, Card, Result, Space, Spin } from "antd";
+import { Button, Card, message, Result, Space } from "antd";
 import { fetchMap } from "../GmcApi";
 import { Link } from "react-router-dom";
 import gmcCpmPin from "../assets/PinBuilder";
-import { LoadingOutlined } from "@ant-design/icons";
 
 function DeviceMarker(props) {
 	const device = props.device;
@@ -33,20 +32,14 @@ function DeviceMarker(props) {
 }
 
 function GmcMap() {
-	const [loading, setLoading] = useState(true);
 	const [devices, setDevices] = useState(null);
-	const [error, setError] = useState(null);
 	const [input, setInput] = useState(null);
 
 	useEffect(() => {
 		if (input && input.rect) {
-			setLoading(true);
 			fetchMap(input.rect).then(
-				(devs) => {
-					setDevices(devs); 
-					setLoading(false); 
-				},
-				(err) => setError(err)
+				(devs) => setDevices(devs),
+				(err) => message.error("Error while loading map: " + String(err))
 			);
 		}
 	}, [input]);
@@ -64,53 +57,32 @@ function GmcMap() {
 			});
 		}
 	}
-	if (error) {
-		return (
-			<Result
-				status="500"
-				title="Failed to load devices"
-				subTitle={String(error)}
-			/>
-		);
-	} else {
-		return (
-			<Card
-				style={{ margin: "16px" }}
-				extra={
-					loading ? (
-						<Spin
-							indicator={
-								<LoadingOutlined
-									spin
-									style={{ fontSize: 21 }}
-								/>
-							}
-						/>
-					) : undefined
-				}
+
+	return (
+		<Card
+			style={{ margin: "16px" }}
+		>
+			<MapContainer
+				center={[48.743611, 18.930556]}
+				zoom={4}
+				style={{ height: "85vh", background: "#1f1f1f" }}
+				whenReady={(map) => {
+					updateInput(map.target);
+					map.target.on({
+						moveend: () => updateInput(map.target)
+					})
+				}}
 			>
-				<MapContainer
-					center={[48.743611, 18.930556]}
-					zoom={4}
-					style={{ height: "80vh", background: "#1f1f1f" }}
-					whenReady={(map) => {
-						updateInput(map.target);
-						map.target.on({
-							moveend: () => updateInput(map.target)
-						})
-					}}
-				>
-					<TileLayer
-						attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-					/>
-					{devices ? devices.map((dev) => (
-						<DeviceMarker key={dev.id} device={dev} />
-					)) : undefined}
-				</MapContainer>
-			</Card >
-		);
-	}
+				<TileLayer
+					attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+				/>
+				{devices ? devices.map((dev) => (
+					<DeviceMarker key={dev.id} device={dev} />
+				)) : undefined}
+			</MapContainer>
+		</Card >
+	);
 }
 
 export default GmcMap;
