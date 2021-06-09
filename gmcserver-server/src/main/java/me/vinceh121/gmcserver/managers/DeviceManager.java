@@ -28,6 +28,7 @@ import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
+import me.vinceh121.gmcserver.entities.DeviceCalendar;
 import me.vinceh121.gmcserver.entities.DeviceStats;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
@@ -46,10 +47,13 @@ public class DeviceManager extends AbstractManager {
 	}
 
 	private static List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
-		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)), Aggregates.sort(Sorts.descending("date")),
+		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)),
+				Aggregates.sort(Sorts.descending("date")),
 				Aggregates.limit(limit),
-				Aggregates.group(new BsonNull(), Accumulators.avg("avg", "$" + field),
-						Accumulators.min("min", "$" + field), Accumulators.max("max", "$" + field),
+				Aggregates.group(new BsonNull(),
+						Accumulators.avg("avg", "$" + field),
+						Accumulators.min("min", "$" + field),
+						Accumulators.max("max", "$" + field),
 						Accumulators.stdDevPop("stdDev", "$" + field)));
 	}
 
@@ -89,10 +93,10 @@ public class DeviceManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<DeviceStats> promise) {
 			final DeviceStats stats = this.srv.getDatabaseManager()
-					.getCollection(Record.class)
-					.aggregate(DeviceManager.getStatsAggregation(this.field, this.devId, this.sampleSize),
-							DeviceStats.class)
-					.first();
+				.getCollection(Record.class)
+				.aggregate(DeviceManager.getStatsAggregation(this.field, this.devId, this.sampleSize),
+						DeviceStats.class)
+				.first();
 			if (stats != null) {
 				stats.setDevice(this.devId);
 				stats.setField(this.field);
@@ -154,8 +158,9 @@ public class DeviceManager extends AbstractManager {
 				filters.add(Filters.lte("date", this.end));
 			}
 
-			final FindIterable<Record> it
-					= this.srv.getDatabaseManager().getCollection(Record.class).find(Filters.and(filters));
+			final FindIterable<Record> it = this.srv.getDatabaseManager()
+				.getCollection(Record.class)
+				.find(Filters.and(filters));
 			it.sort(Sorts.descending("date"));
 			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 
@@ -229,7 +234,7 @@ public class DeviceManager extends AbstractManager {
 			if (this.arrLocation != null) {
 				updates.add(Updates.set("location", DeviceManager.jsonArrToPoint(this.arrLocation)));
 			}
-			
+
 			if (this.proxiesSettings != null) {
 				for (final String field : this.proxiesSettings.fieldNames()) {
 					if (!this.srv.getProxyManager().getProxies().containsKey(field)) {
@@ -241,8 +246,8 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			final UpdateResult res = this.srv.getDatabaseManager()
-					.getCollection(Device.class)
-					.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
+				.getCollection(Device.class)
+				.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
 
 			if (res.wasAcknowledged()) {
 				promise.complete(res.getModifiedCount());
@@ -307,8 +312,10 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Device> promise) {
-			final Device dev
-					= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(this.id)).first();
+			final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(this.id))
+				.first();
 
 			if (dev == null) {
 				promise.fail("Device not found");
@@ -338,8 +345,10 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			final Device dev
-					= this.srv.getDatabaseManager().getCollection(Device.class).find(Filters.eq(this.deviceId)).first();
+			final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq(this.deviceId))
+				.first();
 
 			if (dev == null) {
 				promise.fail("Device not found");
@@ -348,12 +357,15 @@ public class DeviceManager extends AbstractManager {
 
 			if (!this.delete) {
 				this.srv.getDatabaseManager()
-						.getCollection(Device.class)
-						.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
+					.getCollection(Device.class)
+					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
 			} else {
 				this.srv.getDatabaseManager()
-						.getCollection(Record.class)
-						.deleteMany(Filters.eq("deviceId", dev.getId()));
+					.getCollection(Record.class)
+					.deleteMany(Filters.eq("deviceId", dev.getId()));
+				this.srv.getDatabaseManager()
+					.getCollection(DeviceCalendar.class)
+					.deleteMany(Filters.eq("deviceId", dev.getId()));
 				this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
 			}
 
@@ -404,8 +416,8 @@ public class DeviceManager extends AbstractManager {
 			}
 
 			if (deviceLimit <= this.srv.getDatabaseManager()
-					.getCollection(Device.class)
-					.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
+				.getCollection(Device.class)
+				.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
 				promise.fail("Device limit reached");
 				return;
 			}

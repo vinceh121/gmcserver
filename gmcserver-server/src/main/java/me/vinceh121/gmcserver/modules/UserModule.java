@@ -1,5 +1,6 @@
 package me.vinceh121.gmcserver.modules;
 
+import org.apache.logging.log4j.message.FormattedMessage;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.FindIterable;
@@ -22,6 +23,7 @@ public class UserModule extends AbstractModule {
 		this.registerAuthedRoute(HttpMethod.GET, "/user/me", this::handleMe);
 		this.registerAuthedRoute(HttpMethod.GET, "/user/:id", this::handleUser);
 		this.registerStrictAuthedRoute(HttpMethod.PUT, "/user/me", this::handleUpdateMe);
+		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/user/me", this::handleDeleteMe);
 	}
 
 	private void handleMe(final RoutingContext ctx) {
@@ -125,5 +127,27 @@ public class UserModule extends AbstractModule {
 			.execute()
 			.onSuccess(v -> this.error(ctx, 200, "Successfully updated user"))
 			.onFailure(t -> this.error(ctx, 500, "Failed to update user: " + t.getMessage()));
+	}
+
+	private void handleDeleteMe(final RoutingContext ctx) {
+		final User user = ctx.get(AuthHandler.USER_KEY);
+		final JsonObject obj = ctx.getBodyAsJson();
+
+		final String password = obj.getString("password");
+		if (password == null) {
+			this.error(ctx, 400, "Password missing");
+			return;
+		}
+
+		this.srv.getUserManager()
+			.deleteUser()
+			.setConfirmPassword(password)
+			.setUser(user)
+			.execute()
+			.onSuccess(v -> this.error(ctx, 200, "Your account, devices, timelines have been deleted"))
+			.onFailure(t -> {
+				this.log.error(new FormattedMessage("Error while deleting account {}", user.getId()), t);
+				this.error(ctx, 500, "Error while deleting your account: " + t);
+			});
 	}
 }

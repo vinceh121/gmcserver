@@ -14,9 +14,12 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
+import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
 import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
@@ -49,6 +52,10 @@ public class UserManager extends AbstractManager {
 
 	public UpdateUserAction updateUser() {
 		return new UpdateUserAction(this.srv);
+	}
+
+	public DeleteUserAction deleteUser() {
+		return new DeleteUserAction(this.srv);
 	}
 
 	public class GetUserAction extends AbstractAction<User> {
@@ -287,7 +294,8 @@ public class UserManager extends AbstractManager {
 			if (username != null) {
 				if (this.srv.getDatabaseManager()
 					.getCollection(User.class)
-					.find(Filters.eq("username", this.username)).first() != null) {
+					.find(Filters.eq("username", this.username))
+					.first() != null) {
 					promise.fail("Username is taken");
 					return;
 				}
@@ -298,7 +306,8 @@ public class UserManager extends AbstractManager {
 			if (email != null) {
 				if (this.srv.getDatabaseManager()
 					.getCollection(User.class)
-					.find(Filters.eq("email", this.email)).first() != null) {
+					.find(Filters.eq("email", this.email))
+					.first() != null) {
 					promise.fail("Email is taken");
 					return;
 				}
@@ -374,6 +383,69 @@ public class UserManager extends AbstractManager {
 
 		public UpdateUserAction setNewPassword(String newPassword) {
 			this.newPassword = newPassword;
+			return this;
+		}
+	}
+
+	public class DeleteUserAction extends AbstractAction<Void> {
+		private String confirmPassword;
+		private User user;
+
+		public DeleteUserAction(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<Void> promise) {
+			try {
+				final CompletableFuture<User> fut = this.srv.getAuthenticator()
+					.login(this.user.getUsername(), this.confirmPassword)
+					.toCompletionStage() // i mean fuck me right
+					.toCompletableFuture();
+
+				if (fut.get() == null && fut.isCompletedExceptionally()) {
+					promise.fail("Failed to authenticate");
+					return;
+				}
+
+			} catch (final InterruptedException | ExecutionException e) {
+				promise.fail(e);
+				return;
+			}
+
+			// If reauth is successful:
+
+			@SuppressWarnings("rawtypes")
+			final List<Future> deletes = new Vector<>();
+
+			for (final Device dev : this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.find(Filters.eq("owner", this.user.getId()))) {
+				deletes
+					.add(this.srv.getDeviceManager().deleteDevice().setDeviceId(dev.getId()).setDelete(true).execute());
+			}
+
+			CompositeFuture.all(deletes).onSuccess(fut -> {
+				this.srv.getDatabaseManager().getCollection(User.class).deleteOne(Filters.eq(this.user.getId()));
+				promise.complete();
+			}).onFailure(promise::fail);
+		}
+
+		public String getConfirmPassword() {
+			return confirmPassword;
+		}
+
+		public DeleteUserAction setConfirmPassword(String confirmPassword) {
+			this.confirmPassword = confirmPassword;
+			return this;
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public DeleteUserAction setUser(User user) {
+			this.user = user;
 			return this;
 		}
 	}
