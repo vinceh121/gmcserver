@@ -11,11 +11,14 @@ import {
 	Switch,
 	InputNumber,
 	Button,
+	Menu,
+	Dropdown,
 } from "antd";
 import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DeviceBadge from "../components/DeviceBadge";
 import Loader from "../components/Loader";
+import { DownOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -48,6 +51,35 @@ function User() {
 
 	if (state && state.user) {
 		const user = state.user;
+
+		const optionsMenu = (
+			<Menu>
+				<Menu.Item>
+					<Button
+						type="link"
+						onClick={() => {
+							logoff();
+							history.push("/");
+						}}
+						danger
+					>
+						Logout
+					</Button>
+				</Menu.Item>
+				<Menu.Item>
+					<Button
+						type="link"
+						onClick={() => {
+							history.push("/accountDeletion");
+						}}
+						danger
+					>
+						Delete account
+					</Button>
+				</Menu.Item>
+			</Menu>
+		);
+
 		return (
 			<PageHeader
 				onBack={history.goBack}
@@ -62,26 +94,17 @@ function User() {
 					user.self ? <Tag key="you">This is you</Tag> : undefined,
 				]}
 				extra={[
-					user.self ? (
-						<Button
-							key="0"
-							onClick={() => history.push("/device/new")}
-						>
-							New Device
+					<Button
+						icon={<PlusOutlined />}
+						onClick={() => history.push("/device/new")}
+					>
+						New Device
+					</Button>,
+					<Dropdown overlay={optionsMenu} placement="bottomRight">
+						<Button>
+							<DownOutlined />
 						</Button>
-					) : undefined,
-					user.self ? (
-						<Button
-							key="1"
-							onClick={() => {
-								logoff();
-								history.push("/");
-							}}
-							danger
-						>
-							Logout
-						</Button>
-					) : undefined,
+					</Dropdown>
 				]}
 			>
 				{user.self ? (

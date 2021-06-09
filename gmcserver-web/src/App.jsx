@@ -19,6 +19,7 @@ import Mfa from "./pages/Mfa";
 import ToolBar from "./components/ToolBar";
 import EditDevice from "./pages/device/EditDevice";
 import { GithubFilled } from "@ant-design/icons";
+import UserDeletion from "./pages/UserDeletion";
 
 const { Footer, Content, Header } = Layout;
 
@@ -61,6 +62,9 @@ function App() {
 						</Route>
 						<Route path="/register">
 							<Register />
+						</Route>
+						<Route path="/accountDeletion">
+							<UserDeletion />
 						</Route>
 						<Route path="/welcome">
 							<Welcome />

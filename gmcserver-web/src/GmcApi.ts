@@ -131,7 +131,7 @@ export const mfaSubmit = async (pass: number): Promise<LoginResult> => {
 	const mfa = (await res.json()) as LoginResult;
 	saveSession(mfa);
 	return mfa;
-}
+};
 
 export const mfaDisable = async (pass: number): Promise<object> => {
 	const res = await request("/auth/mfa", {
@@ -143,7 +143,20 @@ export const mfaDisable = async (pass: number): Promise<object> => {
 		throw obj;
 	}
 	return obj;
-}
+};
+
+export const deleteMe = async (password: string): Promise<ErrorResult> => {
+	const res = await request("/user/me", {
+		method: "DELETE",
+		body: JSON.stringify({ password })
+	});
+
+	const obj = (await res.json()) as ErrorResult;
+	if (res.status !== 200) {
+		throw obj;
+	}
+	return obj;
+};
 
 export const fetchInstanceInfo = async (): Promise<InstanceInfo> => {
 	const res = await request("/instance/info");
