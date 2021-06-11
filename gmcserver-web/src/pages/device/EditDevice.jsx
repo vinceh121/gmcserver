@@ -18,7 +18,6 @@ function EditDevice() {
 	useEffect(() => {
 		fetchDevice(id).then(
 			(device) => {
-				console.log(device);
 				setDevice(device)
 			},
 			(error) => setDeviceError(error)

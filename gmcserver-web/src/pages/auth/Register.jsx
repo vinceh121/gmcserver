@@ -22,7 +22,6 @@ function Register() {
 	}, [captchaRequired]);
 
 	const onFinish = (data) => {
-		console.log(data);
 		setState({ loading: true });
 		register(data.username, data.email, data.password, data.captchaAnswer, captchaId).then(
 			(result) => {

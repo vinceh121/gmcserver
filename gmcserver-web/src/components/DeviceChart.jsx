@@ -37,25 +37,26 @@ function DeviceChart(props) {
 	const [timeline, setTimeline] = useState(null);
 
 	useEffect(() => {
+		const hiddenFields = props.hiddenFields ? props.hiddenFields : [];
 		if (props.timeline) {
-			let usedFields = [];
-			for (let r of props.timeline) {
+			const usedFields = new Set();
+			for (const r of props.timeline) {
 				Object.keys(r)
 					.filter(
 						(v) =>
-							!usedFields.includes(v) &&
-							numericRecordFields.includes(v)
+							numericRecordFields.includes(v) &&
+							!hiddenFields.includes(v)
 					)
-					.forEach((v) => usedFields.push(v));
+					.forEach((v) => usedFields.add(v));
 			}
 
-			let tl = {};
-			for (let f of usedFields) {
+			const tl = {};
+			for (const f of usedFields) {
 				tl[f] = { id: f, data: [] };
 			}
 
-			for (let r of props.timeline) {
-				for (let f of usedFields) {
+			for (const r of props.timeline) {
+				for (const f of usedFields) {
 					tl[f].data.push({
 						x: r.date,
 						y: r[f] !== "NaN" ? r[f] : null,
@@ -65,7 +66,7 @@ function DeviceChart(props) {
 
 			setTimeline(Object.values(tl));
 		}
-	}, [props.timeline]);
+	}, [props.timeline, props.hiddenFields]);
 
 	if (timeline) {
 		return (
@@ -101,7 +102,7 @@ function DeviceChart(props) {
 					},
 				}}
 				data={timeline}
-				margin={{ top: 5, right: 5, bottom: 90, left: 5 }}
+				margin={{ top: 5, right: 5, bottom: 60, left: 5 }}
 				animate={true}
 				curve="linear"
 				useMesh={true}
@@ -129,32 +130,6 @@ function DeviceChart(props) {
 					tickRotation: -25,
 				}}
 				pointSize={4}
-				legends={[
-					{
-						anchor: 'bottom',
-						direction: 'row',
-						justify: false,
-						translateX: 0,
-						translateY: 90,
-						itemsSpacing: 0,
-						itemDirection: 'left-to-right',
-						itemWidth: 80,
-						itemHeight: 20,
-						itemOpacity: 0.75,
-						symbolSize: 12,
-						symbolShape: 'circle',
-						symbolBorderColor: 'rgba(0, 0, 0, .5)',
-						effects: [
-							{
-								on: 'hover',
-								style: {
-									itemBackground: 'rgba(0, 0, 0, .03)',
-									itemOpacity: 1
-								}
-							}
-						]
-					}
-				]}
 			/>
 		);
 	} else {

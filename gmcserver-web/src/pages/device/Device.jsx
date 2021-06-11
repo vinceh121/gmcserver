@@ -4,6 +4,7 @@ import { fetchDevice, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
+	Checkbox,
 	DatePicker,
 	Descriptions,
 	Dropdown,
@@ -16,7 +17,7 @@ import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
 import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
-import { exportTypes } from "../../GmcTypes";
+import { exportTypes, numericRecordFields } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
 import { DownOutlined } from "@ant-design/icons";
 import DeviceTable from "../../components/DeviceTable";
@@ -126,10 +127,26 @@ function Device() {
 									full={input.full}
 									start={input.start}
 									end={input.end}
+									hiddenFields={input.hiddenFields}
 									timeline={timeline}
 								// onClick={(r) => setViewRecord(r)} // sighhh onClick doesn't work with slices
 								/>
 							</Card>
+							<Checkbox.Group
+								// options={numericRecordFields}
+								defaultValue={numericRecordFields}
+								value={input.hiddenFields}
+								onChange={(list) => {
+									setInput(
+										Object.assign({}, input, {
+											hiddenFields: list
+										})
+									)
+								}} >
+								{numericRecordFields.map((f) =>
+									<Checkbox key={f} value={f}>{f.toUpperCase()}</Checkbox>
+								)}
+							</Checkbox.Group>
 							<MyTimeRange />
 						</TabPane>
 						<TabPane tab="Stats" key="stats">
