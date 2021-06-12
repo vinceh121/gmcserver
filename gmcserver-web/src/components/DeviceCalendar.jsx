@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ResponsiveCalendar } from '@nivo/calendar'
 import Loader from "./Loader";
 import { numericRecordFields } from "../GmcTypes";
-import { message, Result, Select } from "antd";
+import { Button, message, Result, Select } from "antd";
 import { ClockCircleTwoTone } from "@ant-design/icons";
 import { fetchCalendar } from "../GmcApi";
 
@@ -21,13 +21,13 @@ function DeviceCalendar(props) {
 	const [calendars, setCalendars] = useState({});
 
 	useEffect(() => {
-		if (props.device) {
+		if (props.device && rawCalendar === undefined) {
 			fetchCalendar(props.device.id).then(
 				(cal) => setRawCalendar(cal),
 				(err) => message.error("Failed to fetch calendar: " + err, 5000)
 			);
 		}
-	}, [props.device]);
+	}, [props.device, rawCalendar]);
 
 	useEffect(() => {
 		if (rawCalendar && rawCalendar.recs && !Object.keys(calendars).length) {
@@ -67,7 +67,8 @@ function DeviceCalendar(props) {
 			<Result
 				title="The calendar is still loading"
 				subTitle="Please check later"
-				icon={<ClockCircleTwoTone twoToneColor="#ff5722" />} />
+				icon={<ClockCircleTwoTone twoToneColor="#ff5722" />}
+				extra={[<Button onClick={() => setRawCalendar()}>Refresh</Button>]} />
 		);
 	}
 
