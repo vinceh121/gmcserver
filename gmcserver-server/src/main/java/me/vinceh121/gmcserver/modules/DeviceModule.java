@@ -92,7 +92,7 @@ public class DeviceModule extends AbstractModule {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
 		this.srv.getDeviceManager().getDevice().setId(deviceId).execute().onSuccess(dev -> {
-			if (user.getId().equals(dev.getOwner())) {
+			if (!user.getId().equals(dev.getOwner())) {
 				this.error(ctx, 403, "Device not owned");
 				return;
 			}
