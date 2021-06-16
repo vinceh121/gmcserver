@@ -225,6 +225,19 @@ export const updateDevice = async (
 	return (await res.json()) as DeviceUpdate;
 };
 
+export const disableDevice = async (id: string, del: boolean): Promise < ErrorResult > => {
+	const res = await request("/device/" + id, {
+		method: "DELETE",
+		body: JSON.stringify({ delete: del })
+	});
+
+	if (res.status !== 200) {
+		throw Error(res.statusText + ": " + (await res.json()).description);
+	}
+
+	return (await res.json()) as ErrorResult;
+};
+
 export const fetchTimeline = async (
 	id: string,
 	full: boolean,

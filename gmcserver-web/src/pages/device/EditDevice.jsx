@@ -1,9 +1,9 @@
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber, message, Row } from "antd";
+import { MoreOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { Input, PageHeader, Result, Switch, Form, Tabs, Tooltip, Button, Card, Space, InputNumber, message, Row, Menu, Dropdown } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
-import { fetchDevice, updateDevice } from "../../GmcApi";
+import { disableDevice, fetchDevice, updateDevice } from "../../GmcApi";
 import { proxySettingsModels } from "../../GmcTypes";
 
 const { TabPane } = Tabs;
@@ -45,6 +45,14 @@ function EditDevice() {
 		);
 	};
 
+	const onDelete = () => {
+		disableDevice(id, true).then(
+			(res) => {
+				message.success("Device deleted");
+				history.push("/profile");
+			}, (err) => message.error(err.description));
+	};
+
 	if (device && device.own) {
 		return (
 			<PageHeader
@@ -57,7 +65,18 @@ function EditDevice() {
 					</Button>,
 					<Button key="1" type="primary" onClick={onFinish}>
 						Save
-					</Button>
+					</Button>,
+					<Dropdown overlay={
+						<Menu>
+							<Button key="2" type="link" onClick={onDelete} danger>
+								Delete
+							</Button>
+						</Menu>
+					}>
+						<Button>
+							<MoreOutlined />
+						</Button>
+					</Dropdown>
 				]}
 			>
 				<Form

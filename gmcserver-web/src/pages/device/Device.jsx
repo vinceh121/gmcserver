@@ -78,7 +78,7 @@ function Device() {
 						<Button key="0">
 							<Link to={"/device/" + id + "/live"}>
 								Live timeline
-						</Link>
+							</Link>
 						</Button>,
 						<Dropdown key="1" overlay={
 							<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
@@ -93,7 +93,7 @@ function Device() {
 							<Button key="2">
 								<Link to={"/device/" + id + "/edit"}>
 									Edit
-							</Link>
+								</Link>
 							</Button>
 							: undefined
 					]}
