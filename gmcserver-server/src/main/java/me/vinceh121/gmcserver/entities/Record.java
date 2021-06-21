@@ -19,8 +19,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 public class Record extends AbstractEntity {
-	public static final Collection<String> STAT_FIELDS
-			= Arrays.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy");
+	public static final Collection<String> STAT_FIELDS = Arrays
+		.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy");
 	private ObjectId deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
@@ -244,35 +244,10 @@ public class Record extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "Record [deviceId="
-				+ this.deviceId
-				+ ", cpm="
-				+ this.cpm
-				+ ", acpm="
-				+ this.acpm
-				+ ", usv="
-				+ this.usv
-				+ ", co2="
-				+ this.co2
-				+ ", hcho="
-				+ this.hcho
-				+ ", tmp="
-				+ this.tmp
-				+ ", ap="
-				+ this.ap
-				+ ", hmdt="
-				+ this.hmdt
-				+ ", accy="
-				+ this.accy
-				+ ", date="
-				+ this.date
-				+ ", ip="
-				+ this.ip
-				+ ", type="
-				+ this.type
-				+ ", location="
-				+ this.location
-				+ "]";
+		return "Record [deviceId=" + this.deviceId + ", cpm=" + this.cpm + ", acpm=" + this.acpm + ", usv=" + this.usv
+				+ ", co2=" + this.co2 + ", hcho=" + this.hcho + ", tmp=" + this.tmp + ", ap=" + this.ap + ", hmdt="
+				+ this.hmdt + ", accy=" + this.accy + ", date=" + this.date + ", ip=" + this.ip + ", type=" + this.type
+				+ ", location=" + this.location + "]";
 	}
 
 	public static class Builder { // XXX this will need a big clean up but at least it splits stuff

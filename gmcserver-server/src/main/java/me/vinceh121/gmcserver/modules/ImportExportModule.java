@@ -39,7 +39,7 @@ public class ImportExportModule extends AbstractModule {
 	private static final Logger LOG = LogManager.getLogger(ImportExportModule.class);
 	public static final DateFormat GMCMAP_DATE_FMT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	static {
-		GMCMAP_DATE_FMT.setTimeZone(TimeZone.getTimeZone("UTC"));
+		ImportExportModule.GMCMAP_DATE_FMT.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
 	private static final SecureRandom DEV_RANDOM = new SecureRandom();
@@ -265,8 +265,8 @@ public class ImportExportModule extends AbstractModule {
 						p.complete(records);
 					} catch (final NumberFormatException e) {
 						p.fail(new RuntimeException("Failed to import device", e));
-					} catch (Exception e) {
-						log.error(
+					} catch (final Exception e) {
+						this.log.error(
 								new FormattedMessage("ohno oopsie fucky wucky with import {} at page {}",
 										gmcmapId,
 										page),

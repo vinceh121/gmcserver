@@ -44,32 +44,30 @@ public class AlertManager extends AbstractManager {
 				return;
 			}
 			this.srv.getDeviceManager()
-					.deviceStats()
-					.setField("cpm")
-					.setDevId(this.dev.getId())
-					.execute()
-					.onSuccess(stats -> {
-						if (stats.getStdDev() >= this.dev.getStdDevAlertLimit()) { // too high
-							final Email email = new Email();
-							email.setTo(this.owner);
-							email.setTemplate("device-alert");
-							email.setSubject("[ " + this.dev.getName() + " ] Abnormal CPM readings for device");
-							email.getContext().put("fieldname", "CPM");
-							email.getContext().put("value", this.latestRecord.getCpm());
-							email.getContext().put("device", this.dev.toPublicJson());
-							this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
-								this.srv.getDatabaseManager()
-										.getCollection(Device.class)
-										.updateOne(Filters.eq(this.dev.getId()),
-												Updates.set("lastEmailAlert", new Date()));
-							});
-						}
-					})
-					.onFailure(t -> {
-						AlertManager.this.log.error(new FormattedMessage("Failed to get stats for device {}", this.dev),
-								t);
-						promise.fail("Failed to get stats");
-					});
+				.deviceStats()
+				.setField("cpm")
+				.setDevId(this.dev.getId())
+				.execute()
+				.onSuccess(stats -> {
+					if (stats.getStdDev() >= this.dev.getStdDevAlertLimit()) { // too high
+						final Email email = new Email();
+						email.setTo(this.owner);
+						email.setTemplate("device-alert");
+						email.setSubject("[ " + this.dev.getName() + " ] Abnormal CPM readings for device");
+						email.getContext().put("fieldname", "CPM");
+						email.getContext().put("value", this.latestRecord.getCpm());
+						email.getContext().put("device", this.dev.toPublicJson());
+						this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
+							this.srv.getDatabaseManager()
+								.getCollection(Device.class)
+								.updateOne(Filters.eq(this.dev.getId()), Updates.set("lastEmailAlert", new Date()));
+						});
+					}
+				})
+				.onFailure(t -> {
+					AlertManager.this.log.error(new FormattedMessage("Failed to get stats for device {}", this.dev), t);
+					promise.fail("Failed to get stats");
+				});
 		}
 
 		public Device getDev() {

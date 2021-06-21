@@ -34,20 +34,20 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 		this.fieldUid = srv.getConfig().getProperty("auth.ldap.field.uid", "uid");
 
 		final ConnectionConfig conConfig = ConnectionConfig.builder()
-				.url(srv.getConfig().getProperty("auth.ldap.url"))
-				.useStartTLS(Boolean.parseBoolean(srv.getConfig().getProperty("auth.ldap.startTls")))
-				.connectionInitializers(new BindConnectionInitializer(srv.getConfig().getProperty("auth.ldap.bindDn"),
-						new Credential(srv.getConfig().getProperty("auth.ldap.password"))))
-				.build();
+			.url(srv.getConfig().getProperty("auth.ldap.url"))
+			.useStartTLS(Boolean.parseBoolean(srv.getConfig().getProperty("auth.ldap.startTls")))
+			.connectionInitializers(new BindConnectionInitializer(srv.getConfig().getProperty("auth.ldap.bindDn"),
+					new Credential(srv.getConfig().getProperty("auth.ldap.password"))))
+			.build();
 
 		final SearchDnResolver dnResolver = SearchDnResolver.builder()
-				.factory(new DefaultConnectionFactory(conConfig))
-				.dn(srv.getConfig().getProperty("auth.ldap.baseDn"))
-				.filter("(" + this.fieldUid + "={user})")
-				.build();
+			.factory(new DefaultConnectionFactory(conConfig))
+			.dn(srv.getConfig().getProperty("auth.ldap.baseDn"))
+			.filter("(" + this.fieldUid + "={user})")
+			.build();
 
-		final SimpleBindAuthenticationHandler authHandler
-				= new SimpleBindAuthenticationHandler(new DefaultConnectionFactory(conConfig));
+		final SimpleBindAuthenticationHandler authHandler = new SimpleBindAuthenticationHandler(
+				new DefaultConnectionFactory(conConfig));
 
 		this.auth = new Authenticator(dnResolver, authHandler);
 	}
@@ -77,19 +77,21 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 		final String uid = e.getAttribute(this.fieldUid).getStringValue();
 		final String email = e.getAttribute(this.fieldEmail).getStringValue();
 
-		final User user
-				= this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq("username", uid)).first();
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.eq("username", uid))
+			.first();
 
 		if (user != null) {
 			promise.complete(user);
 		} else {
 			LdapAuthenticator.LOG.info("First login for LDAP user {} <{}>", uid, email);
 			final CreateUserAction userCreate = this.srv.getUserManager()
-					.createUser()
-					.setEmail(email)
-					.setGenerateGmcId(true)
-					.setPassword(null)
-					.setUsername(uid);
+				.createUser()
+				.setEmail(email)
+				.setGenerateGmcId(true)
+				.setPassword(null)
+				.setUsername(uid);
 			userCreate.execute().onSuccess(promise::complete).onFailure(promise::fail);
 		}
 	}

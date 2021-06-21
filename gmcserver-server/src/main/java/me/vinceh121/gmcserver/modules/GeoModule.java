@@ -42,7 +42,7 @@ public class GeoModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid BB");
 			return;
 		}
-		
+
 		for (final Object obj : bb) {
 			if (!(obj instanceof Number)) {
 				this.error(ctx, 400, "Invalid BB");
@@ -65,9 +65,8 @@ public class GeoModule extends AbstractModule {
 		// final Polygon poly = new Polygon(coords);
 
 		final FindIterable<Device> it = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.geoWithinBox("location", bb.getDouble(0), bb.getDouble(1), bb.getDouble(2),
-						bb.getDouble(3)));
+			.getCollection(Device.class)
+			.find(Filters.geoWithinBox("location", bb.getDouble(0), bb.getDouble(1), bb.getDouble(2), bb.getDouble(3)));
 
 		final JsonArray res = new JsonArray();
 		it.forEach(d -> {
@@ -75,10 +74,10 @@ public class GeoModule extends AbstractModule {
 			res.add(mapJson);
 
 			final Record lastRec = this.srv.getDatabaseManager()
-					.getCollection(Record.class)
-					.find(Filters.eq("deviceId", d.getId()))
-					.sort(Sorts.descending("date"))
-					.first();
+				.getCollection(Record.class)
+				.find(Filters.eq("deviceId", d.getId()))
+				.sort(Sorts.descending("date"))
+				.first();
 			if (lastRec != null && !Double.isNaN(lastRec.getCpm())) {
 				mapJson.put("cpm", lastRec.getCpm());
 			}

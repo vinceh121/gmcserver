@@ -9,10 +9,9 @@ import me.vinceh121.gmcserver.mfa.MFAKey;
 import xyz.bowser65.tokenize.IAccount;
 
 /**
- * MFA:
- * When setting up MFA, the key will be set, however the boolean mfa will be
- * false, once the confirmation password has been sent, it will be true and MFA
- * setup is complete
+ * MFA: When setting up MFA, the key will be set, however the boolean mfa will
+ * be false, once the confirmation password has been sent, it will be true and
+ * MFA setup is complete
  *
  */
 public class User extends AbstractEntity implements IAccount {

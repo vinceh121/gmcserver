@@ -68,7 +68,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		if (captchaEnabled) {
+		if (this.captchaEnabled) {
 			final String captchaAnswer = obj.getString("captchaAnswer");
 			final String captchaId = obj.getString("captchaId");
 			this.srv.getWebClient()
@@ -93,7 +93,7 @@ public class AuthModule extends AbstractModule {
 					this.error(ctx, 502, "Failed to verify captcha");
 				});
 		} else {
-			handleRegisterLogin(ctx, username, email, password);
+			this.handleRegisterLogin(ctx, username, email, password);
 		}
 	}
 

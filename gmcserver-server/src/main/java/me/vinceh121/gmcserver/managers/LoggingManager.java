@@ -32,8 +32,9 @@ public class LoggingManager extends AbstractManager {
 		private Record record;
 		private Device device;
 		private User user;
-		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true,
-				differAlert = true, differProxy = true;
+		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true;
+		private final boolean differAlert = true;
+		private final boolean differProxy = true;
 
 		public InsertRecordAction(final GMCServer srv) {
 			super(srv);
@@ -46,7 +47,7 @@ public class LoggingManager extends AbstractManager {
 			@SuppressWarnings("rawtypes")
 			final List<Future> differedFutures = new Vector<>();
 
-			if (insertInDb) {
+			if (this.insertInDb) {
 				joinedFutures.add(Future.future(p -> {
 					try {
 						this.srv.getDatabaseManager().getCollection(Record.class).insertOne(this.record);
@@ -57,7 +58,7 @@ public class LoggingManager extends AbstractManager {
 				}));
 			}
 
-			if (checkAlert) {
+			if (this.checkAlert) {
 				(this.differAlert ? differedFutures : joinedFutures).add(this.srv.getAlertManager()
 					.checkAlert()
 					.setDev(this.device)
@@ -66,84 +67,84 @@ public class LoggingManager extends AbstractManager {
 					.execute());
 			}
 
-			if (processProxy) {
+			if (this.processProxy) {
 				(this.differProxy ? differedFutures : joinedFutures).add(this.srv.getProxyManager()
 					.processDeviceProxies()
-					.setDevice(device)
+					.setDevice(this.device)
 					.setRecord(this.record)
 					.execute());
 			}
 
-			if (publishToEventBus) {
+			if (this.publishToEventBus) {
 				this.srv.getEventBus()
 					.publish(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + this.record.getDeviceId(), this.record);
 			}
 
 			CompositeFuture.join(joinedFutures).onSuccess(c -> promise.complete()).onFailure(promise::fail);
 			CompositeFuture.join(differedFutures)
-				.onFailure(
-						t -> log.error(new FormattedMessage("Error while logging record {}", this.record.getId()), t));
+				.onFailure(t -> LoggingManager.this.log
+					.error(new FormattedMessage("Error while logging record {}", this.record.getId()), t));
 		}
 
 		public Record getRecord() {
-			return record;
+			return this.record;
 		}
 
-		public InsertRecordAction setRecord(Record record) {
+		public InsertRecordAction setRecord(final Record record) {
 			this.record = record;
 			return this;
 		}
 
 		public Device getDevice() {
-			return device;
+			return this.device;
 		}
 
-		public InsertRecordAction setDevice(Device device) {
+		public InsertRecordAction setDevice(final Device device) {
 			this.device = device;
 			return this;
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public InsertRecordAction setUser(User user) {
+		public InsertRecordAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
 
 		public boolean isInsertInDb() {
-			return insertInDb;
+			return this.insertInDb;
 		}
 
-		public InsertRecordAction setInsertInDb(boolean insertInDb) {
+		public InsertRecordAction setInsertInDb(final boolean insertInDb) {
 			this.insertInDb = insertInDb;
 			return this;
 		}
 
 		public boolean isCheckAlert() {
-			return checkAlert;
+			return this.checkAlert;
 		}
 
-		public InsertRecordAction setCheckAlert(boolean checkAlert) {
+		public InsertRecordAction setCheckAlert(final boolean checkAlert) {
 			this.checkAlert = checkAlert;
 			return this;
 		}
 
 		public boolean isProcessProxy() {
-			return processProxy;
+			return this.processProxy;
 		}
 
-		public InsertRecordAction setProcessProxy(boolean processProxy) {
+		public InsertRecordAction setProcessProxy(final boolean processProxy) {
 			this.processProxy = processProxy;
 			return this;
 		}
 
 		public boolean isPublishToEventBus() {
-			return publishToEventBus;
+			return this.publishToEventBus;
 		}
 
-		public InsertRecordAction setPublishToEventBus(boolean publishToEventBus) {
+		public InsertRecordAction setPublishToEventBus(final boolean publishToEventBus) {
 			this.publishToEventBus = publishToEventBus;
 			return this;
 		}

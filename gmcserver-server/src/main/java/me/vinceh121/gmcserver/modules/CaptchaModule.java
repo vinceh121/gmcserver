@@ -9,7 +9,7 @@ import me.vinceh121.gmcserver.GMCServer;
 public class CaptchaModule extends AbstractModule {
 	private final String captchaUrl, inputType, level, media;
 
-	public CaptchaModule(GMCServer srv) {
+	public CaptchaModule(final GMCServer srv) {
 		super(srv);
 		this.captchaUrl = this.srv.getConfig().getProperty("captcha.url");
 		this.inputType = this.srv.getConfig().getProperty("captcha.input-type");
@@ -28,26 +28,36 @@ public class CaptchaModule extends AbstractModule {
 	}
 
 	private void handleCaptchaRequest(final RoutingContext ctx) {
-		this.srv.getWebClient().postAbs(this.captchaUrl + "/captcha").as(BodyCodec.jsonObject()).sendJsonObject(
-				new JsonObject().put("input_type", this.inputType).put("level", this.level).put("media", this.media))
-				.onSuccess(res -> {
-					final String captchaId = res.body().getString("id");
-					ctx.response().end(new JsonObject().put("id", captchaId).toBuffer());
-				}).onFailure(t -> {
-					this.log.error("Error while generating captcha", t);
-					this.error(ctx, 502, "Error while getting captcha: " + t);
-				});
+		this.srv.getWebClient()
+			.postAbs(this.captchaUrl + "/captcha")
+			.as(BodyCodec.jsonObject())
+			.sendJsonObject(new JsonObject().put("input_type", this.inputType)
+				.put("level", this.level)
+				.put("media", this.media))
+			.onSuccess(res -> {
+				final String captchaId = res.body().getString("id");
+				ctx.response().end(new JsonObject().put("id", captchaId).toBuffer());
+			})
+			.onFailure(t -> {
+				this.log.error("Error while generating captcha", t);
+				this.error(ctx, 502, "Error while getting captcha: " + t);
+			});
 	}
 
 	private void handleCaptchaMedia(final RoutingContext ctx) {
 		final String captchaId = ctx.request().getParam("id");
-		this.srv.getWebClient().getAbs(captchaUrl + "/media").as(BodyCodec.buffer()).addQueryParam("id", captchaId)
-				.send().onSuccess(mediaRes -> {
-					ctx.response().putHeader("Content-Type", media).end(mediaRes.bodyAsBuffer());
-				}).onFailure(t -> {
-					this.log.error("Failed to retreive captcha image");
-					this.error(ctx, 502, "Failed to retreive captcha image: " + t);
-				});
+		this.srv.getWebClient()
+			.getAbs(this.captchaUrl + "/media")
+			.as(BodyCodec.buffer())
+			.addQueryParam("id", captchaId)
+			.send()
+			.onSuccess(mediaRes -> {
+				ctx.response().putHeader("Content-Type", this.media).end(mediaRes.bodyAsBuffer());
+			})
+			.onFailure(t -> {
+				this.log.error("Failed to retreive captcha image");
+				this.error(ctx, 502, "Failed to retreive captcha image: " + t);
+			});
 	}
 
 }

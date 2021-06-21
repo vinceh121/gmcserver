@@ -392,7 +392,7 @@ public class LoggingModule extends AbstractModule {
 
 		try {
 			final String rawDate = obj.getString("captured_at");
-			final Date date = DATE_FORMAT_ISO_8601.parse(rawDate);
+			final Date date = LoggingModule.DATE_FORMAT_ISO_8601.parse(rawDate);
 			r.setDate(date);
 		} catch (final ClassCastException | ParseException e) {
 			this.error(ctx, 400, "Invalid date");
@@ -462,7 +462,8 @@ public class LoggingModule extends AbstractModule {
 			.end(desc);
 	}
 
-	protected List<Route> registerLogRoute(HttpMethod method, String path, Handler<RoutingContext> handler) {
+	protected List<Route> registerLogRoute(final HttpMethod method, final String path,
+			final Handler<RoutingContext> handler) {
 		return Arrays.asList(this.registerRoute(this.srv.getBaseRouter(), method, path, handler),
 				this.registerRoute(this.srv.getApiRouter(), method, path, handler));
 	}

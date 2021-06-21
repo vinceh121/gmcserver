@@ -214,7 +214,7 @@ public class MFAManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			verifyCode().setPass(this.code).setUser(this.user).execute().onSuccess(v -> {
+			MFAManager.this.verifyCode().setPass(this.code).setUser(this.user).execute().onSuccess(v -> {
 				this.srv.getDatabaseManager()
 					.getCollection(User.class)
 					.updateOne(Filters.eq(this.user.getId()),
@@ -224,7 +224,7 @@ public class MFAManager extends AbstractManager {
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
 		public DisableMFAAction setUser(final User user) {
@@ -233,7 +233,7 @@ public class MFAManager extends AbstractManager {
 		}
 
 		public int getCode() {
-			return code;
+			return this.code;
 		}
 
 		public DisableMFAAction setCode(final int code) {

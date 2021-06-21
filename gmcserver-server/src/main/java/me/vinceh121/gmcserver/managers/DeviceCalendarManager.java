@@ -99,7 +99,8 @@ public class DeviceCalendarManager extends AbstractManager {
 				final Date curDate = new Date(curDayTime.toEpochSecond(zone.getRules().getOffset(curDayTime)) * 1000);
 				final Document rec = this.srv.getDatabaseManager()
 					.getCollection(Record.class)
-					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId, curDate,
+					.aggregate(DeviceCalendarManager.getAveragePipeline(this.deviceId,
+							curDate,
 							new Date(curDayTime.plusDays(1).toEpochSecond(zone.getRules().getOffset(curDayTime))
 									* 1000)),
 							Document.class)
@@ -137,8 +138,8 @@ public class DeviceCalendarManager extends AbstractManager {
 			final Document doc = this.srv.getDatabaseManager()
 				.getCollection(Record.class)
 				.aggregate(Arrays.asList(Aggregates.match(Filters.eq("deviceId", id)),
-						Aggregates.group(new BsonNull(), Accumulators.min("min", "$date"),
-								Accumulators.max("max", "$date"))),
+						Aggregates
+							.group(new BsonNull(), Accumulators.min("min", "$date"), Accumulators.max("max", "$date"))),
 						Document.class)
 				.first();
 			return new Date[] { doc.getDate("min"), doc.getDate("max") };
@@ -150,7 +151,9 @@ public class DeviceCalendarManager extends AbstractManager {
 		for (final String f : Record.STAT_FIELDS) {
 			fields.add(Accumulators.avg(f, "$" + f));
 		}
-		return Arrays.asList(Aggregates.match(Filters.and(Filters.eq("deviceId", id), Filters.gte("date", lowerBound),
-				Filters.lt("date", upperBound))), Aggregates.group(new BsonNull(), fields));
+		return Arrays.asList(
+				Aggregates.match(Filters
+					.and(Filters.eq("deviceId", id), Filters.gte("date", lowerBound), Filters.lt("date", upperBound))),
+				Aggregates.group(new BsonNull(), fields));
 	}
 }

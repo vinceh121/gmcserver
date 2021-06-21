@@ -65,12 +65,13 @@ public class SafecastProxy extends AbstractProxy {
 				.post("api.safecast.org", "/measurements.json")
 				.as(BodyCodec.jsonObject())
 				.addQueryParam("api_key", String.valueOf(proxySettings.get("apiKey")))
-				.sendJsonObject(new JsonObject().put("captured_at", DATE_FORMAT_ISO_8601.format(r.getDate()))
-					.put("device_id", proxySettings.get("deviceId"))
-					.put("value", r.getCpm())
-					.put("unit", "cpm")
-					.put("longitude", longitude)
-					.put("latitude", latitude))
+				.sendJsonObject(
+						new JsonObject().put("captured_at", SafecastProxy.DATE_FORMAT_ISO_8601.format(r.getDate()))
+							.put("device_id", proxySettings.get("deviceId"))
+							.put("value", r.getCpm())
+							.put("unit", "cpm")
+							.put("longitude", longitude)
+							.put("latitude", latitude))
 				.onSuccess(res -> {
 					if (res.statusCode() != 201) {
 						p.fail("Safecast returned non-201: " + res.statusCode() + ": " + res.body().toString());

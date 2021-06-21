@@ -55,7 +55,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final JsonArray arrLoc = obj.getJsonArray("position");
-		if (arrLoc == null || (arrLoc.size() != 2 && arrLoc.size() != 3)) {
+		if (arrLoc == null || arrLoc.size() != 2 && arrLoc.size() != 3) {
 			this.error(ctx, 400, "Invalid position");
 			return;
 		}
@@ -128,7 +128,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final JsonObject obj = ctx.getBodyAsJson();
-		
+
 		final String name = obj.getString("name");
 		if (name == null || name.length() > 2 && name.length() < 64) {
 			this.error(ctx, 400, "Invalid name");
@@ -145,7 +145,7 @@ public class DeviceModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid proxiesSettings");
 			return;
 		}
-		
+
 		final JsonArray loc;
 		if (obj.containsKey("location") && !(obj.getValue("location") instanceof JsonArray)) {
 			loc = obj.getJsonArray("location");
@@ -162,7 +162,7 @@ public class DeviceModule extends AbstractModule {
 		} else {
 			loc = null;
 		}
-		
+
 		final GetDeviceAction getAction = this.srv.getDeviceManager().getDevice().setId(deviceId);
 		getAction.execute().onSuccess(dev -> {
 			final User user = ctx.get(AuthHandler.USER_KEY);
@@ -396,7 +396,6 @@ public class DeviceModule extends AbstractModule {
 			});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "Device not found: " + t);
-			return;
 		});
 	}
 }

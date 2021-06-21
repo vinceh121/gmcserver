@@ -35,8 +35,8 @@ public class AuthHandler implements Handler<RoutingContext> {
 			ctx.next();
 		}).onFailure(t -> {
 			ctx.response()
-					.setStatusCode(401)
-					.end(new JsonObject().put("status", 401).put("msg", t.getMessage()).toBuffer());
+				.setStatusCode(401)
+				.end(new JsonObject().put("status", 401).put("msg", t.getMessage()).toBuffer());
 		});
 
 	}

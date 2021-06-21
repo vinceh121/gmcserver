@@ -247,7 +247,7 @@ public class GMCServer {
 	}
 
 	public Router getBaseRouter() {
-		return baseRouter;
+		return this.baseRouter;
 	}
 
 	public Router getApiRouter() {
@@ -303,7 +303,7 @@ public class GMCServer {
 	}
 
 	public Collection<AbstractModule> getModules() {
-		return modules;
+		return this.modules;
 	}
 
 	public DatabaseManager getDatabaseManager() {
@@ -335,7 +335,7 @@ public class GMCServer {
 	}
 
 	public LoggingManager getLoggingManager() {
-		return loggingManager;
+		return this.loggingManager;
 	}
 
 	public ProxyManager getProxyManager() {

@@ -26,8 +26,9 @@ public class EmailManager extends AbstractManager {
 	public EmailManager(final GMCServer srv) {
 		super(srv);
 		try {
-			this.client = MailClient.create(srv.getVertx(), new MailConfig(
-					new JsonObject(new String(Files.readAllBytes(Paths.get(GMCBuild.VERTX_MAIL_CONFIG_PATH))))));
+			this.client = MailClient.create(srv.getVertx(),
+					new MailConfig(new JsonObject(
+							new String(Files.readAllBytes(Paths.get(GMCBuild.VERTX_MAIL_CONFIG_PATH))))));
 		} catch (final IOException e) {
 			this.log.error("Failed to read mail config", e);
 			throw new RuntimeException(e);
@@ -84,7 +85,8 @@ public class EmailManager extends AbstractManager {
 		return this.srv.getVertx().fileSystem().readFileBlocking(GMCBuild.MAIL_TEMPLATES_PATH + template).toString();
 	}
 
-	private static String resolveVariables(final String rawHtml, final JsonObject context) throws IllegalArgumentException {
+	private static String resolveVariables(final String rawHtml, final JsonObject context)
+			throws IllegalArgumentException {
 		final StringBuilder sb = new StringBuilder(rawHtml);
 		Matcher matcher;
 		while ((matcher = EmailManager.VAR_PATTERN.matcher(sb)).find()) {

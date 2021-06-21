@@ -293,7 +293,7 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		public JsonObject getProxiesSettings() {
-			return proxiesSettings;
+			return this.proxiesSettings;
 		}
 
 		public UpdateDeviceAction setProxiesSettings(final JsonObject proxiesSettings) {

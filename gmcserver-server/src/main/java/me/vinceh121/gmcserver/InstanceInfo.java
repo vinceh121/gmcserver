@@ -31,10 +31,10 @@ public class InstanceInfo {
 	}
 
 	public boolean isCaptcha() {
-		return captcha;
+		return this.captcha;
 	}
 
-	public void setCaptcha(boolean captcha) {
+	public void setCaptcha(final boolean captcha) {
 		this.captcha = captcha;
 	}
 

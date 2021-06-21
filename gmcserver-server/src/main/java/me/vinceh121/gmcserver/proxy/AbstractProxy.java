@@ -14,7 +14,7 @@ public abstract class AbstractProxy {
 	public AbstractProxy(final GMCServer srv) {
 		this.srv = srv;
 	}
-	
+
 	public abstract Future<Void> validateSettings(final Device dev, final JsonObject obj);
 
 	public abstract Future<Void> proxyRecord(final Record r, final Device dev, final Map<String, Object> proxySettings);

@@ -44,15 +44,8 @@ public class MFAKey {
 
 	public String toURI(final String accountName) {
 		try {
-			return "otpauth://totp/"
-					+ URLEncoder.encode(accountName, "UTF-8")
-					+ "?algorith="
-					+ this.algorithm
-					+ "&digits="
-					+ this.digits
-					+ "&period="
-					+ this.period
-					+ "&secret="
+			return "otpauth://totp/" + URLEncoder.encode(accountName, "UTF-8") + "?algorith=" + this.algorithm
+					+ "&digits=" + this.digits + "&period=" + this.period + "&secret="
 					+ new Base32().encodeToString(this.key);
 		} catch (final UnsupportedEncodingException e) {
 			throw new IllegalStateException(e);

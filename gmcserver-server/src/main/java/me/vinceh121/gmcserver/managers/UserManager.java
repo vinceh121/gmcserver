@@ -141,7 +141,7 @@ public class UserManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Token> promise) {
 			final Token token;
-			if (this.user.isMfa() && !mfaPass) {
+			if (this.user.isMfa() && !this.mfaPass) {
 				token = this.srv.getTokenize().generateToken(this.user, "mfa");
 			} else {
 				token = this.srv.getTokenize().generateToken(this.user);
@@ -159,10 +159,10 @@ public class UserManager extends AbstractManager {
 		}
 
 		public boolean isMfaPass() {
-			return mfaPass;
+			return this.mfaPass;
 		}
 
-		public GenerateTokenAction setMfaPass(boolean mfaPass) {
+		public GenerateTokenAction setMfaPass(final boolean mfaPass) {
 			this.mfaPass = mfaPass;
 			return this;
 		}
@@ -291,7 +291,7 @@ public class UserManager extends AbstractManager {
 		protected void executeSync(final Promise<Void> promise) {
 			final List<Bson> updates = new Vector<>();
 
-			if (username != null) {
+			if (this.username != null) {
 				if (this.srv.getDatabaseManager()
 					.getCollection(User.class)
 					.find(Filters.eq("username", this.username))
@@ -303,7 +303,7 @@ public class UserManager extends AbstractManager {
 				updates.add(Updates.set("username", this.username));
 			}
 
-			if (email != null) {
+			if (this.email != null) {
 				if (this.srv.getDatabaseManager()
 					.getCollection(User.class)
 					.find(Filters.eq("email", this.email))
@@ -342,46 +342,46 @@ public class UserManager extends AbstractManager {
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public UpdateUserAction setUser(User user) {
+		public UpdateUserAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}
 
 		public String getUsername() {
-			return username;
+			return this.username;
 		}
 
-		public UpdateUserAction setUsername(String username) {
+		public UpdateUserAction setUsername(final String username) {
 			this.username = username;
 			return this;
 		}
 
 		public String getEmail() {
-			return email;
+			return this.email;
 		}
 
-		public UpdateUserAction setEmail(String email) {
+		public UpdateUserAction setEmail(final String email) {
 			this.email = email;
 			return this;
 		}
 
 		public String getCurrentPassword() {
-			return currentPassword;
+			return this.currentPassword;
 		}
 
-		public UpdateUserAction setCurrentPassword(String currentPassword) {
+		public UpdateUserAction setCurrentPassword(final String currentPassword) {
 			this.currentPassword = currentPassword;
 			return this;
 		}
 
 		public String getNewPassword() {
-			return newPassword;
+			return this.newPassword;
 		}
 
-		public UpdateUserAction setNewPassword(String newPassword) {
+		public UpdateUserAction setNewPassword(final String newPassword) {
 			this.newPassword = newPassword;
 			return this;
 		}
@@ -432,19 +432,19 @@ public class UserManager extends AbstractManager {
 		}
 
 		public String getConfirmPassword() {
-			return confirmPassword;
+			return this.confirmPassword;
 		}
 
-		public DeleteUserAction setConfirmPassword(String confirmPassword) {
+		public DeleteUserAction setConfirmPassword(final String confirmPassword) {
 			this.confirmPassword = confirmPassword;
 			return this;
 		}
 
 		public User getUser() {
-			return user;
+			return this.user;
 		}
 
-		public DeleteUserAction setUser(User user) {
+		public DeleteUserAction setUser(final User user) {
 			this.user = user;
 			return this;
 		}

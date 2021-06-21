@@ -56,7 +56,8 @@ public class RadmonProxy extends AbstractProxy {
 					if (!msg.equals("OK<br>")) {
 						p.fail(msg);
 					}
-				}).onFailure(p::fail);
+				})
+				.onFailure(p::fail);
 		});
 	}
 

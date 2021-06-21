@@ -61,7 +61,8 @@ public class DatabaseManager extends AbstractManager {
 		this.pojoCodecProvider = PojoCodecProvider.builder()
 			.automatic(true)
 			.conventions(Arrays.asList(classModelBuilder -> classModelBuilder.enableDiscriminator(true),
-					Conventions.ANNOTATION_CONVENTION, Conventions.CLASS_AND_PROPERTY_CONVENTION,
+					Conventions.ANNOTATION_CONVENTION,
+					Conventions.CLASS_AND_PROPERTY_CONVENTION,
 					Conventions.OBJECT_ID_GENERATORS))
 			.register(recordClassModel.build())
 			.build();
@@ -89,15 +90,15 @@ public class DatabaseManager extends AbstractManager {
 		// value: list of pairs of index document and index options
 		final Map<Class<?>, List<Entry<Bson, IndexOptions>>> defaultIndexes = new Hashtable<>();
 		defaultIndexes.put(Record.class,
-				Arrays.asList(new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.ascending("deviceId", "date"),
+				Arrays.asList(new UnmodifiableMapEntry<>(Indexes.ascending("deviceId", "date"),
 						new IndexOptions().name("timeline"))));
 		defaultIndexes.put(Device.class,
 				Arrays.asList(
-						new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.geo2dsphere("location"),
+						new UnmodifiableMapEntry<>(Indexes.geo2dsphere("location"),
 								new IndexOptions().name("map")),
 						new UnmodifiableMapEntry<>(Indexes.ascending("ownerId"), new IndexOptions().name("owners"))));
 		defaultIndexes.put(DeviceCalendar.class,
-				Arrays.asList(new UnmodifiableMapEntry<Bson, IndexOptions>(Indexes.ascending("createdAt"),
+				Arrays.asList(new UnmodifiableMapEntry<>(Indexes.ascending("createdAt"),
 						new IndexOptions().name("expiery").expireAfter(1L, TimeUnit.DAYS))));
 
 		for (final Entry<Class<?>, List<Entry<Bson, IndexOptions>>> e : defaultIndexes.entrySet()) {

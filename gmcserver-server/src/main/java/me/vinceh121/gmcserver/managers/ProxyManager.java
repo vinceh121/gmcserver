@@ -40,15 +40,15 @@ public class ProxyManager extends AbstractManager {
 	}
 
 	public Map<String, AbstractProxy> getProxies() {
-		return proxies;
+		return this.proxies;
 	}
 
 	public ValidateProxiesSettingsAction validateProxiesSettings() {
-		return new ValidateProxiesSettingsAction(srv);
+		return new ValidateProxiesSettingsAction(this.srv);
 	}
 
 	public ProcessDeviceProxiesAction processDeviceProxies() {
-		return new ProcessDeviceProxiesAction(srv);
+		return new ProcessDeviceProxiesAction(this.srv);
 	}
 
 	public class ValidateProxiesSettingsAction extends AbstractAction<Void> {
@@ -67,7 +67,7 @@ public class ProxyManager extends AbstractManager {
 			@SuppressWarnings("rawtypes") // to vertx: why not type this with `<?>` ?
 			final List<Future> futures = new Vector<>();
 			for (final String key : this.proxiesSettings.getMap().keySet()) {
-				final AbstractProxy p = proxies.get(key);
+				final AbstractProxy p = ProxyManager.this.proxies.get(key);
 				if (p == null) {
 					promise.fail("Unknown proxy '" + key + "'");
 					return;
@@ -77,10 +77,10 @@ public class ProxyManager extends AbstractManager {
 		}
 
 		public JsonObject getProxiesSettings() {
-			return proxiesSettings;
+			return this.proxiesSettings;
 		}
 
-		public ValidateProxiesSettingsAction setProxiesSettings(JsonObject proxiesSettings) {
+		public ValidateProxiesSettingsAction setProxiesSettings(final JsonObject proxiesSettings) {
 			this.proxiesSettings = proxiesSettings;
 			return this;
 		}
@@ -96,34 +96,38 @@ public class ProxyManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			for (final String key : device.getProxiesSettings().keySet()) {
-				processProxy(proxies.get(key));
+			for (final String key : this.device.getProxiesSettings().keySet()) {
+				this.processProxy(ProxyManager.this.proxies.get(key));
 			}
 			promise.complete();
 		}
 
 		private void processProxy(final AbstractProxy p) {
-			p.proxyRecord(record, this.device, this.device.getProxiesSettings().get(p.getClass().getSimpleName())).onFailure(t -> {
-				log.error(new FormattedMessage("Failed to proxy record {} for {}", record.getId(),
-						p.getClass().getSimpleName()), t);
-				// TODO save error to report to user
-			});
+			p.proxyRecord(this.record, this.device, this.device.getProxiesSettings().get(p.getClass().getSimpleName()))
+				.onFailure(t -> {
+					ProxyManager.this.log.error(
+							new FormattedMessage("Failed to proxy record {} for {}",
+									this.record.getId(),
+									p.getClass().getSimpleName()),
+							t);
+					// TODO save error to report to user
+				});
 		}
 
 		public Device getDevice() {
-			return device;
+			return this.device;
 		}
 
-		public ProcessDeviceProxiesAction setDevice(Device device) {
+		public ProcessDeviceProxiesAction setDevice(final Device device) {
 			this.device = device;
 			return this;
 		}
 
 		public Record getRecord() {
-			return record;
+			return this.record;
 		}
 
-		public ProcessDeviceProxiesAction setRecord(Record record) {
+		public ProcessDeviceProxiesAction setRecord(final Record record) {
 			this.record = record;
 			return this;
 		}

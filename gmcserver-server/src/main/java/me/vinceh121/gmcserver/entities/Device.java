@@ -96,7 +96,7 @@ public class Device extends AbstractEntity {
 	 *         in GMCServer#getProxies) and values are proxy-specific settings
 	 */
 	public Map<String, Map<String, Object>> getProxiesSettings() {
-		return proxiesSettings;
+		return this.proxiesSettings;
 	}
 
 	/**

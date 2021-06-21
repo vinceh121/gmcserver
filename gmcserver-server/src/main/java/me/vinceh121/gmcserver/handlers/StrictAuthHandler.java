@@ -14,7 +14,6 @@ public class StrictAuthHandler implements Handler<RoutingContext> {
 			ctx.response().setStatusCode(403).end();
 		} else if ("mfa".equals(token.getPrefix())) {
 			ctx.response().setStatusCode(403).end("MFA auth not complete");
-			return;
 		} else {
 			ctx.next();
 		}

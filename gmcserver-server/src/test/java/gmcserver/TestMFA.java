@@ -1,12 +1,10 @@
 package gmcserver;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.security.InvalidKeyException;
 import java.time.Instant;
 import java.util.Properties;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
@@ -41,7 +39,7 @@ class TestMFA {
 		final User user = new User();
 		user.setMfaKey(key);
 
-		assertTrue(mfa.verifyCode()
+		Assertions.assertTrue(mfa.verifyCode()
 			.setUser(user)
 			.setPass(mfa.generateOneTimePassword(key, Instant.now()))
 			.execute()
@@ -51,7 +49,7 @@ class TestMFA {
 
 		user.setMfa(true);
 
-		assertFalse(mfa.verifyCode()
+		Assertions.assertFalse(mfa.verifyCode()
 			.setUser(user)
 			.setPass(mfa.generateOneTimePassword(key, Instant.now()))
 			.execute()
