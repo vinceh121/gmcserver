@@ -12,6 +12,7 @@ specifiers:
   '@testing-library/user-event': ^7.1.2
   '@types/react-router-dom': ^5.1.6
   antd: ^4.7.0
+  color-hash: ^2.0.1
   craco-less: ^1.17.1
   leaflet: ^1.7.1
   react: ^16.13.1
@@ -35,6 +36,7 @@ dependencies:
   '@testing-library/user-event': 7.2.1
   '@types/react-router-dom': 5.1.6
   antd: 4.8.4_react-dom@16.14.0+react@16.14.0
+  color-hash: 2.0.1
   craco-less: 1.17.1_107f524bec8867bd588dc98e65090632
   leaflet: 1.7.1
   react: 16.14.0
@@ -4012,6 +4014,10 @@ packages:
     engines: {node: '>=7.0.0'}
     dependencies:
       color-name: 1.1.4
+    dev: false
+
+  /color-hash/2.0.1:
+    resolution: {integrity: sha512-/wIYAQ3xL9ruURLmDbxAsXEsivaOfwWDUVy+zbWJZL3bnNQIDNSmmqbkNzeTOQvDdiz11Kb010UlJN7hUXLg/w==}
     dev: false
 
   /color-name/1.1.3:

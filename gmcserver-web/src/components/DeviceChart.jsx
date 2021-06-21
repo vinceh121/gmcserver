@@ -3,9 +3,12 @@ import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
 import { ResponsiveLine } from "@nivo/line";
 import { TableTooltip, Chip } from "@nivo/tooltip";
+import ColorHash from 'color-hash';
 import { numericRecordFields } from "../GmcTypes";
 
-const SliceTooltip = ({slice, axis}) => {
+const colorHash = new ColorHash();
+
+const SliceTooltip = ({ slice, axis }) => {
 	const otherAxis = axis === 'x' ? 'y' : 'x'
 
 	const rows = slice.points.map(point => [
@@ -101,6 +104,7 @@ function DeviceChart(props) {
 						},
 					},
 				}}
+				colors={(a) => colorHash.hex(a.id)}
 				data={timeline}
 				margin={{ top: 5, right: 5, bottom: 60, left: 5 }}
 				animate={true}

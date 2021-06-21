@@ -24,9 +24,11 @@ import DeviceTable from "../../components/DeviceTable";
 import Modal from "antd/lib/modal/Modal";
 import RecordView from "../../components/RecordView";
 import DeviceStats from "../../components/DeviceStats";
+import ColorHash from 'color-hash';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
+const colorHash = new ColorHash();
 
 function Device() {
 	const history = useHistory();
@@ -144,7 +146,7 @@ function Device() {
 									)
 								}} >
 								{numericRecordFields.map((f) =>
-									<Checkbox key={f} value={f}>{f.toUpperCase()}</Checkbox>
+									<Checkbox key={f} value={f} style={{ color: colorHash.hex(f) }}>{f.toUpperCase()}</Checkbox>
 								)}
 							</Checkbox.Group>
 							<MyTimeRange />
