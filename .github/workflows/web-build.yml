@@ -20,12 +20,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - uses: Borales/actions-yarn@v2.3.0
-      with:
-        cmd: install
     - name: Dependencies
       run: sudo apt-get install npm && sudo npm install -g pnpm
+    - name: pnpm dependencies
+      run: pnpm i
     - name: Build
       run: pnpm build
   # lint:
