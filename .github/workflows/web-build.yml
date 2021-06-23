@@ -25,9 +25,9 @@ jobs:
       with:
         cmd: install
     - name: Dependencies
-      run: yarn
+      run: sudo apt-get install npm && sudo npm install -g pnpm
     - name: Build
-      run: yarn build
+      run: pnpm build
   # lint:
   #   runs-on: ubuntu-latest
   #   steps:
