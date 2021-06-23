@@ -4,7 +4,7 @@ const config = {
 	devServer: {
 		proxy: {
 			"/api/v1": {
-				target: "https://gmc.vinceh121.me",
+				target: "http://localhost:8081",
 				headers: {
 					host: "gmc.vinceh121.me",
 				},

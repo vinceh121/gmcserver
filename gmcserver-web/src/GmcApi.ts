@@ -10,6 +10,7 @@ import {
 	DeviceStats,
 	DeviceCalendar,
 	DeviceUpdate,
+	UserUpdateParams,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -139,6 +140,18 @@ export const mfaDisable = async (pass: number): Promise<object> => {
 		body: JSON.stringify({ pass }),
 	});
 	const obj = (await res.json()) as object;
+	if (res.status !== 200) {
+		throw obj;
+	}
+	return obj;
+};
+
+export const updateMe = async (params: UserUpdateParams): Promise<ErrorResult> => {
+	const res = await request("/user/me", {
+		method: "PUT",
+		body: JSON.stringify(params)
+	});
+	const obj = (await res.json()) as ErrorResult;
 	if (res.status !== 200) {
 		throw obj;
 	}

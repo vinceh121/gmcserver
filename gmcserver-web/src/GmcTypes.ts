@@ -85,6 +85,13 @@ export interface DeviceUpdate {
 	changed: number;
 }
 
+export interface UserUpdateParams {
+	username?: string;
+	email?: string;
+	currentPassword?: string;
+	newPassword?: string;
+}
+
 export const numericRecordFields = [
 	"cpm",
 	"acpm",

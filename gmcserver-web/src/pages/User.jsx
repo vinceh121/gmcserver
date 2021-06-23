@@ -18,7 +18,7 @@ import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DeviceBadge from "../components/DeviceBadge";
 import Loader from "../components/Loader";
-import { DownOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -54,6 +54,15 @@ function User() {
 
 		const optionsMenu = (
 			<Menu>
+				<Menu.Item>
+					<Button
+						type="link"
+						icon={<EditOutlined />}
+						onClick={() => history.push("/profile/edit")}
+					>
+						Edit
+					</Button>
+				</Menu.Item>
 				<Menu.Item>
 					<Button
 						type="link"

@@ -18,9 +18,10 @@ import Welcome from "./pages/Welcome";
 import Mfa from "./pages/Mfa";
 import ToolBar from "./components/ToolBar";
 import EditDevice from "./pages/device/EditDevice";
-import { GithubFilled } from "@ant-design/icons";
 import UserDeletion from "./pages/UserDeletion";
+import ProfileEdit from "./pages/ProfileEdit";
 
+import { GithubFilled } from "@ant-design/icons";
 const { Footer, Content, Header } = Layout;
 
 function App() {
@@ -50,6 +51,9 @@ function App() {
 						</Route>
 						<Route path="/map">
 							<GmcMap />
+						</Route>
+						<Route path="/profile/edit">
+							<ProfileEdit />
 						</Route>
 						<Route path="/profile">
 							<Profile />
