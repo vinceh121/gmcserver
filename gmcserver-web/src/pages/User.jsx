@@ -54,33 +54,36 @@ function User() {
 
 		const optionsMenu = (
 			<Menu>
-				<Menu.Item>
+				<Menu.Item
+					onClick={() => history.push("/profile/edit")}
+				>
 					<Button
 						type="link"
 						icon={<EditOutlined />}
-						onClick={() => history.push("/profile/edit")}
 					>
 						Edit
 					</Button>
 				</Menu.Item>
-				<Menu.Item>
+				<Menu.Item
+					onClick={() => {
+						logoff();
+						history.push("/");
+					}}
+				>
 					<Button
 						type="link"
-						onClick={() => {
-							logoff();
-							history.push("/");
-						}}
 						danger
 					>
 						Logout
 					</Button>
 				</Menu.Item>
-				<Menu.Item>
+				<Menu.Item
+					onClick={() => {
+						history.push("/accountDeletion");
+					}}
+				>
 					<Button
 						type="link"
-						onClick={() => {
-							history.push("/accountDeletion");
-						}}
 						danger
 					>
 						Delete account
