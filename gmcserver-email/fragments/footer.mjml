@@ -2,7 +2,7 @@
 <mj-section>
 	<mj-column>
 		<mj-text align="center">
-			<a href="http://{{instance/host}}/profile/emails"
+			<a href="http://{{instance/host}}/profile/edit"
 				>Unsubscribe from emails</a
 			>
 		</mj-text>
