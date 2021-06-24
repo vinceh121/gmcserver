@@ -69,7 +69,7 @@ public class GmcmapProxy extends AbstractProxy {
 
 			req.setQueryParam("lon", Double.toString(longitude));
 			req.setQueryParam("lat", Double.toString(latitude));
-			if (r.getLocation().getPosition().getValues().size() > 2) {
+			if (r.getLocation() != null && r.getLocation().getPosition().getValues().size() > 2) {
 				req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
 			}
 
