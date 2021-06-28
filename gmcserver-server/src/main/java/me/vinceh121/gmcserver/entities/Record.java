@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
@@ -21,6 +23,27 @@ import io.vertx.core.json.JsonObject;
 public class Record extends AbstractEntity {
 	public static final Collection<String> STAT_FIELDS = Arrays
 		.asList("cpm", "acpm", "usv", "co2", "hcho", "tmp", "ap", "hmdt", "accy");
+
+	// Taken from
+	// https://github.com/radhoo/uradmonitor_kit1/blob/master/code/misc/expProtocol.h
+	public static final List<String> URADMONITOR_FIELDS = Arrays.asList("date", // compulsory: local time in seconds
+			"tmp", // optional: temperature in degrees celsius
+			"press", // optional: barometric pressure in pascals TODO
+			"hmdt", // optional: humidity as relative humidity in percentage %
+			"lum", // optional: luminosity as relative luminosity in percentage ‰ TODO
+			"voc", // optional: volatile organic compounds in ohms TODO
+			"co2", // optional: carbon dioxide in ppm
+			"hcho", // optional: formaldehyde in ppm
+			"pm25", // optional: particulate matter in micro grams per cubic meter TODO
+			"batt", // optional: device battery voltage in volts TODO
+			"cpm", // optional: radiation measured on geiger tube in cpm
+			"invertVolt", // optional: high voltage geiger tube inverter voltage in volts TODO
+			"invertDuty", // optional: high voltage geiger tube inverter duty in ‰ TODO
+			"versionHw", // optional: hardware version TODO
+			"versionSw", // optional: software firmware version TODO
+			"idTube" // optional: tube type ID TODO
+	);
+
 	private ObjectId deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
@@ -240,6 +263,28 @@ public class Record extends AbstractEntity {
 			}
 		}
 		return obj;
+	}
+
+	public String toURadMonitorUrl() {
+		final SortedMap<Integer, Object> map = new TreeMap<>();
+		final StringBuilder sb = new StringBuilder();
+		final JsonObject obj = this.toPublicJson();
+		obj.remove("location");
+		obj.remove("type");
+		for (final String field : obj.fieldNames()) {
+			map.put(URADMONITOR_FIELDS.indexOf(field) + 1, obj.getValue(field));
+		}
+		for (final Integer key : map.keySet()) {
+			sb.append("/");
+			sb.append(String.format("%1$02X", key));
+			sb.append("/");
+			if (key.equals(1)) { // date from ms to s
+				sb.append((long) map.get(1) / 1000L);
+			} else {
+				sb.append(map.get(key));
+			}
+		}
+		return sb.toString();
 	}
 
 	@Override

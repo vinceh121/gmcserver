@@ -1,5 +1,7 @@
 package gmcserver;
 
+import java.util.Date;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +36,20 @@ class TestRecord {
 		final Point expectedPoint = new Point(expectedPos);
 
 		Assertions.assertEquals(expectedPoint, rec.getLocation(), "location");
+	}
+	
+	@Test
+	void toURadMonitor() {
+		final Record r = new Record();
+		r.setDate(new Date(123456789L));
+		r.setCpm(25);
+		r.setHcho(0.1D);
+		r.setCo2(0.5D);
+		
+		final String actual = r.toURadMonitorUrl();
+		final String expected = "/01/123456/07/0.5/08/0.1/0B/25.0";
+		
+		Assertions.assertEquals(expected, actual);
 	}
 
 }
