@@ -46,7 +46,7 @@ public class LoggingModule extends AbstractModule {
 
 		this.registerLogRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
 		this.registerLogRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
-		this.registerRoute(HttpMethod.POST, "", this::handleURadMonitor).pathRegex("/upload/exp/*"); // Devices will
+		this.registerRoute(HttpMethod.POST, "/upload/exp", this::handleURadMonitor).pathRegex("/upload/exp/*"); // Devices will
 																										// prefix with
 																										// /api/v1/
 	}
