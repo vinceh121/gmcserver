@@ -43,6 +43,7 @@ import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceCalendarManager;
 import me.vinceh121.gmcserver.managers.DeviceManager;
+import me.vinceh121.gmcserver.managers.ImportManager;
 import me.vinceh121.gmcserver.managers.LoggingManager;
 import me.vinceh121.gmcserver.managers.ProxyManager;
 import me.vinceh121.gmcserver.managers.UserManager;
@@ -94,6 +95,7 @@ public class GMCServer {
 	private DeviceCalendarManager deviceCalendarManager;
 	private LoggingManager loggingManager;
 	private ProxyManager proxyManager;
+	private ImportManager importManager;
 
 	public static void main(final String[] args) {
 		GMCServer.LOG.info("Build options:\n{}", GMCBuild.buildOptions());
@@ -221,6 +223,7 @@ public class GMCServer {
 		this.deviceCalendarManager = new DeviceCalendarManager(this);
 		this.loggingManager = new LoggingManager(this);
 		this.proxyManager = new ProxyManager(this);
+		this.importManager = new ImportManager(this);
 	}
 
 	private void registerModules() {
@@ -340,5 +343,9 @@ public class GMCServer {
 
 	public ProxyManager getProxyManager() {
 		return this.proxyManager;
+	}
+
+	public ImportManager getImportManager() {
+		return importManager;
 	}
 }
