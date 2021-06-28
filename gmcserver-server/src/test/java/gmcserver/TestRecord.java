@@ -1,5 +1,7 @@
 package gmcserver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Date;
 
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +27,7 @@ class TestRecord {
 		map.add("lon", "3.21");
 		map.add("alt", "350.5");
 
-		final Record rec = new Record.Builder(map).buildPosition().buildParameters().build();
+		final Record rec = new Record.Builder().withGmcParams(map).buildPositionFromGmc().buildParameters().build();
 
 		Assertions.assertEquals(12345.12345D, rec.getCpm(), "cpm");
 		Assertions.assertEquals(54321.54321D, rec.getAcpm(), "acpm");
@@ -50,6 +52,23 @@ class TestRecord {
 		final String expected = "/01/123456/07/0.5/08/0.1/0B/25.0";
 		
 		Assertions.assertEquals(expected, actual);
+	}
+	
+	@Test
+	void fromURadMonitor() {
+		final Record expected = new Record();
+		expected.setId(null);
+		expected.setDate(new Date(123456000L)); // loss of precision because of s to ms
+		expected.setCpm(25);
+		expected.setHcho(0.1D);
+		expected.setCo2(0.5D);
+		
+		final String url = "/01/123456/07/0.5/08/0.1/0B/25.0";
+		
+		final Record actual = new Record.Builder().withURadMonitorUrl(url).build();
+		actual.setId(null);
+		
+		assertEquals(expected, actual);
 	}
 
 }

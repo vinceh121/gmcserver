@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
@@ -297,10 +298,9 @@ public class Record extends AbstractEntity {
 
 	public static class Builder { // XXX this will need a big clean up but at least it splits stuff
 		private final Record record = new Record();
-		private final MultiMap params;
+		private MultiMap params;
 
-		public Builder(final MultiMap params) {
-			this.params = params;
+		public Builder() {
 		}
 
 		public Builder withDevice(final ObjectId id) {
@@ -317,8 +317,13 @@ public class Record extends AbstractEntity {
 			this.record.setIp(ip);
 			return this;
 		}
+		
+		public Builder withGmcParams(final MultiMap params) {
+			this.params = params;
+			return this;
+		}
 
-		public Builder buildPosition() {
+		public Builder buildPositionFromGmc() {
 			final String rawLon = this.params.get("lon");
 			final String rawLat = this.params.get("lat");
 			final String rawAlt = this.params.get("alt");
@@ -359,6 +364,26 @@ public class Record extends AbstractEntity {
 			if (this.params.contains("type")) {
 				this.record.setType(this.params.get("type"));
 			}
+			return this;
+		}
+
+		public Builder withURadMonitorUrl(final String url) {
+			final String[] parts = url.split(Pattern.quote("/"));
+
+			for (int i = 1; i < parts.length; i += 2) {
+				final int field = Integer.parseInt(parts[i], 16) - 1;
+				final String fieldName = Record.URADMONITOR_FIELDS.get(field);
+				final String value = parts[i + 1];
+
+				if (Record.STAT_FIELDS.contains(fieldName)) {
+					this.reflectSetField(fieldName, Double.parseDouble(value));
+				} else if (fieldName.equals("date")) {
+					this.record.setDate(new Date(Long.parseLong(value) * 1000L)); // from s to ms
+				} else {
+					this.reflectSetField(fieldName, value);
+				}
+			}
+
 			return this;
 		}
 

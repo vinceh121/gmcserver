@@ -44,6 +44,9 @@ public class LoggingModule extends AbstractModule {
 
 		this.registerLogRoute(HttpMethod.GET, "/radmon.php", this::handleRadmon);
 		this.registerLogRoute(HttpMethod.POST, "/measurements.json", this::handleSafecast);
+		this.registerRoute(HttpMethod.POST, "", this::handleURadMonitor).pathRegex("/upload/exp/*"); // Devices will
+																										// prefix with
+																										// /api/v1/
 	}
 
 	private void handleGmcLog2(final RoutingContext ctx) {
@@ -108,8 +111,8 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final Builder build = new Record.Builder(ctx.request().params());
-		build.buildParameters().buildPosition().withCurrentDate().withDevice(device.getId());
+		final Builder build = new Record.Builder();
+		build.withGmcParams(ctx.request().params()).buildParameters().buildPositionFromGmc().withCurrentDate().withDevice(device.getId());
 
 		final Record rec = build.build();
 
@@ -433,6 +436,10 @@ public class LoggingModule extends AbstractModule {
 			.onFailure(t -> {
 				this.error(ctx, 500, "Failed to insert record: " + t);
 			});
+	}
+
+	private void handleURadMonitor(final RoutingContext ctx) {
+
 	}
 
 	private void setRecordIp(final RoutingContext ctx, final Record r) {
