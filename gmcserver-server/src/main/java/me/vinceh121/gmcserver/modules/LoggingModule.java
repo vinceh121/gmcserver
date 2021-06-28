@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.bson.types.ObjectId;
+
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
@@ -112,7 +114,11 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		final Builder build = new Record.Builder();
-		build.withGmcParams(ctx.request().params()).buildParameters().buildPositionFromGmc().withCurrentDate().withDevice(device.getId());
+		build.withGmcParams(ctx.request().params())
+			.buildParameters()
+			.buildPositionFromGmc()
+			.withCurrentDate()
+			.withDevice(device.getId());
 
 		final Record rec = build.build();
 
@@ -439,7 +445,75 @@ public class LoggingModule extends AbstractModule {
 	}
 
 	private void handleURadMonitor(final RoutingContext ctx) {
+		final ObjectId userId;
+		try {
+			userId = new ObjectId(ctx.request().getHeader("X-User-id"));
+		} catch (final IllegalArgumentException e) {
+			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
+			return;
+		}
 
+		final long gmcUserId;
+		try {
+			gmcUserId = Long.parseLong(ctx.request().getHeader("X-User-hash"));
+		} catch (final NumberFormatException e) {
+			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final long gmcDeviceId;
+		try {
+			gmcDeviceId = Long.parseLong(ctx.request().getHeader("X-Device-id"));
+		} catch (final ClassCastException e) {
+			this.error(ctx, 400, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		final User user = this.srv.getDatabaseManager()
+			.getCollection(User.class)
+			.find(Filters.and(Filters.eq(userId), Filters.eq("gmcId", gmcUserId)))
+			.first();
+		if (user == null) {
+			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
+			return;
+		}
+
+		final Device device = this.srv.getDatabaseManager()
+			.getCollection(Device.class)
+			.find(Filters.eq("gmcId", gmcDeviceId))
+			.first();
+		if (device == null) {
+			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+			return;
+		}
+
+		if (device.getOwner() == null) {
+			this.log.error("Device with no owner: {}", device.getId());
+			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		if (!user.getId().equals(device.getOwner())) {
+			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+			return;
+		}
+
+		final Record rec = new Record.Builder().withURadMonitorUrl(ctx.request().absoluteURI()).build();
+		rec.setDeviceId(userId);
+		this.setRecordIp(ctx, rec);
+
+		this.srv.getLoggingManager()
+			.insertRecord()
+			.setDevice(device)
+			.setUser(user)
+			.setRecord(rec)
+			.execute()
+			.onSuccess(v -> {
+				ctx.end(new JsonObject().put("success", "ok").toBuffer());
+			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to insert record: " + t);
+			});
 	}
 
 	private void setRecordIp(final RoutingContext ctx, final Record r) {
