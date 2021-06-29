@@ -21,9 +21,8 @@ public class User extends AbstractEntity implements IAccount {
 	 */
 	private int deviceLimit = -1;
 	private long gmcId;
-	private boolean admin;
+	private boolean admin, mfa, alertEmails;
 	private MFAKey mfaKey;
-	private boolean mfa;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -87,6 +86,14 @@ public class User extends AbstractEntity implements IAccount {
 
 	public void setEmail(final String email) {
 		this.email = email;
+	}
+
+	public boolean isAlertEmails() {
+		return alertEmails;
+	}
+
+	public void setAlertEmails(final boolean alertEmails) {
+		this.alertEmails = alertEmails;
 	}
 
 	@Override

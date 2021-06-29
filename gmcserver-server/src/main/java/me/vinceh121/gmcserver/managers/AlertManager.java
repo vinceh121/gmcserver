@@ -37,6 +37,10 @@ public class AlertManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Boolean> promise) {
+			if (!this.owner.isAlertEmails()) {
+				promise.complete(false);
+				return;
+			}
 			if (this.dev.isDisabled()
 					|| new Date().getTime() - this.dev.getLastEmailAlert().getTime() < AlertManager.ALERT_EMAIL_DELAY
 					|| Double.isNaN(this.dev.getStdDevAlertLimit())) {

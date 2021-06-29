@@ -116,6 +116,8 @@ public class UserModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid email");
 			return;
 		}
+		
+		final Boolean alertEmails = obj.getBoolean("alertEmails");
 
 		this.srv.getUserManager()
 			.updateUser()
@@ -124,6 +126,7 @@ public class UserModule extends AbstractModule {
 			.setUsername(username)
 			.setCurrentPassword(currentPassword)
 			.setNewPassword(newPassword)
+			.setAlertEmails(alertEmails)
 			.execute()
 			.onSuccess(v -> this.error(ctx, 200, "Successfully updated user"))
 			.onFailure(t -> this.error(ctx, 500, "Failed to update user: " + t.getMessage()));

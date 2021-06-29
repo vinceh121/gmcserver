@@ -282,6 +282,7 @@ public class UserManager extends AbstractManager {
 	public class UpdateUserAction extends AbstractAction<Void> {
 		private User user;
 		private String username, email, currentPassword, newPassword;
+		private Boolean alertEmails;
 
 		public UpdateUserAction(final GMCServer srv) {
 			super(srv);
@@ -334,6 +335,10 @@ public class UserManager extends AbstractManager {
 					return;
 				}
 			}
+			
+			if (this.alertEmails != null) {
+				updates.add(Updates.set("alertEmails", this.alertEmails));
+			}
 
 			this.srv.getDatabaseManager()
 				.getCollection(User.class)
@@ -383,6 +388,15 @@ public class UserManager extends AbstractManager {
 
 		public UpdateUserAction setNewPassword(final String newPassword) {
 			this.newPassword = newPassword;
+			return this;
+		}
+
+		public Boolean getAlertEmails() {
+			return alertEmails;
+		}
+
+		public UpdateUserAction setAlertEmails(Boolean alertEmails) {
+			this.alertEmails = alertEmails;
 			return this;
 		}
 	}
