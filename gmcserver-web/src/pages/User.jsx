@@ -8,7 +8,6 @@ import {
 	Tag,
 	Typography,
 	Form,
-	Switch,
 	InputNumber,
 	Button,
 	Menu,
@@ -121,14 +120,6 @@ function User() {
 			>
 				{user.self ? (
 					<Form>
-						<Form.Item label="2FA">
-							<Switch
-								checked={user.mfa}
-								onChange={() => {
-									history.push("/mfa");
-								}}
-							/>
-						</Form.Item>
 						<Form.Item label="Device limit">
 							<InputNumber
 								disabled={true}

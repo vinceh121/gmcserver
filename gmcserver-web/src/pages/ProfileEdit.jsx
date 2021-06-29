@@ -46,6 +46,15 @@ function ProfileEdit() {
 						<Switch />
 					</Form.Item>
 
+					<Form.Item label="2FA">
+						<Switch
+							checked={user.mfa}
+							onChange={() => {
+								history.push("/mfa");
+							}}
+						/>
+					</Form.Item>
+
 					<Divider />
 
 					<Form.Item
