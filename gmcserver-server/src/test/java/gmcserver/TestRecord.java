@@ -27,7 +27,7 @@ class TestRecord {
 		map.add("lon", "3.21");
 		map.add("alt", "350.5");
 
-		final Record rec = new Record.Builder().withGmcParams(map).buildPositionFromGmc().buildParameters().build();
+		final Record rec = new Record.Builder().withGmcParams(map).withGmcPosition(map).build();
 
 		Assertions.assertEquals(12345.12345D, rec.getCpm(), "cpm");
 		Assertions.assertEquals(54321.54321D, rec.getAcpm(), "acpm");
