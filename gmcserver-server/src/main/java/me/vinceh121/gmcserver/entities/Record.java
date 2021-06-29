@@ -369,6 +369,10 @@ public class Record extends AbstractEntity {
 
 		public Builder withURadMonitorUrl(final String url) {
 			final String[] parts = url.split(Pattern.quote("/"));
+			
+			if (parts.length % 2 == 1) {
+				throw new IllegalArgumentException("URL has odd number of slash");
+			}
 
 			for (int i = 1; i < parts.length; i += 2) {
 				final int field = Integer.parseInt(parts[i], 16) - 1;
