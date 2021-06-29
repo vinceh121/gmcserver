@@ -373,7 +373,7 @@ public class Record extends AbstractEntity {
 		public Builder withURadMonitorUrl(final String url) {
 			final String[] parts = url.split(Pattern.quote("/"));
 
-			if (parts.length % 2 == 1) {
+			if (parts.length - 1 % 2 == 1) {
 				throw new IllegalArgumentException("URL has odd number of slash");
 			}
 
