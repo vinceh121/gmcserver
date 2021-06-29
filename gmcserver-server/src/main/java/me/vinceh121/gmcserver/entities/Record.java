@@ -298,7 +298,6 @@ public class Record extends AbstractEntity {
 
 	public static class Builder { // XXX this will need a big clean up but at least it splits stuff
 		private final Record record = new Record();
-		private MultiMap params;
 
 		public Builder() {
 		}
@@ -317,16 +316,37 @@ public class Record extends AbstractEntity {
 			this.record.setIp(ip);
 			return this;
 		}
-		
+
 		public Builder withGmcParams(final MultiMap params) {
-			this.params = params;
+			// for (final Field f : this.record.getClass().getDeclaredFields()) {
+			// if (f.getType().equals(double.class)) {
+			// this.buildDoubleParameter(f.getName());
+			// }
+			// }
+
+			for (final String s : Record.STAT_FIELDS) {
+				this.buildDoubleParameter(params, s);
+			}
+
+			if (params.contains("type")) {
+				this.record.setType(params.get("type"));
+			}
 			return this;
 		}
 
-		public Builder buildPositionFromGmc() {
-			final String rawLon = this.params.get("lon");
-			final String rawLat = this.params.get("lat");
-			final String rawAlt = this.params.get("alt");
+		private void buildDoubleParameter(final MultiMap params, final String name) {
+			final String str = params.get(name);
+			if (str == null) {
+				return;
+			}
+			final double value = Double.parseDouble(str);
+			this.reflectSetField(name, value);
+		}
+
+		public Builder withGmcPosition(final MultiMap params) {
+			final String rawLon = params.get("lon");
+			final String rawLat = params.get("lat");
+			final String rawAlt = params.get("alt");
 
 			if (rawLat == null || rawLon == null) {
 				return this;
@@ -350,26 +370,9 @@ public class Record extends AbstractEntity {
 			return this;
 		}
 
-		public Builder buildParameters() {
-			// for (final Field f : this.record.getClass().getDeclaredFields()) {
-			// if (f.getType().equals(double.class)) {
-			// this.buildDoubleParameter(f.getName());
-			// }
-			// }
-
-			for (final String s : Record.STAT_FIELDS) {
-				this.buildDoubleParameter(s);
-			}
-
-			if (this.params.contains("type")) {
-				this.record.setType(this.params.get("type"));
-			}
-			return this;
-		}
-
 		public Builder withURadMonitorUrl(final String url) {
 			final String[] parts = url.split(Pattern.quote("/"));
-			
+
 			if (parts.length % 2 == 1) {
 				throw new IllegalArgumentException("URL has odd number of slash");
 			}
@@ -393,15 +396,6 @@ public class Record extends AbstractEntity {
 
 		public Record build() {
 			return this.record;
-		}
-
-		private void buildDoubleParameter(final String name) {
-			final String str = this.params.get(name);
-			if (str == null) {
-				return;
-			}
-			final double value = Double.parseDouble(str);
-			this.reflectSetField(name, value);
 		}
 
 		private void reflectSetField(final String name, final Object value) {
