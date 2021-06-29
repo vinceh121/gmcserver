@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { PageHeader, Form, Input, Divider, Button, message } from "antd";
+import { PageHeader, Form, Input, Divider, Button, message, Switch } from "antd";
 import { fetchUser, getStorage, updateMe } from "../GmcApi";
 import Loader from "../components/Loader";
 
@@ -39,6 +39,15 @@ function ProfileEdit() {
 					initialValues={user}
 					onFinish={submit}
 				>
+					<Form.Item
+						label="Alert emails"
+						name="alertEmails"
+					>
+						<Switch />
+					</Form.Item>
+
+					<Divider />
+
 					<Form.Item
 						label="Username"
 						name="username"
