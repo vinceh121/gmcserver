@@ -4,6 +4,7 @@
 
  - `master` - Main developement branch
  - `deploy` - Production branch for gmc.vinceh121.me
+ - `relase` - Branch tracking the latest release tag
 
 ## Commit message format
 
