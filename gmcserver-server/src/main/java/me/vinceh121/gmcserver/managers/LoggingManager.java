@@ -32,9 +32,8 @@ public class LoggingManager extends AbstractManager {
 		private Record record;
 		private Device device;
 		private User user;
-		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true;
-		private final boolean differAlert = true;
-		private final boolean differProxy = true;
+		private boolean insertInDb = true, checkAlert = true, processProxy = true, publishToEventBus = true,
+				differAlert = true, differProxy = true, setLocationFromDevice;
 
 		public InsertRecordAction(final GMCServer srv) {
 			super(srv);
@@ -78,6 +77,10 @@ public class LoggingManager extends AbstractManager {
 			if (this.publishToEventBus) {
 				this.srv.getEventBus()
 					.publish(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + this.record.getDeviceId(), this.record);
+			}
+
+			if (this.setLocationFromDevice && this.device.getLocation() != null && this.record.getLocation() == null) {
+				this.record.setLocation(this.device.getLocation());
 			}
 
 			CompositeFuture.join(joinedFutures).onSuccess(c -> promise.complete()).onFailure(promise::fail);
@@ -148,6 +151,32 @@ public class LoggingManager extends AbstractManager {
 			this.publishToEventBus = publishToEventBus;
 			return this;
 		}
-	}
 
+		public boolean isDifferAlert() {
+			return differAlert;
+		}
+
+		public InsertRecordAction setDifferAlert(boolean differAlert) {
+			this.differAlert = differAlert;
+			return this;
+		}
+
+		public boolean isDifferProxy() {
+			return differProxy;
+		}
+
+		public InsertRecordAction setDifferProxy(boolean differProxy) {
+			this.differProxy = differProxy;
+			return this;
+		}
+
+		public boolean isSetLocationFromDevice() {
+			return setLocationFromDevice;
+		}
+
+		public InsertRecordAction setLocationFromDevice(boolean setLocationFromDevice) {
+			this.setLocationFromDevice = setLocationFromDevice;
+			return this;
+		}
+	}
 }
