@@ -19,6 +19,7 @@ import me.vinceh121.gmcserver.proxy.AbstractProxy;
 import me.vinceh121.gmcserver.proxy.GmcmapProxy;
 import me.vinceh121.gmcserver.proxy.RadmonProxy;
 import me.vinceh121.gmcserver.proxy.SafecastProxy;
+import me.vinceh121.gmcserver.proxy.URadMonitorProxy;
 
 public class ProxyManager extends AbstractManager {
 
@@ -33,6 +34,7 @@ public class ProxyManager extends AbstractManager {
 		this.registerProxy(new GmcmapProxy(this.srv));
 		this.registerProxy(new RadmonProxy(this.srv));
 		this.registerProxy(new SafecastProxy(this.srv));
+		this.registerProxy(new URadMonitorProxy(this.srv));
 	}
 
 	private void registerProxy(final AbstractProxy p) {
