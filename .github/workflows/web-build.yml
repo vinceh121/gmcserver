@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Dependencies
-      run: sudo apt-get install npm && sudo npm install -g pnpm
+      run: sudo apt-get update && sudo apt-get install npm && sudo npm install -g pnpm
     - name: pnpm dependencies
       run: pnpm i
     - name: Build
