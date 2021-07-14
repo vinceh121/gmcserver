@@ -1,0 +1,13 @@
+{
+	"name": "gmcserver-integration-tests",
+	"version": "0.1.0",
+	"description": "",
+	"scripts": {
+		"test": "jest --runInBand"
+	},
+	"license": "AGPL-3.0-or-later",
+	"devDependencies": {
+		"jest": "^27.0.6",
+		"node-fetch": "^2.6.1"
+	}
+}
