@@ -8,7 +8,7 @@ const DEVICE_MODEL = "Node Fetch";
 
 let device = undefined;
 
-test("Create device", (done) => {
+test("Create device", async () => {
 	const expectedDevice = {
 		name: DEVICE_NAME,
 		model: DEVICE_MODEL,
@@ -16,27 +16,19 @@ test("Create device", (done) => {
 		user: { id: expect.stringMatching(OBJECTID_REGEX) }
 	};
 
-	login().then((token) => {
-		fetch(URL + "/device",
-			{
-				method: "POST",
-				body: JSON.stringify({ name: DEVICE_NAME, position: DEVICE_POS, model: DEVICE_MODEL }),
-				headers: {
-					Authorization: token,
-					"Content-Type": "application/json"
-				}
+	const token = await login();
+	const res = await fetch(URL + "/device",
+		{
+			method: "POST",
+			body: JSON.stringify({ name: DEVICE_NAME, position: DEVICE_POS, model: DEVICE_MODEL }),
+			headers: {
+				Authorization: token,
+				"Content-Type": "application/json"
 			}
-		).then((res) => {
-			expect(res.status).toBe(200);
-			res.json().then((data) => {
-				expect(data).toMatchObject(expectedDevice);
-				device = data;
-				done();
-			});
-		}, (err) => {
-			done(err);
-		});
-	}, (err) => {
-		done(err);
-	});
+		}
+	);
+	expect(res.status).toBe(200);
+	const data = await res.json();
+	expect(data).toMatchObject(expectedDevice);
+	device = data;
 });
