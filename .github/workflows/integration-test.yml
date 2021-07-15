@@ -33,8 +33,10 @@ jobs:
       run: pnpm i
       working-directory: gmcserver-integration-tests/
     - name: Run backend
-      run: java -jar target/gmcserver*jar-with-dependencies.jar &
+      run: cp config.example.properties config.properties && java -jar target/gmcserver*jar-with-dependencies.jar &
       working-directory: gmcserver-server/
     - name: Run tests
       run: pnpm test
+      env:
+        URL: http://localhost:80
       working-directory: gmcserver-integration-tests/
