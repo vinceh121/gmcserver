@@ -13,7 +13,7 @@ const createDevice = async () => {
 		name: DEVICE_NAME,
 		model: DEVICE_MODEL,
 		location: DEVICE_POS,
-		owner: { id: expect.stringMatching(OBJECTID_REGEX) }
+		owner: expect.stringMatching(OBJECTID_REGEX)
 	};
 
 	const token = await login();
