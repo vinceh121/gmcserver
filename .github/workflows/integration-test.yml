@@ -16,7 +16,8 @@ jobs:
     services:
       mongo:
         image: mongo
-        ports: 27017:27017
+        ports:
+          - 27017:27017
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
