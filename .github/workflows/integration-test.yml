@@ -39,5 +39,5 @@ jobs:
     - name: Run tests
       run: pnpm test
       env:
-        URL: http://localhost:8080
+        URL: http://localhost:8080/api/v1
       working-directory: gmcserver-integration-tests/
