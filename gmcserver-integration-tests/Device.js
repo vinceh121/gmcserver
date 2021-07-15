@@ -8,12 +8,12 @@ const DEVICE_MODEL = "Node Fetch";
 
 let device = undefined;
 
-test("Create device", async () => {
+const createDevice = async () => {
 	const expectedDevice = {
 		name: DEVICE_NAME,
 		model: DEVICE_MODEL,
-		position: DEVICE_POS,
-		user: { id: expect.stringMatching(OBJECTID_REGEX) }
+		location: DEVICE_POS,
+		owner: { id: expect.stringMatching(OBJECTID_REGEX) }
 	};
 
 	const token = await login();
@@ -32,18 +32,18 @@ test("Create device", async () => {
 	const data = await res.json();
 	device = data;
 	expect(data).toMatchObject(expectedDevice);
-});
+};
 
-test("Empty timeline", async () => {
+const emptyTimeline = async () => {
 	const token = await login();
 	const res = await fetch(URL + "/device/" + device.id + "/timeline")
 	expect(res.status).toBe(200);
 
 	const data = await res.json();
 	expect(data).toStrictEqual([]);
-});
+};
 
-test("Log GMC", async () => {
+const logGmc = async () => {
 	const DATE = new Date().getTime();
 	const CPM = 42.0;
 	const USV = 0.69;
@@ -61,4 +61,6 @@ test("Log GMC", async () => {
 
 	expect(rec).toMatchObject({ cpm: CPM, usv: USV, acpm: ACPM });
 	expect(rec.date >= DATE).toBe(true);
-});
+};
+
+module.exports = [createDevice, emptyTimeline, logGmc];

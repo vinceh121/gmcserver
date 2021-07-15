@@ -17,7 +17,6 @@ const login = async () => {
 
 const loginDevice = async (deviceId) => {
 	const token = await login();
-	console.log(token);
 
 	const deviceRes = await fetch(URL + "/device/" + deviceId, { headers: { Authorization: token } });
 	const deviceData = await deviceRes.json();

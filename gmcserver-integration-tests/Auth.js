@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 const globals = require("./globals");
 const { URL, USERNAME, PASSWORD, EMAIL } = globals;
 
-test("register", async () => {
+const register = async () => {
 	const res = await fetch(URL + "/auth/register",
 		{
 			method: "POST",
@@ -13,9 +13,9 @@ test("register", async () => {
 	const data = await res.json();
 	expect(data.token).toBeTruthy();
 	expect(data.id).toBeTruthy();
-});
+};
 
-test("login", async () => {
+const login = async () => {
 	const res = await fetch(URL + "/auth/login",
 		{
 			method: "POST",
@@ -27,4 +27,6 @@ test("login", async () => {
 	expect(data.token).toBeTruthy();
 	expect(data.id).toBeTruthy();
 	expect(data.mfa).toBe(false);
-});
+};
+
+module.exports = [register, login];
