@@ -13,9 +13,7 @@ test("register", async () => {
 	const data = await res.json();
 	expect(data.token).toBeTruthy();
 	expect(data.id).toBeTruthy();
-	done();
 });
-
 
 test("login", async () => {
 	const res = await fetch(URL + "/auth/login",

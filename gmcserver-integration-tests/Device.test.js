@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
-const { URL, OBJECTID_REGEX } = require("./globals");
-const { login } = require("./gmcapi");
+const { URL, LOG_URL, OBJECTID_REGEX } = require("./globals");
+const { login, loginDevice } = require("./gmcapi");
 
 const DEVICE_NAME = "My Test Device";
 const DEVICE_POS = [51.1594650, -1.4439722];
@@ -28,7 +28,37 @@ test("Create device", async () => {
 		}
 	);
 	expect(res.status).toBe(200);
+
 	const data = await res.json();
-	expect(data).toMatchObject(expectedDevice);
 	device = data;
+	expect(data).toMatchObject(expectedDevice);
+});
+
+test("Empty timeline", async () => {
+	const token = await login();
+	const res = await fetch(URL + "/device/" + device.id + "/timeline")
+	expect(res.status).toBe(200);
+
+	const data = await res.json();
+	expect(data).toStrictEqual([]);
+});
+
+test("Log GMC", async () => {
+	const DATE = new Date().getTime();
+	const CPM = 42.0;
+	const USV = 0.69;
+	const ACPM = 42.69;
+
+	const { deviceGmcId, userGmcId } = await loginDevice(device.id);
+
+	const logRes = await fetch(LOG_URL + `/log2.asp?AID=${userGmcId}&GID=${deviceGmcId}&CPM=${CPM}&UsV=${USV}&aCpM=${ACPM}`);
+	const logData = await logRes.text();
+	expect(logData).toBe("OK.ERR0");
+
+	const tlRes = await fetch(URL + "/device/" + device.id + "/timeline");
+	const tlData = await tlRes.json();
+	const rec = tlData[0];
+
+	expect(rec).toMatchObject({ cpm: CPM, usv: USV, acpm: ACPM });
+	expect(rec.date >= DATE).toBe(true);
 });
