@@ -5,8 +5,8 @@
 	<groupId>me.vinceh121</groupId>
 	<artifactId>gmcserver</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>GMC Server</name>
-	<description>A lightweight service to store and analyze data from Geiger counters</description>
+	<name>GMCServer</name>
+	<description>Lightweight server to log, analyze and proxy data measured by internet connected Geiger counters</description>
 	<url>https://home.gmc.vinceh121.me</url>
 
 	<licenses>
@@ -19,7 +19,7 @@
 	<developers>
 		<developer>
 			<id>vinceh121</id>
-			<email>vincent.hyvert@sfr.fr</email>
+			<email>contact@vinceh121.me</email>
 			<timezone>Europe/Paris</timezone>
 			<url>https://vinceh121.me</url>
 		</developer>
