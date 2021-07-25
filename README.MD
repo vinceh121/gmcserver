@@ -36,6 +36,8 @@ You should first set up WiFi on your GMC device. In the `Server` settings, you s
 
 Once those settings set, pressing the Test Connection button should show "Successful" after a second.
 
+### Cajoe
+You will need to flash a [custom ESP8266 firmware](https://github.com/vinceh121/gmcserver-cajoe-firmware).
 
 ## Installing
 
