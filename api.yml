@@ -1,0 +1,166 @@
+openapi: 3.0.3
+info:
+  title: "GMCServer Backend API"
+  version: 0.1.0
+  license:
+    name: GNU General Public License v3.0 or later
+    url: https://www.gnu.org/licenses/gpl-3.0-standalone.html
+  contact:
+    name: vinceh121
+    email: contact@vinceh121.me
+    url: vinceh121.me
+paths:
+  /device/{}:
+    get:
+      description: Get a device by ID
+      responses:
+        '200':
+          description: Successfully fetched device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/device"
+
+
+components:
+  schemas:
+    location:
+      type: array
+      nullable: true
+      maxItems: 2
+      minItems: 2
+      items:
+        type: number
+    partialUser:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        admin:
+          type: boolean
+    device:
+      type: object
+      discriminator:
+        propertyName: own
+        mapping:
+          true: ownedDevice
+          false: device
+      properties:
+        id:
+          type: string
+        model:
+          type: string
+          nullable: true
+        name:
+          type: string
+        importedFrom:
+          type: string
+          nullable: true
+        location:
+          $ref: "#/components/schemas/location"
+        owner:
+          $ref: "#/components/schemas/partialUser"
+        disabled:
+          type: boolean
+        own:
+          type: boolean
+    ownedDevice:
+      allOf:
+        - $ref: "#components/schemas/anonDevice"
+        - type: object
+          properties:
+            gmcId:
+              type: integer
+            lastEmailAlert:
+              type: integer
+            stdDevAlertLimit:
+              type: integer
+            proxiesSettings: ### TODO
+              type: object
+    mapDevice:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        location:
+          $ref: "#/components/schemas/location"
+        cpm:
+          type: number
+    user:
+      type: object
+      discriminator:
+        propertyName: self
+        mapping:
+          true: selfUser
+          false: user
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        admin:
+          type: boolean
+        self:
+          type: boolean
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/device"
+    selfUser:
+      allOf:
+        - $ref: "#components/schemas/user"
+        - type: object
+          properties:
+            email:
+              type: string
+            deviceLimit:
+              type: integer
+            gmcId:
+              type: integer
+            mfa:
+              type: boolean
+            alertEmails:
+              type: boolean
+    instanceInfo:
+      type: object
+      properties:
+        host:
+          type: string
+        name:
+          type: string
+        about:
+          type: string
+        captcha:
+          type: boolean
+    proxyRadmon:
+      type: object
+      properties:
+        user:
+          type: string
+        password:
+          type: string
+    proxySafecast:
+      type: object
+      properties:
+        apiKey:
+          type: string
+        deviceId:
+          type: integer
+    proxyGmcmap:
+      type: object
+      properties:
+        userId:
+          type: integer
+        deviceId:
+          type: integer
+    proxySettings:
+      type: object
+      anyOf:
+        - $ref: "#/components/schemas/proxyRadmon"
+        - $ref: "#/components/schemas/proxySafecast"
+        - $ref: "#/components/schemas/proxyGmcmap"
+
