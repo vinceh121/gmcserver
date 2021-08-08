@@ -147,13 +147,13 @@ public class DeviceModule extends AbstractModule {
 		final JsonObject obj = ctx.getBodyAsJson();
 
 		final String name = obj.getString("name");
-		if (name == null || name.length() > 2 && name.length() < 64) {
+		if (name != null && name.length() > 2 && name.length() < 64) {
 			this.error(ctx, 400, "Invalid name");
 			return;
 		}
 
 		final String model = obj.getString("model");
-		if (model == null || name.length() > 2 && name.length() < 64) {
+		if (model != null && model.length() > 2 && model.length() < 64) {
 			this.error(ctx, 400, "Invalid model");
 			return;
 		}
