@@ -10,6 +10,28 @@ info:
     email: contact@vinceh121.me
     url: vinceh121.me
 paths:
+  /device:
+    post:
+      description: Create device
+      responses:
+        '200':
+          description: Successfully created device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/device"
+        '400':
+          description: Format error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '403':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
   /device/{}:
     get:
       description: Get a device by ID
@@ -20,8 +42,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/device"
-
-
+        '404':
+          description: No device by that ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+  /device/{}/timeline:
+    get:
+      description: Get a device's records timeline
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: integer
+        - name: end
+          in: query
+          schema:
+            type: integer
+        - name: full
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Sucessfully fetched device timeline
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/record"
 components:
   schemas:
     location:
@@ -136,6 +187,61 @@ components:
           type: string
         captcha:
           type: boolean
+    record:
+      properties:
+        id:
+          type: string
+        deviceId:
+          type: string
+        cpm:
+          type: number
+          nullable: true
+        acpm:
+          type: number
+          nullable: true
+        usv:
+          type: number
+          nullable: true
+        co2:
+          type: number
+          nullable: true
+        hcho:
+          type: number
+          nullable: true
+        tmp:
+          type: number
+          nullable: true
+        ap:
+          type: number
+          nullable: true
+        hmdt:
+          type: number
+          nullable: true
+        accy:
+          type: number
+          nullable: true
+        date:
+          type: integer
+          nullable: true
+        ip:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        location:
+          $ref: "#/components/schemas/location"
+    errorResult:
+      type: object
+      properties:
+        status:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        extras:
+          type: object
+          nullable: true
     proxyRadmon:
       type: object
       properties:
