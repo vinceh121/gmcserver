@@ -142,6 +142,7 @@ public class User extends AbstractEntity implements IAccount {
 		obj.remove("gmcId");
 		obj.remove("email");
 		obj.remove("deviceLimit");
+		obj.remove("alertEmails");
 		return obj;
 	}
 

@@ -78,13 +78,14 @@ public class UserModule extends AbstractModule {
 		final JsonObject obj;
 		if (authUser != null && requestedId.equals(authUser.getId())) {
 			obj = user.toJson();
-			obj.put("self", true);
 			if (user.getDeviceLimit() == -1) {
 				obj.put("deviceLimit", Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit")));
 			}
 		} else {
 			obj = user.toPublicJson();
 		}
+		
+		obj.put("self", authUser != null && requestedId.equals(authUser.getId()));
 
 		final JsonArray devs = new JsonArray();
 
