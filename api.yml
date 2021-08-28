@@ -12,9 +12,16 @@ info:
 servers:
   - url: https://gmc.vinceh121.me/api/v1
 paths:
-  /user:
+  /user/{userId}:
     get:
       description: Fetch a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          example: "5ed7d9b8de22630a0105e7bf"
+          schema:
+            type: string
       responses:
         '200':
           description: Successfully fetched a user
@@ -88,6 +95,12 @@ paths:
   /device:
     post:
       description: Create device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/device"
       responses:
         '200':
           description: Successfully created device
@@ -107,9 +120,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/errorResult"
-  /device/{}:
+  /device/{deviceId}:
     get:
       description: Get a device by ID
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          example: "5ed7d9b8de22630a0105e7c0"
+          schema:
+            type: string
       responses:
         '200':
           description: Successfully fetched device
@@ -123,10 +143,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/errorResult"
-  /device/{}/timeline:
+  /device/{deviceId}/timeline:
     get:
       description: Get a device's records timeline
       parameters:
+        - name: deviceId
+          in: path
+          required: true
+          example: "5ed7d9b8de22630a0105e7c0"
+          schema:
+            type: string
         - name: start
           in: query
           schema:
