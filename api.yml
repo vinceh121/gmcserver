@@ -10,6 +10,79 @@ info:
     email: contact@vinceh121.me
     url: vinceh121.me
 paths:
+  /user:
+    get:
+      description: Fetch a user
+      responses:
+        '200':
+          description: Successfully fetched a user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '400':
+          description: Format error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '404':
+          description: No user by that ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+  /user/me:
+    get:
+      description: Fetch the currently logged in user
+      responses:
+        '200':
+          description: Successfully fetched current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '404':
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+    put:
+      description: Update current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/updateUser"
+      responses:
+        '200':
+          description: Successfully updated current user
+    delete:
+      description: Delete current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+             type: object
+             properties:
+               password:
+                type: string
+      responses:
+        '200':
+          description: Successfully deleted user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '400':
+          description: Password field missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
   /device:
     post:
       description: Create device
@@ -176,6 +249,16 @@ components:
               type: boolean
             alertEmails:
               type: boolean
+    updateUser:
+      allOf:
+        - $ref: "#components/schemas/user"
+        - type: object
+          properties:
+            newPassword:
+              type: string
+            currentPassword:
+              type: string
+              description: Only required is newPassword is defined
     instanceInfo:
       type: object
       properties:
