@@ -8,7 +8,9 @@ info:
   contact:
     name: vinceh121
     email: contact@vinceh121.me
-    url: vinceh121.me
+    url: https://vinceh121.me
+servers:
+  - url: https://gmc.vinceh121.me/api/v1
 paths:
   /user:
     get:
