@@ -51,6 +51,10 @@ import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 
 public class DeviceManager extends AbstractManager {
+	/**
+	 * GQ GMC accept a maximum of 16 chars as User and Device IDs
+	 */
+	public static final long MAX_GMCID = 9999999999999999L;
 	private static final Random DEVICE_RNG = new SecureRandom();
 
 	public DeviceManager(final GMCServer srv) {
@@ -454,7 +458,7 @@ public class DeviceManager extends AbstractManager {
 			dev.setName(this.name);
 			dev.setModel(this.model);
 			if (this.generateGmcId) {
-				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()));
+				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()) % MAX_GMCID);
 			}
 			dev.setLocation(location);
 

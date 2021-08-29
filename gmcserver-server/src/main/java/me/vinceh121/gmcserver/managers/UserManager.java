@@ -43,6 +43,10 @@ import xyz.bowser65.tokenize.Token;
 
 public class UserManager extends AbstractManager {
 	private static final SecureRandom USER_RANDOM = new SecureRandom();
+	/**
+	 * GQ GMC accept a maximum of 16 chars as User and Device IDs
+	 */
+	public static final long MAX_GMCID = 9999999999999999L;
 	public static final Pattern USERNAME_REGEX = Pattern.compile("[a-zA-Z]{2,}[a-zA-Z0-9]{2,}"),
 			EMAIL_REGEX = Pattern.compile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]" + "+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\"
 					+ ".[0-9]{1,3}\\.[0-9]{1,3}])|(([a-" + "zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$");
@@ -205,7 +209,7 @@ public class UserManager extends AbstractManager {
 			user.setAdmin(this.admin);
 
 			if (this.generateGmcId) {
-				user.setGmcId(Math.abs(UserManager.USER_RANDOM.nextLong()));
+				user.setGmcId(Math.abs(UserManager.USER_RANDOM.nextLong()) % MAX_GMCID);
 			}
 			user.setGmcId(this.gmcId);
 
