@@ -265,6 +265,15 @@ public class Record extends AbstractEntity {
 		}
 		return true;
 	}
+	
+	@Override
+	public JsonObject toJson() {
+		final JsonObject obj = super.toJson();
+		if (this.location != null) {
+			obj.put("location", this.location.getCoordinates().getValues());
+		}
+		return obj;
+	}
 
 	@Override
 	@JsonIgnore
