@@ -17,8 +17,11 @@
  */
 package me.vinceh121.gmcserver.managers;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -36,13 +39,17 @@ import com.mongodb.client.model.geojson.Position;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
 
 public class ImportManager extends AbstractManager {
+	private static final DateFormat DATE_FORMAT_ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
 	public ImportManager(final GMCServer srv) {
 		super(srv);
@@ -50,6 +57,10 @@ public class ImportManager extends AbstractManager {
 
 	public ImportGmcmap importGmcmap() {
 		return new ImportGmcmap(this.srv);
+	}
+	
+	public ImportSafecast importSafecast() {
+		return new ImportSafecast(this.srv);
 	}
 
 	public class ImportGmcmap extends AbstractAction<Void> {
@@ -78,16 +89,16 @@ public class ImportManager extends AbstractManager {
 
 		private void importPageRecurse(final int page) {
 			this.getRecords(page).onSuccess(recs -> {
-				log.info("Got {} records from device import {}, page {}", recs.size(), deviceId, page);
+				log.info("Got {} records from device GMC import {}, page {}", recs.size(), deviceId, page);
 
 				if (recs.size() != 0) {
 					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 					this.importPageRecurse(page + 1);
 				} else {
-					log.info("Finished import for {}", gmcmapId);
+					log.info("Finished GMC import for {}", gmcmapId);
 				}
 			}).onFailure(t -> {
-				log.error(new FormattedMessage("Error while importing device {} at page {}", gmcmapId, page), t);
+				log.error(new FormattedMessage("Error while importing GMC device {} at page {}", gmcmapId, page), t);
 			});
 		}
 
@@ -266,6 +277,144 @@ public class ImportManager extends AbstractManager {
 
 		public ImportGmcmap setGmcmapId(String gmcmapId) {
 			this.gmcmapId = gmcmapId;
+			return this;
+		}
+	}
+
+	public class ImportSafecast extends AbstractAction<Void> {
+		private ObjectId deviceId;
+		private String safeCastId;
+
+		public ImportSafecast(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<Void> promise) {
+			this.getRecords(0).onSuccess(recs -> {
+				if (recs.size() == 0) {
+					promise.fail(new IllegalStateException("Device does not have any records"));
+					return;
+				}
+
+				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+
+				promise.complete();
+
+				this.importPageRecurse(1);
+			}).onFailure(promise::fail);
+		}
+
+		private void importPageRecurse(final int page) {
+			this.getRecords(page).onSuccess(recs -> {
+				log.info("Got {} records from SafeCast device import {}, page {}", recs.size(), deviceId, page);
+
+				if (recs.size() != 0) {
+					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+					this.importPageRecurse(page + 1);
+				} else {
+					log.info("Finished SafeCast import for {}", this.safeCastId);
+				}
+			}).onFailure(t -> {
+				log.error(
+						new FormattedMessage("Error while importing SafeCast device {} at page {}",
+								this.safeCastId,
+								page),
+						t);
+			});
+		}
+
+		private Future<List<Record>> getRecords(int page) {
+			return Future.future(p -> {
+				final List<Record> recs = new Vector<>();
+				srv.getWebClient()
+					.get("api.safecast.org", "/en-US/measurements")
+					.setQueryParam("device_id", this.safeCastId)
+					.setQueryParam("format", "json")
+					.setQueryParam("page", Integer.toString(page))
+					.as(BodyCodec.jsonArray())
+					.send(ares -> {
+						if (ares.failed()) {
+							p.fail(ares.cause());
+							return;
+						}
+
+						final JsonArray arr = ares.result().body();
+						if (arr == null) {
+							p.fail("Failed to decode response body as JSON");
+							return;
+						}
+
+						for (Object rawObj : arr) {
+							if (!(rawObj instanceof JsonObject)) {
+								p.fail("Records array contains invalid data types");
+								return;
+							}
+
+							final JsonObject obj = (JsonObject) rawObj;
+							final Record rec = new Record();
+							rec.setDeviceId(deviceId);
+							if (obj.getString("unit").equals("cpm")) {
+								rec.setCpm(obj.getDouble("value"));
+							}
+
+							if (obj.getValue("longitude") != null || obj.getValue("latitude") != null
+									|| obj.getValue("height") != null) {
+								final List<Double> pos = new ArrayList<>(3);
+								for (int i = 0; i < 3; i++) {
+									pos.add(Double.NaN);
+								}
+
+								if (obj.getValue("longitude") != null) {
+									pos.set(0, obj.getDouble("longitude"));
+								}
+
+								if (obj.getValue("latitude") != null) {
+									pos.set(1, obj.getDouble("latitude"));
+								}
+
+								if (obj.getValue("height") != null) {
+									pos.set(2, obj.getDouble("height"));
+								} else {
+									pos.remove(2);
+								}
+
+								rec.setLocation(new Point(new Position(pos)));
+							}
+
+							try {
+								rec.setDate(DATE_FORMAT_ISO_8601.parse(obj.getString("captured_at")));
+							} catch (ParseException e) {
+								log.error(
+										new FormattedMessage("Failed to parse date for SafeCast record {}",
+												obj.getValue("id")),
+										e);
+								rec.setDate(new Date(0L));
+							}
+
+							recs.add(rec);
+						}
+
+						p.complete(recs);
+					});
+			});
+		}
+
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public ImportSafecast setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
+
+		public String getSafeCastId() {
+			return safeCastId;
+		}
+
+		public ImportSafecast setSafeCastId(String safeCastId) {
+			this.safeCastId = safeCastId;
 			return this;
 		}
 	}

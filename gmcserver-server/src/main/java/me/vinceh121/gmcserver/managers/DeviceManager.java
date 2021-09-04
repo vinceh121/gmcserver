@@ -416,7 +416,7 @@ public class DeviceManager extends AbstractManager {
 		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true;
 		private User user;
 		private JsonArray arrLocation;
-		private String name, model;
+		private String name, model, importedFrom;
 
 		public CreateDeviceAction(final GMCServer srv) {
 			super(srv);
@@ -457,6 +457,7 @@ public class DeviceManager extends AbstractManager {
 			dev.setOwner(this.user.getId());
 			dev.setName(this.name);
 			dev.setModel(this.model);
+			dev.setImportedFrom(this.importedFrom);
 			if (this.generateGmcId) {
 				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()) % MAX_GMCID);
 			}
@@ -529,6 +530,15 @@ public class DeviceManager extends AbstractManager {
 
 		public CreateDeviceAction setModel(final String model) {
 			this.model = model;
+			return this;
+		}
+
+		public String getImportedFrom() {
+			return importedFrom;
+		}
+
+		public CreateDeviceAction setImportedFrom(String importedFrom) {
+			this.importedFrom = importedFrom;
 			return this;
 		}
 	}

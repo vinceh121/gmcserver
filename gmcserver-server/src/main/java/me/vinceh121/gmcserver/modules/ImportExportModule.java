@@ -50,6 +50,7 @@ public class ImportExportModule extends AbstractModule {
 	public ImportExportModule(final GMCServer srv) {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::handleImportGmcMap);
+		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/safecast", this::handleImportSafecast);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/export/csv", this::handleCsvExport);
 	}
 
@@ -98,6 +99,46 @@ public class ImportExportModule extends AbstractModule {
 			.execute()
 			.onSuccess(v -> this.error(ctx, 200, "Import started"))
 			.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+	}
+
+	private void handleImportSafecast(final RoutingContext ctx) {
+		final JsonObject obj = ctx.getBodyAsJson();
+		if (obj == null) {
+			this.error(ctx, 400, "Invalid JSON");
+			return;
+		}
+
+		if (!obj.containsKey("safecastId")) {
+			this.error(ctx, 400, "Missing 'safecastId' parameter");
+			return;
+		}
+
+		final String safecastId = obj.getString("safecastId");
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		this.srv.getDeviceManager()
+			.createDevice()
+			.setUser(user)
+			.setName("Imported from Safecast:" + safecastId)
+			.setImportedFrom(safecastId + "@safecast")
+			.execute()
+			.onSuccess(dev -> {
+				this.srv.getImportManager()
+					.importSafecast()
+					.setDeviceId(dev.getId())
+					.setSafeCastId(safecastId)
+					.execute()
+					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
+					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to create device");
+			});
+	}
+
+	private void responseImportStarted(RoutingContext ctx, ObjectId device) {
+		ctx.end(new JsonObject().put("deviceId", device).toBuffer());
 	}
 
 	private void handleCsvExport(final RoutingContext ctx) {
