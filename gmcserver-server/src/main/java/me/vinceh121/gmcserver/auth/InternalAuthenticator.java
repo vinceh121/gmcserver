@@ -22,6 +22,8 @@ import com.mongodb.client.model.Filters;
 import io.vertx.core.Future;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.AuthenticationException;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
 import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
 
 public class InternalAuthenticator extends AbstractAuthenticator {
@@ -30,6 +32,11 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 		super(srv);
 	}
 
+	/**
+	 * @exception EntityNotFoundException if the user what not found
+	 * @exception IllegalStateException   if the user's account is disabled
+	 * @exception AuthenticationException if the password failed to validate
+	 */
 	@Override
 	public Future<User> login(final String username, final String password) {
 		return Future.future(promise -> {
@@ -39,23 +46,26 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 				.first();
 
 			if (user == null) {
-				promise.fail("User not found");
+				promise.fail(new EntityNotFoundException("User not found"));
 				return;
 			}
 
 			if (user.getPassword() == null) {
-				promise.fail("User account disabled");
+				promise.fail(new IllegalStateException("User account disabled"));
 				return;
 			}
 
 			if (!this.srv.getArgon().verify(user.getPassword(), password.toCharArray())) {
-				promise.fail("Invalid password");
+				promise.fail(new AuthenticationException("Invalid password"));
 				return;
 			}
 			promise.complete(user);
 		});
 	}
 
+	/**
+	 * @throws See {@link CreateUserAction}
+	 */
 	@Override
 	public Future<User> register(final String username, final String email, final String password) {
 		return Future.future(promise -> {
@@ -64,7 +74,7 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 				.setUsername(username)
 				.setPassword(password)
 				.setEmail(email);
-			action.execute().onSuccess(promise::complete).onFailure(t -> promise.fail("Failed to create user: " + t));
+			action.execute().onSuccess(promise::complete).onFailure(promise::fail);
 		});
 	}
 }

@@ -26,13 +26,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.FormattedMessage;
 import org.bson.types.ObjectId;
 
-import com.mongodb.client.model.Filters;
-
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
-import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;

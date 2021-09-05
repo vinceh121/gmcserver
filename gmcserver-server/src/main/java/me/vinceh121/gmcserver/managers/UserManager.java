@@ -38,6 +38,8 @@ import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.AuthenticationException;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
 import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
 
@@ -79,6 +81,11 @@ public class UserManager extends AbstractManager {
 		return new DeleteUserAction(this.srv);
 	}
 
+	/**
+	 * Fetches a user.
+	 * 
+	 * Throws {@code EntityNotFoundException} if the user was not found.
+	 */
 	public class GetUserAction extends AbstractAction<User> {
 		private ObjectId id;
 
@@ -92,7 +99,7 @@ public class UserManager extends AbstractManager {
 			if (user != null) {
 				promise.complete(user);
 			} else {
-				promise.fail("Failed to get user");
+				promise.fail(new EntityNotFoundException("Failed to get user"));
 			}
 		}
 
@@ -106,6 +113,14 @@ public class UserManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Checks the validity of a token.
+	 *
+	 * Throws {@code IllegalArgumentException} if the token was not specified.
+	 * Throws {@code SignatureException} if the token couldn't be validated. Throws
+	 * {@code IllegalStateException} if the account doesn't exist or the token
+	 * expired.
+	 */
 	public class VerifyTokenAction extends AbstractAction<Token> {
 		private String tokenString;
 
@@ -116,7 +131,7 @@ public class UserManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Token> promise) {
 			if (this.tokenString == null) {
-				promise.fail("Token not specified");
+				promise.fail(new IllegalArgumentException("Token not specified"));
 				return;
 			}
 
@@ -124,12 +139,12 @@ public class UserManager extends AbstractManager {
 			try {
 				token = this.srv.getTokenize().validateToken(this.tokenString, this::fetchAccount);
 			} catch (final SignatureException e) {
-				promise.fail("Couldn't validate token");
+				promise.fail(new SignatureException("Couldn't validate token", e));
 				return;
 			}
 
 			if (token == null) {
-				promise.fail("Invalid token");
+				promise.fail(new IllegalStateException("Invalid token"));
 				return;
 			}
 
@@ -151,6 +166,9 @@ public class UserManager extends AbstractManager {
 
 	}
 
+	/**
+	 * Generates a token.
+	 */
 	public class GenerateTokenAction extends AbstractAction<Token> {
 		private User user;
 		private boolean mfaPass;
@@ -189,6 +207,12 @@ public class UserManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Creates a user.
+	 *
+	 * Throws {@code IllegalStateException} if the username or email are already
+	 * taken.
+	 */
 	public class CreateUserAction extends AbstractAction<User> {
 		private String username, password, email;
 		private boolean admin, generateGmcId = true, insertInDb = true;
@@ -217,7 +241,7 @@ public class UserManager extends AbstractManager {
 				.getCollection(User.class)
 				.find(Filters.eq("username", this.username))
 				.first() != null) {
-				promise.fail("Username taken");
+				promise.fail(new IllegalStateException("Username taken"));
 				return;
 			}
 
@@ -225,7 +249,7 @@ public class UserManager extends AbstractManager {
 				.getCollection(User.class)
 				.find(Filters.eq("email", this.email))
 				.first() != null) {
-				promise.fail("Email taken");
+				promise.fail(new IllegalStateException("Email taken"));
 				return;
 			}
 
@@ -300,6 +324,15 @@ public class UserManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Updates a user.
+	 *
+	 * Requires password confirmation to change password.
+	 *
+	 * Throws {@code IllegalStateException} if the username or email is already
+	 * taken. Throws {@code AuthenticationException} if the user password
+	 * confirmation couldn't be validated.
+	 */
 	public class UpdateUserAction extends AbstractAction<Void> {
 		private User user;
 		private String username, email, currentPassword, newPassword;
@@ -318,7 +351,7 @@ public class UserManager extends AbstractManager {
 					.getCollection(User.class)
 					.find(Filters.eq("username", this.username))
 					.first() != null) {
-					promise.fail("Username is taken");
+					promise.fail(new IllegalStateException("Username is taken"));
 					return;
 				}
 
@@ -330,7 +363,7 @@ public class UserManager extends AbstractManager {
 					.getCollection(User.class)
 					.find(Filters.eq("email", this.email))
 					.first() != null) {
-					promise.fail("Email is taken");
+					promise.fail(new IllegalStateException("Email is taken"));
 					return;
 				}
 
@@ -341,11 +374,11 @@ public class UserManager extends AbstractManager {
 				try {
 					final CompletableFuture<User> fut = this.srv.getAuthenticator()
 						.login(this.user.getUsername(), this.currentPassword)
-						.toCompletionStage() // i mean fuck me right
+						.toCompletionStage() // FIXME this should be proper future handling
 						.toCompletableFuture();
 
 					if (fut.get() == null && fut.isCompletedExceptionally()) {
-						promise.fail("Failed to authenticate");
+						promise.fail(new AuthenticationException("Failed to authenticate"));
 						return;
 					}
 
@@ -356,7 +389,7 @@ public class UserManager extends AbstractManager {
 					return;
 				}
 			}
-			
+
 			if (this.alertEmails != null) {
 				updates.add(Updates.set("alertEmails", this.alertEmails));
 			}
@@ -422,6 +455,12 @@ public class UserManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Deletes a user. This will delete all of the users's devices and their records
+	 * and calendars.
+	 * 
+	 * Throws {@code AuthenticationException} if the password confirmation failed.
+	 */
 	public class DeleteUserAction extends AbstractAction<Void> {
 		private String confirmPassword;
 		private User user;
@@ -435,11 +474,11 @@ public class UserManager extends AbstractManager {
 			try {
 				final CompletableFuture<User> fut = this.srv.getAuthenticator()
 					.login(this.user.getUsername(), this.confirmPassword)
-					.toCompletionStage() // i mean fuck me right
+					.toCompletionStage() // FIXME this should be proper future handling
 					.toCompletableFuture();
 
 				if (fut.get() == null && fut.isCompletedExceptionally()) {
-					promise.fail("Failed to authenticate");
+					promise.fail(new AuthenticationException("Failed to authenticate"));
 					return;
 				}
 

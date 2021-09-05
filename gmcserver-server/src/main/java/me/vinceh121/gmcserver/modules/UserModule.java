@@ -30,6 +30,7 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.AuthenticationException;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.UserManager;
 
@@ -84,7 +85,7 @@ public class UserModule extends AbstractModule {
 		} else {
 			obj = user.toPublicJson();
 		}
-		
+
 		obj.put("self", authUser != null && requestedId.equals(authUser.getId()));
 
 		final JsonArray devs = new JsonArray();
@@ -134,7 +135,7 @@ public class UserModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid email");
 			return;
 		}
-		
+
 		final Boolean alertEmails = obj.getBoolean("alertEmails");
 
 		this.srv.getUserManager()
@@ -147,7 +148,15 @@ public class UserModule extends AbstractModule {
 			.setAlertEmails(alertEmails)
 			.execute()
 			.onSuccess(v -> this.error(ctx, 200, "Successfully updated user"))
-			.onFailure(t -> this.error(ctx, 500, "Failed to update user: " + t.getMessage()));
+			.onFailure(t -> {
+				if (t instanceof IllegalStateException) {
+					this.error(ctx, 409, t.getMessage());
+				} else if (t instanceof AuthenticationException) {
+					this.error(ctx, 403, t.getMessage());
+				} else {
+					this.error(ctx, 500, "Failed to update user: " + t.getMessage());
+				}
+			});
 	}
 
 	private void handleDeleteMe(final RoutingContext ctx) {
@@ -165,10 +174,14 @@ public class UserModule extends AbstractModule {
 			.setConfirmPassword(password)
 			.setUser(user)
 			.execute()
-			.onSuccess(v -> this.error(ctx, 200, "Your account, devices, timelines have been deleted"))
+			.onSuccess(v -> ctx.response().setStatusCode(204).end())
 			.onFailure(t -> {
-				this.log.error(new FormattedMessage("Error while deleting account {}", user.getId()), t);
-				this.error(ctx, 500, "Error while deleting your account: " + t);
+				if (t instanceof AuthenticationException) {
+					this.error(ctx, 403, t.getMessage());
+				} else {
+					this.log.error(new FormattedMessage("Error while deleting account {}", user.getId()), t);
+					this.error(ctx, 500, "Error while deleting your account: " + t);
+				}
 			});
 	}
 }

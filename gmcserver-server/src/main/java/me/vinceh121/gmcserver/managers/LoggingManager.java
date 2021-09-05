@@ -45,6 +45,14 @@ public class LoggingManager extends AbstractManager {
 		return new InsertRecordAction(this.srv);
 	}
 
+	/**
+	 * Inserts a record.
+	 * This will (optionnally) check for alerts, process proxying, publish it to the event bus.
+	 *
+	 * Alerting and proxying can be differed.
+	 *
+	 * Rethrows exceptions thrown by {@code CheckAlertAction}, {@code ProcessDeviceProxiesAction}
+	 */
 	public class InsertRecordAction extends AbstractAction<Void> {
 		private Record record;
 		private Device device;

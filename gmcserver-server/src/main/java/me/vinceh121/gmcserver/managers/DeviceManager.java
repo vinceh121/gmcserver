@@ -49,6 +49,8 @@ import me.vinceh121.gmcserver.entities.DeviceCalendar;
 import me.vinceh121.gmcserver.entities.DeviceStats;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
+import me.vinceh121.gmcserver.exceptions.LimitReachedException;
 
 public class DeviceManager extends AbstractManager {
 	/**
@@ -102,6 +104,12 @@ public class DeviceManager extends AbstractManager {
 		return new CreateDeviceAction(this.srv);
 	}
 
+	/**
+	 * Calculate's a device's latest stats and returns them.
+	 * 
+	 * Throws {@code IllegalStateException} when the database answered a null
+	 * object.
+	 */
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
 		private ObjectId devId;
@@ -124,7 +132,7 @@ public class DeviceManager extends AbstractManager {
 				stats.setSampleSize(this.sampleSize);
 				promise.complete(stats);
 			} else {
-				promise.fail("Could not get stats");
+				promise.fail(new IllegalStateException("Could not get stats"));
 			}
 		}
 
@@ -155,6 +163,10 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Returns an iterable that allows streaming a device's timeline, in full or
+	 * within given limits.
+	 */
 	public class DeviceFullTimelineAction extends AbstractAction<Iterable<Record>> {
 		private Device dev;
 		private Date start, end;
@@ -230,6 +242,12 @@ public class DeviceManager extends AbstractManager {
 
 	}
 
+	/**
+	 * Updates a device.
+	 * 
+	 * Throws {@code IllegalStateException} if the database didn't acknowledge the
+	 * update.
+	 */
 	public class UpdateDeviceAction extends AbstractAction<Long> {
 		private Device device;
 		private String name, model;
@@ -270,10 +288,12 @@ public class DeviceManager extends AbstractManager {
 				.getCollection(Device.class)
 				.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
 
-			if (res.wasAcknowledged()) {
+			if (res.getMatchedCount() == 0) {
+				promise.fail(new EntityNotFoundException("Device not found"));
+			} else if (res.wasAcknowledged()) {
 				promise.complete(res.getModifiedCount());
 			} else {
-				promise.fail("Failed to save changes");
+				promise.fail(new IllegalStateException("Failed to save changes"));
 			}
 		}
 
@@ -324,6 +344,11 @@ public class DeviceManager extends AbstractManager {
 
 	}
 
+	/**
+	 * Fetches a device.
+	 * 
+	 * Throws a {@code EntityNotFoundException} if the device was not found.
+	 */
 	public class GetDeviceAction extends AbstractAction<Device> {
 		private ObjectId id;
 
@@ -339,7 +364,7 @@ public class DeviceManager extends AbstractManager {
 				.first();
 
 			if (dev == null) {
-				promise.fail("Device not found");
+				promise.fail(new EntityNotFoundException("Device not found"));
 				return;
 			}
 
@@ -356,6 +381,12 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Disables or deletes a device. (see boolean #delete) If #delete is true, the
+	 * device's calendar and records will be deleted too.
+	 *
+	 * Throws a {@code EntityNotFoundException} if the device doesn't exist
+	 */
 	public class DeleteDeviceAction extends AbstractAction<Void> {
 		private ObjectId deviceId;
 		private boolean delete;
@@ -372,7 +403,7 @@ public class DeviceManager extends AbstractManager {
 				.first();
 
 			if (dev == null) {
-				promise.fail("Device not found");
+				promise.fail(new EntityNotFoundException("Device not found"));
 				return;
 			}
 
@@ -412,6 +443,12 @@ public class DeviceManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Creates a device.
+	 *
+	 * Throws {@code IllegalArgumentException} if one of the arguments is incorrect.
+	 * Throws {@code LimitReachedException} if the user has reached his device limit.
+	 */
 	public class CreateDeviceAction extends AbstractAction<Device> {
 		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true, disabled;
 		private User user;
@@ -425,7 +462,7 @@ public class DeviceManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<Device> promise) {
 			if (this.name == null) {
-				promise.fail("Parameter name missing");
+				promise.fail(new IllegalArgumentException("Parameter name missing"));
 				return;
 			}
 
@@ -439,7 +476,7 @@ public class DeviceManager extends AbstractManager {
 			if (deviceLimit <= this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
-				promise.fail("Device limit reached");
+				promise.fail(new LimitReachedException("Device limit reached"));
 				return;
 			}
 
@@ -447,7 +484,7 @@ public class DeviceManager extends AbstractManager {
 			if (this.arrLocation != null && this.arrLocation.size() == 2) {
 				location = DeviceManager.jsonArrToPoint(this.arrLocation);
 			} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
-				promise.fail("Invalid location");
+				promise.fail(new IllegalArgumentException("Invalid location"));
 				location = null;
 			} else {
 				location = null;

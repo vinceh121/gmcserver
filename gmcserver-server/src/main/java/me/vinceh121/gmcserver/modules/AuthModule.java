@@ -23,6 +23,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.AuthenticationException;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.UserManager;
 import me.vinceh121.gmcserver.managers.UserManager.GenerateTokenAction;
@@ -121,8 +123,14 @@ public class AuthModule extends AbstractModule {
 			action.execute().onSuccess(token -> {
 				ctx.response()
 					.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
-			}).onFailure(t -> this.error(ctx, 500, "Failed to login after creating account: " + t.getMessage()));
-		}).onFailure(t -> this.error(ctx, 500, "Failed to create account: " + t.getMessage()));
+			}).onFailure(t -> this.error(ctx, 500, "Failed to generate token: " + t.getMessage()));
+		}).onFailure(t -> {
+			if (t instanceof IllegalStateException) {
+				this.error(ctx, 409, t.getMessage());
+			} else {
+				this.error(ctx, 500, "Failed to create account: " + t.getMessage());
+			}
+		});
 	}
 
 	private void handleLogin(final RoutingContext ctx) {
@@ -150,8 +158,8 @@ public class AuthModule extends AbstractModule {
 						.put("id", user.getId().toString())
 						.put("mfa", user.isMfa())
 						.toBuffer());
-			}).onFailure(t -> this.error(ctx, 500, "Login failed: " + t.getMessage()));
-		}).onFailure(t -> this.error(ctx, 403, "Authentication failed: " + t.getMessage()));
+			}).onFailure(t -> this.error(ctx, 500, "Failed to generate token: " + t.getMessage()));
+		}).onFailure(t -> this.errorLogin(ctx, t));
 	}
 
 	private void handleSubmitMfa(final RoutingContext ctx) {
@@ -180,8 +188,14 @@ public class AuthModule extends AbstractModule {
 			this.srv.getUserManager().userLogin().setUser(user).setMfaPass(true).execute().onSuccess(token -> {
 				ctx.response()
 					.end(new JsonObject().put("token", token.toString()).put("id", user.getId().toString()).toBuffer());
-			}).onFailure(t -> this.error(ctx, 500, "Failed to login: " + t.getMessage()));
-		}).onFailure(t -> this.error(ctx, 401, "Failed to verify code: " + t.getMessage()));
+			}).onFailure(t -> this.errorLogin(ctx, t));
+		}).onFailure(t -> {
+			if (t instanceof AuthenticationException) {
+				this.error(ctx, 403, "Invalid code");
+			} else {
+				this.error(ctx, 500, "Failed to verify code: " + t.getMessage());
+			}
+		});
 	}
 
 	private void handleActivateMfa(final RoutingContext ctx) {
@@ -207,7 +221,13 @@ public class AuthModule extends AbstractModule {
 			action.setPass(pass)
 				.execute()
 				.onSuccess(res -> ctx.response().end(new JsonObject().toBuffer()))
-				.onFailure(t -> this.error(ctx, 403, "Failed to confirm MFA setup: " + t.getMessage()));
+				.onFailure(t -> {
+					if (t instanceof AuthenticationException) {
+						this.error(ctx, 403, "Invalid code");
+					} else {
+						this.error(ctx, 500, "Failed to confirm MFA setup: " + t.getMessage());
+					}
+				});
 		}
 	}
 
@@ -233,6 +253,24 @@ public class AuthModule extends AbstractModule {
 			.setUser(user)
 			.execute()
 			.onSuccess(v -> this.error(ctx, 200, "MFA has been disabled"))
-			.onFailure(t -> this.error(ctx, 400, "Failed to disable MFA: " + t.getMessage()));
+			.onFailure(t -> {
+				if (t instanceof AuthenticationException) {
+					this.error(ctx, 403, "Invaild code");
+				} else {
+					this.error(ctx, 500, "Failed to disable MFA: " + t.getMessage());
+				}
+			});
+	}
+
+	private void errorLogin(final RoutingContext ctx, final Throwable t) {
+		if (t instanceof EntityNotFoundException) {
+			this.error(ctx, 404, "User was not found");
+		} else if (t instanceof IllegalStateException) {
+			this.error(ctx, 403, "Account disabled");
+		} else if (t instanceof AuthenticationException) {
+			this.error(ctx, 403, "Invalid password");
+		} else {
+			this.error(ctx, 500, "Failed to login after creating account: " + t.getMessage());
+		}
 	}
 }

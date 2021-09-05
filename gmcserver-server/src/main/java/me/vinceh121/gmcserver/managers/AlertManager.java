@@ -30,6 +30,7 @@ import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.managers.DeviceManager.DeviceStatsAction;
 import me.vinceh121.gmcserver.managers.email.Email;
 
 public class AlertManager extends AbstractManager {
@@ -43,6 +44,16 @@ public class AlertManager extends AbstractManager {
 		return new CheckAlertAction(this.srv);
 	}
 
+	/**
+	 * Checks if the device's latest record should throw an alert.
+	 * Sends the email if it is required.
+	 * 
+	 * Returns true if the alter has been throw, false otherwise.
+	 * 
+	 * Throws {@code IllegalStateException} when device's stats failed to fetch.
+	 * 
+	 * @see DeviceStatsAction
+	 */
 	public class CheckAlertAction extends AbstractAction<Boolean> {
 		private Device dev;
 		private User owner;
@@ -87,7 +98,7 @@ public class AlertManager extends AbstractManager {
 				})
 				.onFailure(t -> {
 					AlertManager.this.log.error(new FormattedMessage("Failed to get stats for device {}", this.dev), t);
-					promise.fail("Failed to get stats");
+					promise.fail(new IllegalStateException("Failed to get stats", t));
 				});
 		}
 

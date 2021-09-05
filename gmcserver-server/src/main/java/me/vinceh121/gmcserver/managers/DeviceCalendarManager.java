@@ -56,6 +56,11 @@ public class DeviceCalendarManager extends AbstractManager {
 		return new CalculateCalendarAction(this.srv);
 	}
 
+	/**
+	 * Fetches the device's calendar and returns it. If this device doesn't have a
+	 * calendar, returns {@code null} and then starts asynchronously calendar
+	 * calculation.
+	 */
 	public class GetCalendarAction extends AbstractAction<DeviceCalendar> {
 		private ObjectId deviceId;
 
@@ -85,6 +90,9 @@ public class DeviceCalendarManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Calculates a device's calendar and returns it.
+	 */
 	public class CalculateCalendarAction extends AbstractAction<DeviceCalendar> {
 		private ObjectId deviceId;
 

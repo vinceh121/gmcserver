@@ -70,6 +70,12 @@ public class ProxyManager extends AbstractManager {
 		return new ProcessDeviceProxiesAction(this.srv);
 	}
 
+	/**
+	 * Validates proxy settings.
+	 * 
+	 * Throws {@code EntityNotFoundException} if a specified proxy is unknown.
+	 * Throws {@code IllegalArgumentException} if a proxy invalidated its settings.
+	 */
 	public class ValidateProxiesSettingsAction extends AbstractAction<Void> {
 		private JsonObject proxiesSettings;
 
@@ -91,6 +97,7 @@ public class ProxyManager extends AbstractManager {
 					promise.fail("Unknown proxy '" + key + "'");
 					return;
 				}
+				// FIXME we're missing some logic here
 			}
 			CompositeFuture.all(futures).onSuccess(f -> promise.complete()).onFailure(promise::fail);
 		}
@@ -105,6 +112,11 @@ public class ProxyManager extends AbstractManager {
 		}
 	}
 
+	/**
+	 * Processes proxying.
+	 *
+	 * Proxying is differed and no exceptions should be thrown.
+	 */
 	public class ProcessDeviceProxiesAction extends AbstractAction<Void> {
 		private Device device;
 		private Record record;

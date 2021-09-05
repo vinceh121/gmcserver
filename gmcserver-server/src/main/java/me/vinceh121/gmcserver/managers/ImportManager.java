@@ -58,7 +58,7 @@ public class ImportManager extends AbstractManager {
 	public ImportGmcmap importGmcmap() {
 		return new ImportGmcmap(this.srv);
 	}
-	
+
 	public ImportSafecast importSafecast() {
 		return new ImportSafecast(this.srv);
 	}
@@ -102,6 +102,9 @@ public class ImportManager extends AbstractManager {
 			});
 		}
 
+		/**
+		 * @throws IllegalStateException If the server returned an incorrect body.
+		 */
 		private Future<List<Record>> getRecords(final int page) {
 			return Future.future(p -> {
 				this.srv.getWebClient()
@@ -111,7 +114,7 @@ public class ImportManager extends AbstractManager {
 					.setQueryParam("systemTimeZone", "0")
 					.send(a -> {
 						if (a.failed()) {
-							p.fail("Http request failed: " + a.cause().getMessage());
+							p.fail(new IllegalStateException("Http request failed", a.cause()));
 							return;
 						}
 						try {
@@ -121,7 +124,7 @@ public class ImportManager extends AbstractManager {
 							final Element table = doc.getElementsByTag("table").first();
 
 							if (table == null) {
-								p.fail("No data table found");
+								p.fail(new IllegalStateException("No data table found"));
 								return;
 							}
 
@@ -250,7 +253,7 @@ public class ImportManager extends AbstractManager {
 							}
 							p.complete(records);
 						} catch (final NumberFormatException e) {
-							p.fail(new RuntimeException("Failed to import device", e));
+							p.fail(new IllegalStateException("Failed to import device", e));
 						} catch (final Exception e) {
 							log.error(
 									new FormattedMessage("ohno oopsie fucky wucky with import {} at page {}",
@@ -324,6 +327,9 @@ public class ImportManager extends AbstractManager {
 			});
 		}
 
+		/**
+		 * @throws IllegalStateException If the server returned an incorrect body.
+		 */
 		private Future<List<Record>> getRecords(int page) {
 			return Future.future(p -> {
 				final List<Record> recs = new Vector<>();
@@ -341,13 +347,13 @@ public class ImportManager extends AbstractManager {
 
 						final JsonArray arr = ares.result().body();
 						if (arr == null) {
-							p.fail("Failed to decode response body as JSON");
+							p.fail(new IllegalStateException("Failed to decode response body as JSON"));
 							return;
 						}
 
 						for (Object rawObj : arr) {
 							if (!(rawObj instanceof JsonObject)) {
-								p.fail("Records array contains invalid data types");
+								p.fail(new IllegalStateException("Records array contains invalid data types"));
 								return;
 							}
 

@@ -37,6 +37,7 @@ import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.AuthenticationException;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
 public class MFAManager extends AbstractManager {
@@ -132,6 +133,12 @@ public class MFAManager extends AbstractManager {
 		return new DisableMFAAction(this.srv);
 	}
 
+	/**
+	 * Process an MFA setup step.
+	 * 
+	 * Throws {@code InvalidKeyException} if the stored key isn't valid.
+	 * Throws {@code AuthenticationException} if the confirm code failed to validate.
+	 */
 	public class SetupMFAAction extends AbstractAction<String> {
 		private User user;
 		private int pass;
@@ -150,13 +157,13 @@ public class MFAManager extends AbstractManager {
 				try {
 					matches = this.srv.getMfaManager().completeMfaSetup(this.user, this.pass);
 				} catch (final InvalidKeyException e) {
-					promise.fail("Invalid MFA key");
+					promise.fail(new InvalidKeyException("Invalid MFA key", e));
 					return;
 				}
 				if (matches) {
 					promise.complete();
 				} else {
-					promise.fail("Invalid pass");
+					promise.fail(new AuthenticationException("Invalid pass"));
 				}
 			}
 		}
@@ -181,6 +188,12 @@ public class MFAManager extends AbstractManager {
 
 	}
 
+	/**
+	 * Verifies the validity of an MFA code.
+	 *
+	 * Throws {@code InvalidKeyException} if the stored key is invalid.
+	 * Throws {@code IllegalArgumentException} if the code failed to validate.
+	 */
 	public class VerifyCodeAction extends AbstractAction<Void> {
 		private User user;
 		private int pass;

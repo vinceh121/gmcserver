@@ -31,6 +31,8 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
+import me.vinceh121.gmcserver.exceptions.LimitReachedException;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.DeviceManager.CreateDeviceAction;
 import me.vinceh121.gmcserver.managers.DeviceManager.DeviceFullTimelineAction;
@@ -88,10 +90,18 @@ public class DeviceModule extends AbstractModule {
 			action.execute().onSuccess(dev -> {
 				ctx.response().end(dev.toJson().toBuffer());
 			}).onFailure(t -> {
-				this.error(ctx, 400, t.getMessage());
+				if (t instanceof LimitReachedException) {
+					this.error(ctx, 406, "Device limit reached");
+				} else {
+					this.error(ctx, 500, "Failed to create device: " + t.getMessage());
+				}
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 400, "Couldn't validate proxiesSettings: " + t.getMessage());
+			if (t instanceof EntityNotFoundException || t instanceof IllegalArgumentException) {
+				this.error(ctx, 400, t.getMessage());
+			} else {
+				this.error(ctx, 500, "Failed to validate proxy settings");
+			}
 		});
 	}
 
@@ -126,7 +136,11 @@ public class DeviceModule extends AbstractModule {
 					ctx.response().end(new JsonObject().put("delete", delete).toBuffer());
 				})
 				.onFailure(t -> {
-					this.error(ctx, 400, t.getMessage());
+					if (t instanceof EntityNotFoundException) {
+						this.error(ctx, 404, "Device not found");
+					} else {
+						this.error(ctx, 500, "Failed to delete device: " + t);
+					}
 				});
 		}).onFailure(t -> {
 			this.error(ctx, 404, "Device not found");
@@ -206,7 +220,11 @@ public class DeviceModule extends AbstractModule {
 				}
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 404, t.getMessage());
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found");
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t.getMessage());
+			}
 		});
 
 	}
@@ -236,9 +254,19 @@ public class DeviceModule extends AbstractModule {
 				obj.put("owner", ures.toPublicJson());
 
 				ctx.response().end(obj.toBuffer());
+			}).onFailure(t -> {
+				if (t instanceof EntityNotFoundException) {
+					this.error(ctx, 500, "User not found"); // means we have an owner-less device
+				} else {
+					this.error(ctx, 500, "Failed to fetch user: " + t.getMessage());
+				}
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 404, t.getMessage());
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found");
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t.getMessage());
+			}
 		});
 	}
 
@@ -307,11 +335,13 @@ public class DeviceModule extends AbstractModule {
 				});
 				ctx.response().write("]");
 				ctx.response().end();
-			}).onFailure(t -> {
-				this.error(ctx, 500, t.getMessage());
-			});
+			}).onFailure(t -> this.error(ctx, 500, t.getMessage()));
 		}).onFailure(t -> {
-			this.error(ctx, 404, "Device not found");
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found");
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t.getMessage());
+			}
 		});
 
 	}
@@ -346,10 +376,18 @@ public class DeviceModule extends AbstractModule {
 
 				ctx.response().end(obj.toBuffer());
 			}).onFailure(t -> {
-				this.error(ctx, 204, "No statistical data for this field");
+				if (t instanceof IllegalStateException) {
+					this.error(ctx, 204, "No statistical data for this field");
+				} else {
+					this.error(ctx, 500, "Failed to fetch stats: " + t.getMessage());
+				}
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 404, "Device not found");
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found");
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t.getMessage());
+			}
 		});
 	}
 
@@ -385,7 +423,11 @@ public class DeviceModule extends AbstractModule {
 				});
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 404, "Device not found");
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found");
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t.getMessage());
+			}
 		});
 	}
 
@@ -412,7 +454,11 @@ public class DeviceModule extends AbstractModule {
 				this.error(ctx, 500, "Failed to get calendar: " + t);
 			});
 		}).onFailure(t -> {
-			this.error(ctx, 404, "Device not found: " + t);
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found: " + t);
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t);
+			}
 		});
 	}
 }
