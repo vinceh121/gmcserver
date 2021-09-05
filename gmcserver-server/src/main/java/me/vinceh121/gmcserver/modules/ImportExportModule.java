@@ -17,7 +17,6 @@
  */
 package me.vinceh121.gmcserver.modules;
 
-import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -45,7 +44,6 @@ public class ImportExportModule extends AbstractModule {
 		ImportExportModule.GMCMAP_DATE_FMT.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
 	public static final String GMCMAP_HISTORY_URI = "/historyData.asp", GMCMAP_HOST = "www.gmcmap.com";
-	private static final SecureRandom DEV_RANDOM = new SecureRandom();
 
 	public ImportExportModule(final GMCServer srv) {
 		super(srv);
@@ -69,36 +67,22 @@ public class ImportExportModule extends AbstractModule {
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
-		final int deviceLimit;
-		if (user.getDeviceLimit() != -1) {
-			deviceLimit = user.getDeviceLimit();
-		} else {
-			deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
-		}
-
-		if (deviceLimit <= this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.countDocuments(Filters.eq("ownerId", user.getId()))) {
-			this.error(ctx, 403, "Device limit reached");
-			return;
-		}
-
-		final Device dev = new Device();
-		dev.setDisabled(true);
-		dev.setImportedFrom(gmcmapId);
-		dev.setOwner(user.getId());
-		dev.setName("Imported from gmcmap ID " + gmcmapId);
-		dev.setGmcId(ImportExportModule.DEV_RANDOM.nextLong());
-
-		this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
-
-		this.srv.getImportManager()
-			.importGmcmap()
-			.setDeviceId(dev.getId())
-			.setGmcmapId(gmcmapId)
+		this.srv.getDeviceManager()
+			.createDevice()
+			.setUser(user)
+			.setName("Imported from gmcmap ID " + gmcmapId)
+			.setImportedFrom(gmcmapId)
+			.setDisabled(false)
 			.execute()
-			.onSuccess(v -> this.error(ctx, 200, "Import started"))
-			.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+			.onSuccess(dev -> {
+				this.srv.getImportManager()
+					.importGmcmap()
+					.setDeviceId(dev.getId())
+					.setGmcmapId(gmcmapId)
+					.execute()
+					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
+					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+			}).onFailure(t -> this.error(ctx, 500, "Failed to create device"));
 	}
 
 	private void handleImportSafecast(final RoutingContext ctx) {

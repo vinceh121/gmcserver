@@ -413,7 +413,7 @@ public class DeviceManager extends AbstractManager {
 	}
 
 	public class CreateDeviceAction extends AbstractAction<Device> {
-		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true;
+		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true, disabled;
 		private User user;
 		private JsonArray arrLocation;
 		private String name, model, importedFrom;
@@ -458,6 +458,7 @@ public class DeviceManager extends AbstractManager {
 			dev.setName(this.name);
 			dev.setModel(this.model);
 			dev.setImportedFrom(this.importedFrom);
+			dev.setDisabled(this.disabled);
 			if (this.generateGmcId) {
 				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()) % MAX_GMCID);
 			}
@@ -539,6 +540,15 @@ public class DeviceManager extends AbstractManager {
 
 		public CreateDeviceAction setImportedFrom(String importedFrom) {
 			this.importedFrom = importedFrom;
+			return this;
+		}
+
+		public boolean isDisabled() {
+			return disabled;
+		}
+
+		public CreateDeviceAction setDisabled(boolean disabled) {
+			this.disabled = disabled;
 			return this;
 		}
 	}
