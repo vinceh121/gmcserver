@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 import org.bson.types.ObjectId;
@@ -49,6 +50,7 @@ import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
 
 public class ImportManager extends AbstractManager {
+	public static final Pattern PATTERN_URADMONITOR_ID = Pattern.compile("[A-F0-9]{8}");
 	private static final DateFormat DATE_FORMAT_ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
 	public ImportManager(final GMCServer srv) {
@@ -61,6 +63,10 @@ public class ImportManager extends AbstractManager {
 
 	public ImportSafecast importSafecast() {
 		return new ImportSafecast(this.srv);
+	}
+	
+	public ImportURadMonitor importURadMonitor() {
+		return new ImportURadMonitor(srv);
 	}
 
 	public class ImportGmcmap extends AbstractAction<Void> {
@@ -421,6 +427,90 @@ public class ImportManager extends AbstractManager {
 
 		public ImportSafecast setSafeCastId(String safeCastId) {
 			this.safeCastId = safeCastId;
+			return this;
+		}
+	}
+
+	public class ImportURadMonitor extends AbstractAction<Void> {
+		private String uRadMonitorId;
+		private ObjectId deviceId;
+
+		public ImportURadMonitor(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<Void> promise) {
+			this.srv.getWebClient()
+				.get("data.uradmonitor.com", "/api/v1/devices/" + this.uRadMonitorId + "/all")
+				.putHeader("X-User-hash", "global2")
+				.putHeader("X-User-id", "www")
+				.as(BodyCodec.jsonArray())
+				.send()
+				.onSuccess(res -> {
+					final JsonArray arr = res.body();
+					if (arr == null) {
+						promise.fail(new IllegalStateException("Invalid response body"));
+						return;
+					}
+
+					final List<Record> recs = new ArrayList<>(arr.size());
+					for (final Object rawObj : arr) {
+						if (!(rawObj instanceof JsonObject)) {
+							promise
+								.fail(new IllegalStateException("Response array contains data type other than object"));
+							return;
+						}
+
+						final JsonObject obj = (JsonObject) rawObj;
+						final Record rec = new Record();
+						rec.setDeviceId(deviceId);
+						rec.setDate(new Date(obj.getLong("time") * 1000L));
+
+						if (obj.containsKey("ch2o")) {
+							rec.setHcho(obj.getDouble("ch2o"));
+						}
+
+						if (obj.containsKey("co2")) {
+							rec.setCo2(obj.getDouble("co2"));
+						}
+
+						if (obj.containsKey("cpm")) {
+							rec.setCpm(obj.getDouble("cpm"));
+						}
+
+						if (obj.containsKey("temperature")) {
+							rec.setTmp(obj.getDouble("temperature"));
+						}
+
+						if (obj.containsKey("humidity")) {
+							rec.setHmdt(obj.getDouble("humidity"));
+						}
+
+						recs.add(rec);
+					}
+
+					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+					promise.complete();
+				})
+				.onFailure(t -> promise.fail(new IllegalStateException("Connection failed", t)));
+		}
+
+		public String getuRadMonitorId() {
+			return uRadMonitorId;
+		}
+
+		public ImportURadMonitor setuRadMonitorId(String uRadMonitorId) {
+			this.uRadMonitorId = uRadMonitorId;
+			return this;
+		}
+
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public ImportURadMonitor setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
 			return this;
 		}
 	}

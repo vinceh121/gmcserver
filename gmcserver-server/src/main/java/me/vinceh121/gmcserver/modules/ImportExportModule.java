@@ -33,6 +33,7 @@ import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
+import me.vinceh121.gmcserver.managers.ImportManager;
 
 public class ImportExportModule extends AbstractModule {
 	private static final Logger LOG = LogManager.getLogger(ImportExportModule.class);
@@ -46,6 +47,7 @@ public class ImportExportModule extends AbstractModule {
 		super(srv);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::handleImportGmcMap);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/safecast", this::handleImportSafecast);
+		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/uradmonitor", this::handleImportURadMonitor);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/export/csv", this::handleCsvExport);
 	}
 
@@ -118,6 +120,46 @@ public class ImportExportModule extends AbstractModule {
 			});
 	}
 
+	private void handleImportURadMonitor(final RoutingContext ctx) {
+		final JsonObject obj = ctx.getBodyAsJson();
+		if (obj == null) {
+			this.error(ctx, 400, "Invalid JSON");
+			return;
+		}
+
+		if (!obj.containsKey("uradmonitorId")) {
+			this.error(ctx, 400, "Missing 'uradmonitorId' parameter");
+			return;
+		}
+
+		final String uradmonitorId = obj.getString("uradmonitorId");
+		if (!ImportManager.PATTERN_URADMONITOR_ID.matcher(uradmonitorId).matches()) {
+			this.error(ctx, 400, "Invalid uradmonitorId");
+			return;
+		}
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		this.srv.getDeviceManager()
+			.createDevice()
+			.setUser(user)
+			.setName("Imported from uRadMonitor:" + uradmonitorId)
+			.setImportedFrom(uradmonitorId + "@uradmonitor")
+			.execute()
+			.onSuccess(dev -> {
+				this.srv.getImportManager()
+					.importURadMonitor()
+					.setDeviceId(dev.getId())
+					.setuRadMonitorId(uradmonitorId)
+					.execute()
+					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
+					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to create device");
+			});
+	}
+	
 	private void responseImportStarted(RoutingContext ctx, ObjectId device) {
 		ctx.end(new JsonObject().put("deviceId", device).toBuffer());
 	}
