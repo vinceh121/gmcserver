@@ -28,11 +28,7 @@ const deleteAccount = async () => {
 		body: JSON.stringify({ password: PASSWORD })
 	});
 	
-	expect(res.status).toBe(200);
-	
-	const data = await res.json();
-
-	expect(data.status).toBe(200);
+	expect(res.status).toBe(204);
 };
 
 module.exports = [deleteAccount];
