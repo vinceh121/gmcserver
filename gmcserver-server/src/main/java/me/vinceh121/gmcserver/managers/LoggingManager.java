@@ -91,7 +91,7 @@ public class LoggingManager extends AbstractManager {
 					.execute());
 			}
 
-			if (this.processProxy) {
+			if (this.processProxy && this.device.getProxiesSettings() != null) {
 				(this.differProxy ? differedFutures : joinedFutures).add(this.srv.getProxyManager()
 					.processDeviceProxies()
 					.setDevice(this.device)
