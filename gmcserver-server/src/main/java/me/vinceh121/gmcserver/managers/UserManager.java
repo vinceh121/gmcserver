@@ -234,8 +234,9 @@ public class UserManager extends AbstractManager {
 
 			if (this.generateGmcId) {
 				user.setGmcId(Math.abs(UserManager.USER_RANDOM.nextLong()) % MAX_GMCID);
+			} else if (this.gmcId != 0) {
+				user.setGmcId(this.gmcId);
 			}
-			user.setGmcId(this.gmcId);
 
 			if (this.checkUsernameAvailable && this.srv.getDatabaseManager()
 				.getCollection(User.class)
