@@ -81,4 +81,34 @@ const logGmc = async () => {
 	expect(rec.date >= DATE).toBe(true);
 };
 
-module.exports = [createDevice, emptyTimeline, logGmc];
+const logSafecast = async () => {
+	const DATE = new Date();
+	const CPM = 42.0;
+	const LON = 1.444;
+	const LAT = 43.6045;
+
+	const { deviceGmcId, userGmcId } = await loginDevice(device.id);
+
+	const logRes = await fetch(LOG_URL + "/measurements.json?api_key=" + userGmcId, {
+		method: "POST",
+		body: JSON.stringify({
+			device_id: deviceGmcId,
+			unit: "cpm",
+			value: CPM,
+			captured_at: DATE,
+			longitude: LON,
+			latitude: LAT
+		})
+	});
+	const logData = await logRes.text();
+	expect(logRes.status).toBe(200);
+
+	const tlRes = await fetch(URL + "/device/" + device.id + "/timeline");
+	const tlData = await tlRes.json();
+	const rec = tlData[0];
+
+	expect(rec).toMatchObject({ cpm: CPM, location: [LON, LAT] });
+	expect(rec.date >= DATE).toBe(true);
+};
+
+module.exports = [createDevice, emptyTimeline, logGmc, logSafecast];
