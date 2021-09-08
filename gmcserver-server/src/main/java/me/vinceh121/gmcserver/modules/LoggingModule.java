@@ -442,6 +442,7 @@ public class LoggingModule extends AbstractModule {
 				this.error(ctx, 400, "Value is required");
 				return;
 			}
+			r.setCpm(cpm);
 		} catch (final ClassCastException e) {
 			this.error(ctx, 400, "Invalid value");
 			return;
