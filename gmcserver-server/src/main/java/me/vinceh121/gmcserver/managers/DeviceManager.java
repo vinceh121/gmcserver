@@ -485,7 +485,7 @@ public class DeviceManager extends AbstractManager {
 				location = DeviceManager.jsonArrToPoint(this.arrLocation);
 			} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
 				promise.fail(new IllegalArgumentException("Invalid location"));
-				location = null;
+				return;
 			} else {
 				location = null;
 			}
