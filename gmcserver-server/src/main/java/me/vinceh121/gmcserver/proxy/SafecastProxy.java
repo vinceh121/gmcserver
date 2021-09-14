@@ -74,7 +74,7 @@ public class SafecastProxy extends AbstractProxy {
 				longitude = dev.getLocation().getPosition().getValues().get(0);
 				latitude = dev.getLocation().getPosition().getValues().get(1);
 			} else {
-				p.fail("Nor record or device have position set");
+				p.fail(new IllegalStateException("Nor record or device have position set"));
 				return;
 			}
 
