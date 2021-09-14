@@ -91,7 +91,8 @@ public class SafecastProxy extends AbstractProxy {
 							.put("latitude", latitude))
 				.onSuccess(res -> {
 					if (res.statusCode() != 201) {
-						p.fail("Safecast returned non-201: " + res.statusCode() + ": " + res.body().toString());
+						p.fail(new IllegalStateException(
+								"Safecast returned non-201: " + res.statusCode() + ": " + res.body().toString()));
 					} else {
 						p.complete();
 					}
