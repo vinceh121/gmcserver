@@ -67,7 +67,23 @@ paths:
               $ref: "#components/schemas/updateUser"
       responses:
         '200':
-          description: Successfully updated current user
+          description: Successfully updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '409':
+          description: Username or email is already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '403':
+          description: When changing password, current password failed to validate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
     delete:
       description: Delete current user
       requestBody:
@@ -88,6 +104,12 @@ paths:
                 $ref: "#/components/schemas/errorResult"
         '400':
           description: Password field missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '403':
+          description: Password failed to validate
           content:
             application/json:
               schema:
@@ -116,6 +138,12 @@ paths:
                 $ref: "#/components/schemas/errorResult"
         '403':
           description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResult"
+        '406':
+          description: Device limit reached
           content:
             application/json:
               schema:
