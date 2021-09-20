@@ -43,6 +43,7 @@ import Modal from "antd/lib/modal/Modal";
 import RecordView from "../../components/RecordView";
 import DeviceStats from "../../components/DeviceStats";
 import ColorHash from 'color-hash';
+import moment from "moment";
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
@@ -54,7 +55,10 @@ function Device() {
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
-	const [input, setInput] = useState({});
+	const [input, setInput] = useState({
+		start: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12h ago
+		end: new Date()
+	});
 	const [viewRecord, setViewRecord] = useState();
 	const { id } = useParams();
 
@@ -83,7 +87,7 @@ function Device() {
 						end: d[1].toDate(),
 					})
 				)
-			} />
+			} value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]} />
 	);
 
 	if (device) {
