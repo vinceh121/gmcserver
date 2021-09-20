@@ -19,6 +19,7 @@ package me.vinceh121.gmcserver.modules;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,6 +33,7 @@ import io.vertx.ext.web.RoutingContext;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
+import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.managers.ImportManager;
 
@@ -81,7 +83,8 @@ public class ImportExportModule extends AbstractModule {
 					.execute()
 					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
 					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
-			}).onFailure(t -> this.error(ctx, 500, "Failed to create device"));
+			})
+			.onFailure(t -> this.error(ctx, 500, "Failed to create device"));
 	}
 
 	private void handleImportSafecast(final RoutingContext ctx) {
@@ -159,7 +162,7 @@ public class ImportExportModule extends AbstractModule {
 				this.error(ctx, 500, "Failed to create device");
 			});
 	}
-	
+
 	private void responseImportStarted(RoutingContext ctx, ObjectId device) {
 		ctx.end(new JsonObject().put("deviceId", device).toBuffer());
 	}
@@ -167,11 +170,35 @@ public class ImportExportModule extends AbstractModule {
 	private void handleCsvExport(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
 		final ObjectId deviceId;
+		final Date start, end;
+
 		try {
 			deviceId = new ObjectId(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
+		}
+
+		if (ctx.request().params().contains("start")) {
+			try {
+				start = new Date(Long.parseLong(ctx.request().getParam("start")));
+			} catch (final NumberFormatException e) {
+				this.error(ctx, 400, "Format error in start date");
+				return;
+			}
+		} else {
+			start = null;
+		}
+
+		if (ctx.request().params().contains("end")) {
+			try {
+				end = new Date(Long.parseLong(ctx.request().getParam("end")));
+			} catch (final NumberFormatException e) {
+				this.error(ctx, 400, "Format error in end date");
+				return;
+			}
+		} else {
+			end = null;
 		}
 
 		ctx.response()
@@ -183,51 +210,67 @@ public class ImportExportModule extends AbstractModule {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
 		this.srv.getDeviceManager().getDevice().setId(deviceId).execute().onSuccess(device -> {
-			this.srv.getDeviceManager().deviceFullTimeline().setFull(true).setDev(device).execute().onSuccess(recs -> {
-				if (user == null) {
-					ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LON,LAT\n");
-					for (final Record r : recs) {
+			this.srv.getDeviceManager()
+				.deviceFullTimeline()
+				.setFull(true)
+				.setStart(start)
+				.setEnd(end)
+				.setDev(device)
+				.execute()
+				.onSuccess(recs -> {
+					if (user == null) {
+						ctx.response().write("CPM,ACPM,USV,DATE,TYPE,LON,LAT\n");
+						for (final Record r : recs) {
+							ctx.response()
+								.write(String.format("%f,%f,%f,%s,%s,%s,%s\n",
+										r.getCpm(),
+										r.getAcpm(),
+										r.getUsv(),
+										r.getDate().getTime(),
+										r.getType(),
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
+												: ""));
+						}
+					} else {
 						ctx.response()
-							.write(String.format("%f,%f,%f,%s,%s,%s,%s\n",
-									r.getCpm(),
-									r.getAcpm(),
-									r.getUsv(),
-									r.getDate().getTime(),
-									r.getType(),
-									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
-									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : ""));
+							.write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LON,LAT\n");
+						for (final Record r : recs) {
+							ctx.response()
+								.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n",
+										r.getId(),
+										r.getDeviceId(),
+										r.getCpm(),
+										r.getAcpm(),
+										r.getUsv(),
+										r.getCo2(),
+										r.getHcho(),
+										r.getTmp(),
+										r.getAp(),
+										r.getHmdt(),
+										r.getAccy(),
+										r.getDate().getTime(),
+										r.getIp(),
+										r.getType(),
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0)
+												: null,
+										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
+												: null));
+						}
 					}
-				} else {
-					ctx.response().write("ID,DEVICEID,CPM,ACPM,USV,CO2,HCHO,TMP,AP,HMDT,ACCY,DATE,IP,TYPE,LON,LAT\n");
-					for (final Record r : recs) {
-						ctx.response()
-							.write(String.format("%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%s,%s,%s,%s,%s\n",
-									r.getId(),
-									r.getDeviceId(),
-									r.getCpm(),
-									r.getAcpm(),
-									r.getUsv(),
-									r.getCo2(),
-									r.getHcho(),
-									r.getTmp(),
-									r.getAp(),
-									r.getHmdt(),
-									r.getAccy(),
-									r.getDate().getTime(),
-									r.getIp(),
-									r.getType(),
-									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : null,
-									r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1) : null));
-					}
-				}
-				ctx.response().end();
-			}).onFailure(t -> {
-				ImportExportModule.LOG
-					.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
-				this.error(ctx, 500, "Failed to get device timeline for export");
-			});
-		}).onFailure(t -> { // TODO differentiate DB error and not found
-			this.error(ctx, 404, "Device not found");
+					ctx.response().end();
+				})
+				.onFailure(t -> {
+					ImportExportModule.LOG
+						.error(new FormattedMessage("Failed to get device {} timeline for export", deviceId), t);
+					this.error(ctx, 500, "Failed to get device timeline for export");
+				});
+		}).onFailure(t -> {
+			if (t instanceof EntityNotFoundException) {
+				this.error(ctx, 404, "Device not found: " + t);
+			} else {
+				this.error(ctx, 500, "Failed to fetch device: " + t);
+			}
 		});
 	}
 
