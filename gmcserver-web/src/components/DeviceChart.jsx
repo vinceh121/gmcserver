@@ -124,7 +124,7 @@ function DeviceChart(props) {
 				}}
 				colors={(a) => colorHash.hex(a.id)}
 				data={timeline}
-				margin={{ top: 5, right: 5, bottom: 60, left: 5 }}
+				margin={{ top: 5, right: 5, bottom: 60, left: 30 }}
 				animate={true}
 				curve="linear"
 				useMesh={true}
@@ -132,6 +132,11 @@ function DeviceChart(props) {
 				// onClick={(p) => props.onClick ? props.onClick(props.timeline[p.index]) : undefined} // sighhh onClick doesn't work with slices
 				sliceTooltip={SliceTooltip}
 				xScale={{
+					type: "linear",
+					min: "auto",
+					max: "auto",
+				}}
+				yScale={{
 					type: "linear",
 					min: "auto",
 					max: "auto",
