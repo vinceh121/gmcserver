@@ -30,6 +30,7 @@ import {
 	PageHeader,
 	Result,
 	Tabs,
+	Spin
 } from "antd";
 import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
@@ -37,7 +38,7 @@ import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
 import { exportTypes, numericRecordFields } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
-import { DownOutlined } from "@ant-design/icons";
+import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import DeviceTable from "../../components/DeviceTable";
 import Modal from "antd/lib/modal/Modal";
 import RecordView from "../../components/RecordView";
@@ -55,6 +56,7 @@ function Device() {
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
+	const [timelineLoading, setTimelineLoading] = useState(false);
 	const [input, setInput] = useState({
 		start: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12h ago
 		end: new Date()
@@ -72,7 +74,10 @@ function Device() {
 	useEffect(() => {
 		if (device) {
 			fetchTimeline(device.id, input.start && input.end, input.start, input.end).then(
-				(recs) => setTimeline(recs)
+				(recs) => {
+					setTimeline(recs);
+					setTimelineLoading(false);
+				}
 				// (err) => setTimelineError(err)
 			);
 		}
@@ -80,14 +85,19 @@ function Device() {
 
 	const MyTimeRange = () => (
 		<RangePicker
-			showTime onChange={(d) =>
+			showTime
+			onChange={(d) => {
 				setInput(
 					Object.assign({}, input, {
 						start: d[0].toDate(),
 						end: d[1].toDate(),
 					})
-				)
-			} value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]} />
+				);
+				setTimelineLoading(true);
+			}
+			}
+			value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]}
+		/>
 	);
 
 	if (device) {
@@ -146,7 +156,7 @@ function Device() {
 					</Descriptions>
 					<Tabs defaultActiveKey="timeline">
 						<TabPane tab="Timeline" key="timeline">
-							<Card bodyStyle={{ height: "500px" }} loading={!timeline} style={{ marginBottom: "8px" }}>
+							<Card bodyStyle={{ height: "500px" }} style={{ marginBottom: "8px" }}>
 								<DeviceChart
 									full={input.full}
 									start={input.start}
@@ -172,6 +182,7 @@ function Device() {
 								)}
 							</Checkbox.Group>
 							<MyTimeRange />
+							{timelineLoading ? <Spin style={{ paddingRight: "16px" }} indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />} /> : undefined}
 						</TabPane>
 						<TabPane tab="Stats" key="stats">
 							<DeviceStats device={device} />
