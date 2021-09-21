@@ -256,7 +256,7 @@ export const updateDevice = async (
 	return (await res.json()) as DeviceUpdate;
 };
 
-export const disableDevice = async (id: string, del: boolean): Promise < ErrorResult > => {
+export const disableDevice = async (id: string, del: boolean): Promise<ErrorResult> => {
 	const res = await request("/device/" + id, {
 		method: "DELETE",
 		body: JSON.stringify({ delete: del })
@@ -305,6 +305,16 @@ export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
 export const fetchCaptcha = async (): Promise<String> => {
 	const res = await request("/captcha");
 	return ((await res.json()) as any).id;
+};
+
+export const exportTimeline = async (id: string, type: string, start: Date | undefined, end: Date | undefined) => {
+	let url = undefined;
+	if (start && end) {
+		url = "/api/v1/device/" + id + "/export/" + type + "?start=" + start.getTime() + "&end=" + end.getTime();
+	} else {
+		url = "/api/v1/device/" + id + "/export/" + type;
+	}
+	window.open(url, "_blank");
 };
 
 export const openLiveTimeline = (id: string): WebSocket => {

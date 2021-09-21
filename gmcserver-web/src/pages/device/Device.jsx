@@ -18,7 +18,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
-import { fetchDevice, fetchTimeline } from "../../GmcApi";
+import { exportTimeline, fetchDevice, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
 	Card,
@@ -62,6 +62,7 @@ function Device() {
 		end: new Date()
 	});
 	const [viewRecord, setViewRecord] = useState();
+	const [exportType, setExportType] = useState();
 	const { id } = useParams();
 
 	useEffect(() => {
@@ -115,7 +116,7 @@ function Device() {
 							</Link>
 						</Button>,
 						<Dropdown key="1" overlay={
-							<Menu onClick={e => { window.open("/api/v1/device/" + id + "/export/" + e.key) }}>
+							<Menu onClick={e => setExportType(e.key)}>
 								{exportTypes.map(t => <Menu.Item key={t}>{t.toUpperCase()}</Menu.Item>)}
 							</Menu>
 						}>
@@ -204,6 +205,10 @@ function Device() {
 				</PageHeader>
 				<Modal visible={viewRecord} footer={null} onCancel={() => setViewRecord()} width="50vw">
 					<RecordView record={viewRecord} />
+				</Modal>
+				<Modal visible={exportType} footer={null} onCancel={() => setExportType()} width="50vw">
+					<Button onClick={() => exportTimeline(device.id, exportType)}>Export whole timeline</Button>
+					<Button onClick={() => exportTimeline(device.id, exportType, input.start, input.end)}>Export current View</Button>
 				</Modal>
 			</>
 		);
