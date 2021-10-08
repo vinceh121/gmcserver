@@ -515,7 +515,7 @@ public class LoggingModule extends AbstractModule {
 		}
 
 		final Record rec = new Record.Builder().withURadMonitorUrl(ctx.request().absoluteURI()).build();
-		rec.setDeviceId(userId);
+		rec.setDeviceId(device.getId());
 		this.setRecordIp(ctx, rec);
 
 		this.srv.getLoggingManager()
