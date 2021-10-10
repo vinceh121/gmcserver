@@ -18,6 +18,7 @@
 package me.vinceh121.gmcserver.managers;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -69,8 +70,18 @@ public class DeviceManager extends AbstractManager {
 		return point;
 	}
 
-	private static List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit) {
-		return Arrays.asList(Aggregates.match(Filters.eq("deviceId", devId)),
+	private static List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit,
+			final Date start, final Date end) {
+		List<Bson> filters = new ArrayList<>(3);
+		filters.add(Filters.eq("deviceId", devId));
+		if (start != null) {
+			filters.add(Filters.gte("date", start));
+		}
+
+		if (end != null) {
+			filters.add(Filters.lte("date", end));
+		}
+		return Arrays.asList(Aggregates.match(Filters.and(filters)),
 				Aggregates.sort(Sorts.descending("date")),
 				Aggregates.limit(limit),
 				Aggregates.group(new BsonNull(),
@@ -114,6 +125,7 @@ public class DeviceManager extends AbstractManager {
 		private String field;
 		private ObjectId devId;
 		private int sampleSize = 500;
+		private Date start, end;
 
 		public DeviceStatsAction(final GMCServer srv) {
 			super(srv);
@@ -123,7 +135,9 @@ public class DeviceManager extends AbstractManager {
 		protected void executeSync(final Promise<DeviceStats> promise) {
 			final DeviceStats stats = this.srv.getDatabaseManager()
 				.getCollection(Record.class)
-				.aggregate(DeviceManager.getStatsAggregation(this.field, this.devId, this.sampleSize),
+				.aggregate(
+						DeviceManager
+							.getStatsAggregation(this.field, this.devId, this.sampleSize, this.start, this.end),
 						DeviceStats.class)
 				.first();
 			if (stats != null) {
@@ -160,6 +174,24 @@ public class DeviceManager extends AbstractManager {
 
 		public void setSampleSize(final int sampleSize) {
 			this.sampleSize = sampleSize;
+		}
+
+		public Date getStart() {
+			return start;
+		}
+
+		public DeviceStatsAction setStart(Date start) {
+			this.start = start;
+			return this;
+		}
+
+		public Date getEnd() {
+			return end;
+		}
+
+		public DeviceStatsAction setEnd(Date end) {
+			this.end = end;
+			return this;
 		}
 	}
 
@@ -447,7 +479,8 @@ public class DeviceManager extends AbstractManager {
 	 * Creates a device.
 	 *
 	 * Throws {@code IllegalArgumentException} if one of the arguments is incorrect.
-	 * Throws {@code LimitReachedException} if the user has reached his device limit.
+	 * Throws {@code LimitReachedException} if the user has reached his device
+	 * limit.
 	 */
 	public class CreateDeviceAction extends AbstractAction<Device> {
 		private boolean ignoreDeviceLimit, insertInDb = true, generateGmcId = true, disabled;

@@ -365,10 +365,36 @@ public class DeviceModule extends AbstractModule {
 
 		final GetDeviceAction getDevAction = this.srv.getDeviceManager().getDevice().setId(devId);
 		getDevAction.execute().onSuccess(dev -> {
+			final Date start, end;
+
+			if (ctx.request().params().contains("start")) {
+				try {
+					start = new Date(Long.parseLong(ctx.request().getParam("start")));
+				} catch (final NumberFormatException e) {
+					this.error(ctx, 400, "Format error in start date");
+					return;
+				}
+			} else {
+				start = null;
+			}
+
+			if (ctx.request().params().contains("end")) {
+				try {
+					end = new Date(Long.parseLong(ctx.request().getParam("end")));
+				} catch (final NumberFormatException e) {
+					this.error(ctx, 400, "Format error in end date");
+					return;
+				}
+			} else {
+				end = null;
+			}
+
 			final DeviceStatsAction action = this.srv.getDeviceManager()
 				.deviceStats()
 				.setDevId(dev.getId())
-				.setField(field);
+				.setField(field)
+				.setStart(start)
+				.setEnd(end);
 
 			action.execute().onSuccess(res -> {
 				final JsonObject obj = res.toJson();
