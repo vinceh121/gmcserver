@@ -45,6 +45,9 @@ function NewDevice() {
 				<Form.Item label="Name" name="name">
 					<Input />
 				</Form.Item>
+				<Form.Item label="Model" name="model">
+					<Input />
+				</Form.Item>
 				<Form.Item label="Latitude" name="lat">
 					<InputNumber />
 				</Form.Item>
