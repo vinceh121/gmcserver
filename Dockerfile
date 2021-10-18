@@ -14,6 +14,12 @@ RUN PATH_CONFIG=./config.properties \
 	PATH_MAIL_TEMPLATES=./gmcserver-email/ \
 	make -e
 
+FROM node:16.2.0-buster AS builder-web
+WORKDIR /build
+COPY gmcserver-web/ .
+RUN npm install -g pnpm && \
+	make
+
 FROM node:16.2.0-buster AS builder-email
 WORKDIR /build
 COPY gmcserver-email/ .
@@ -25,6 +31,7 @@ WORKDIR /build
 COPY --from=builder /build/target/gmcserver*jar-with-dependencies.jar ./gmcserver.jar
 COPY --from=builder /build/mail.json /build/vertx.json ./
 COPY --from=builder /build/config.example.properties ./config.properties
+COPY --from=builder-web /build/build/ ./gmcserver-web/
 COPY --from=builder-email /build/out/ ./gmcserver-email/
 EXPOSE 8080
 
