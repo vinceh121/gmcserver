@@ -44,6 +44,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import me.vinceh121.gmcserver.auth.AbstractAuthenticator;
 import me.vinceh121.gmcserver.auth.InternalAuthenticator;
 import me.vinceh121.gmcserver.entities.AbstractEntity;
@@ -55,7 +56,6 @@ import me.vinceh121.gmcserver.handlers.APIHandler;
 import me.vinceh121.gmcserver.handlers.AuthHandler;
 import me.vinceh121.gmcserver.handlers.CorsHandler;
 import me.vinceh121.gmcserver.handlers.StrictAuthHandler;
-import me.vinceh121.gmcserver.handlers.WebHandler;
 import me.vinceh121.gmcserver.json.MongoJackson;
 import me.vinceh121.gmcserver.managers.AlertManager;
 import me.vinceh121.gmcserver.managers.DeviceCalendarManager;
@@ -214,9 +214,18 @@ public class GMCServer {
 	private void setupWebRouter(final Vertx vertx) {
 		GMCServer.LOG.info("Starting web server");
 		final Router webRouter = Router.router(vertx);
-		final WebHandler webHandler = new WebHandler(Paths.get(this.config.getProperty("web.root")),
-				this.vertx.fileSystem());
-		webRouter.route().handler(webHandler);
+		final StaticHandler webHandler = StaticHandler.create();
+		webHandler.setIncludeHidden(false);
+		webHandler.setAllowRootFileSystemAccess(true);
+		webHandler.setWebRoot(this.config.getProperty("web.root"));
+		webRouter.route().handler(ctx -> {
+			// single-page app routing hack
+			if (!"/".equals(ctx.normalizedPath())) {
+				ctx.reroute("/");
+			} else {
+				ctx.next();
+			}
+		}).handler(webHandler);
 		this.baseRouter.mountSubRouter("/", webRouter);
 	}
 
