@@ -124,12 +124,16 @@ function EditDevice() {
 								label="Location"
 							>
 								<Input.Group compact>
-									<Form.Item name={["location", 0]} noStyle>
-										<InputNumber />
-									</Form.Item>
-									<Form.Item name={["location", 1]} noStyle>
-										<InputNumber />
-									</Form.Item>
+									<Tooltip title="Latitude">
+										<Form.Item name={["location", 1]} noStyle>
+											<InputNumber />
+										</Form.Item>
+									</Tooltip>
+									<Tooltip title="Longitude">
+										<Form.Item name={["location", 0]} noStyle>
+											<InputNumber />
+										</Form.Item>
+									</Tooltip>
 								</Input.Group>
 							</Form.Item>
 							<Form.Item
