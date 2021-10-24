@@ -178,7 +178,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final JsonArray loc;
-		if (obj.containsKey("location") && !(obj.getValue("location") instanceof JsonArray)) {
+		if (obj.containsKey("location") && obj.getValue("location") instanceof JsonArray) {
 			loc = obj.getJsonArray("location");
 			if (loc.size() != 2 && loc.size() != 3) {
 				this.error(ctx, 400, "Invalid location");
