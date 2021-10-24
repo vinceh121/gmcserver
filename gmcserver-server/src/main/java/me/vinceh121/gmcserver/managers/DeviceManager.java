@@ -55,9 +55,9 @@ import me.vinceh121.gmcserver.exceptions.LimitReachedException;
 
 public class DeviceManager extends AbstractManager {
 	/**
-	 * GQ GMC accept a maximum of 16 chars as User and Device IDs
+	 * GQ GMC accept a maximum of 12 chars as User and Device IDs
 	 */
-	public static final long MAX_GMCID = 9999999999999999L;
+	public static final long MAX_GMCID = 999999999999L;
 	private static final Random DEVICE_RNG = new SecureRandom();
 
 	public DeviceManager(final GMCServer srv) {
