@@ -167,7 +167,7 @@ public class DeviceModule extends AbstractModule {
 		}
 
 		final String model = obj.getString("model");
-		if (model != null && model.length() < 64) {
+		if (model != null && model.length() > 64) {
 			this.error(ctx, 400, "Invalid model");
 			return;
 		}
