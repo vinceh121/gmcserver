@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -130,6 +131,15 @@ public class GMCServer {
 			final FileInputStream configInput = new FileInputStream(GMCBuild.CONFIG_PATH);
 			this.config.load(configInput);
 			configInput.close();
+
+			for (String key : System.getenv().keySet()) {
+				if (key.startsWith("GMC_")) {
+					final String configKey = key.substring(4).toLowerCase().replaceAll(Pattern.quote("_"), ".");
+					final String val = System.getenv(key);
+					this.config.setProperty(configKey, val);
+					LOG.info("Overriding from envvar {}={}", key, val);
+				}
+			}
 		} catch (final IOException e) {
 			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
