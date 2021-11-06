@@ -95,8 +95,7 @@ function Device() {
 					})
 				);
 				setTimelineLoading(true);
-			}
-			}
+			}}
 			value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]}
 		/>
 	);
@@ -184,9 +183,9 @@ function Device() {
 							</Checkbox.Group>
 							<MyTimeRange />
 							{timelineLoading ? <Spin style={{ paddingRight: "16px" }} indicator={<LoadingOutlined spin style={{ fontSize: 34 }} />} /> : undefined}
-						</TabPane>
-						<TabPane tab="Stats" key="stats">
-							<DeviceStats device={device} />
+							<Card style={{ marginTop: "8px" }}>
+								<DeviceStats device={device} start={input.start} end={input.end} />
+							</Card>
 						</TabPane>
 						<TabPane tab="Table" key="table">
 							<DeviceTable

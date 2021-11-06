@@ -215,9 +215,19 @@ export const fetchDevice = async (id: string): Promise<Device> => {
 
 export const fetchDeviceStats = async (
 	id: string,
-	field: string
+	field: string,
+	start: Date | undefined,
+	end: Date | undefined
 ): Promise<DeviceStats | null> => {
-	const res = await request("/device/" + id + "/stats/" + field);
+	const params: URLSearchParams = new URLSearchParams();
+	if (start) {
+		params.append("start", String(start.getTime()));
+	}
+	if (end) {
+		params.append("end", String(end.getTime()));
+	}
+
+	const res = await request("/device/" + id + "/stats/" + field + "?" + params.toString());
 	if (res.status === 204) {
 		return null;
 	}
@@ -272,8 +282,8 @@ export const disableDevice = async (id: string, del: boolean): Promise<ErrorResu
 export const fetchTimeline = async (
 	id: string,
 	full: boolean,
-	start: Date,
-	end: Date
+	start: Date | undefined,
+	end: Date | undefined
 ): Promise<Record[]> => {
 	const params: URLSearchParams = new URLSearchParams();
 	if (full) {

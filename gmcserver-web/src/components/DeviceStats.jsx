@@ -17,19 +17,24 @@
  */
 
 import { Col, message, Row, Select, Statistic } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchDeviceStats } from "../GmcApi";
 import { numericRecordFields } from "../GmcTypes";
 
 const { Option } = Select;
 
+const defaultField = "cpm";
+
 function DeviceStats(props) {
 	const device = props.device;
+	const start = props.start;
+	const end = props.end;
 	const [stats, setStats] = useState();
+	const [field, setField] = useState(defaultField);
 
-	function handleStatsChange(field) {
+	useEffect(() => {
 		setStats(null);
-		fetchDeviceStats(device.id, field).then(
+		fetchDeviceStats(device.id, field, start, end).then(
 			(stats) => {
 				if (stats === null) {
 					message.info("Recent records do not posses such data points");
@@ -40,14 +45,15 @@ function DeviceStats(props) {
 			},
 			(err) => message.error("Failed to load device stats: " + err)
 		);
-	}
+	}, [field, device, device.id, start, end]);
 
 	return (
 		<>
 			<Select
-				onChange={handleStatsChange}
+				onChange={setField}
 				style={{ width: "120px" }}
 				loading={stats === null}
+				defaultValue={defaultField}
 			>
 				{numericRecordFields.map((f, i) => {
 					return (
