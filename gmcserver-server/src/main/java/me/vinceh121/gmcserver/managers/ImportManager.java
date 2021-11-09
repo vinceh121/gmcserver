@@ -17,6 +17,7 @@
  */
 package me.vinceh121.gmcserver.managers;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,6 +35,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 
@@ -50,8 +55,12 @@ import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
 
 public class ImportManager extends AbstractManager {
-	public static final Pattern PATTERN_URADMONITOR_ID = Pattern.compile("[A-F0-9]{8}");
-	private static final DateFormat DATE_FORMAT_ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+	public static final Pattern PATTERN_URADMONITOR_ID = Pattern.compile("[A-F0-9]{8}"),
+			PATTERN_RADMON_USERNAME = Pattern.compile("[a-zA-Z0-9]{0,32}");
+	private static final DateFormat DATE_FORMAT_ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX"),
+			DATE_FORMAT_RADMON = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static final CsvMapper CSV_MAPPER = new CsvMapper();
+	private static final CsvSchema SCHEMA_RADMON = CsvSchema.builder().addColumn("date").addNumberColumn("cpm").build();
 
 	public ImportManager(final GMCServer srv) {
 		super(srv);
@@ -64,9 +73,13 @@ public class ImportManager extends AbstractManager {
 	public ImportSafecast importSafecast() {
 		return new ImportSafecast(this.srv);
 	}
-	
+
 	public ImportURadMonitor importURadMonitor() {
 		return new ImportURadMonitor(srv);
+	}
+
+	public ImportRadmon importRadmon() {
+		return new ImportRadmon(this.srv);
 	}
 
 	public class ImportGmcmap extends AbstractAction<Void> {
@@ -510,6 +523,73 @@ public class ImportManager extends AbstractManager {
 		}
 
 		public ImportURadMonitor setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
+	}
+
+	public class ImportRadmon extends AbstractAction<Void> {
+		private ObjectId deviceId;
+		private String username;
+
+		public ImportRadmon(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<Void> promise) {
+			if (!PATTERN_RADMON_USERNAME.matcher(username).matches()) {
+				promise.fail(new IllegalArgumentException("Invalid username"));
+				return;
+			}
+
+			this.srv.getWebClient() // TODO figure out a way to steam this transfer
+				.get(443, "radmon.org", "/UserGraphs/" + username + "/datayear.csv")
+				.ssl(true)
+				.as(BodyCodec.buffer())
+				.send()
+				.onSuccess(res -> {
+					promise.complete();
+					try (final MappingIterator<ObjectNode> it = CSV_MAPPER.readerFor(ObjectNode.class)
+						.with(SCHEMA_RADMON)
+						.readValues(res.bodyAsBuffer().getBytes())) {
+						while (it.hasNext()) {
+							try {
+								final ObjectNode entry = it.next();
+								final Date date = DATE_FORMAT_RADMON.parse(entry.get("date").asText());
+								final double cpm = entry.get("cpm").asDouble();
+
+								final Record rec = new Record();
+								rec.setDeviceId(this.deviceId);
+								rec.setCpm(cpm);
+								rec.setDate(date);
+								// TODO batch inserts
+								this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
+							} catch (final ParseException e) {
+								// we silently ignore those for now...
+							}
+						}
+					} catch (final IOException e) {
+						promise.fail(new IllegalStateException("Failed to read CSV: " + e, e));
+					}
+				})
+				.onFailure(t -> promise.fail(new IllegalStateException("Failed to make HTTP request", t)));
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public ImportRadmon setUsername(final String username) {
+			this.username = username;
+			return this;
+		}
+
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public ImportRadmon setDeviceId(ObjectId deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}

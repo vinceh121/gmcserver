@@ -50,6 +50,7 @@ public class ImportExportModule extends AbstractModule {
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/gmcmap", this::handleImportGmcMap);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/safecast", this::handleImportSafecast);
 		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/uradmonitor", this::handleImportURadMonitor);
+		this.registerStrictAuthedRoute(HttpMethod.POST, "/import/radmon", this::handleImportRadmon);
 		this.registerAuthedRoute(HttpMethod.GET, "/device/:deviceId/export/csv", this::handleCsvExport);
 	}
 
@@ -154,6 +155,46 @@ public class ImportExportModule extends AbstractModule {
 					.importURadMonitor()
 					.setDeviceId(dev.getId())
 					.setuRadMonitorId(uradmonitorId)
+					.execute()
+					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
+					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+			})
+			.onFailure(t -> {
+				this.error(ctx, 500, "Failed to create device");
+			});
+	}
+	
+	private void handleImportRadmon(final RoutingContext ctx) {
+		final JsonObject obj = ctx.getBodyAsJson();
+		if (obj == null) {
+			this.error(ctx, 400, "Invalid JSON");
+			return;
+		}
+
+		if (!obj.containsKey("radmonUsername")) {
+			this.error(ctx, 400, "Missing 'radmonUsername' parameter");
+			return;
+		}
+
+		final String radmonUsername = obj.getString("radmonUsername");
+		if (!ImportManager.PATTERN_RADMON_USERNAME.matcher(radmonUsername).matches()) {
+			this.error(ctx, 400, "Invalid radmonUsername");
+			return;
+		}
+
+		final User user = ctx.get(AuthHandler.USER_KEY);
+
+		this.srv.getDeviceManager()
+			.createDevice()
+			.setUser(user)
+			.setName("Imported from Radmon: " + radmonUsername)
+			.setImportedFrom(radmonUsername + "@radmon")
+			.execute()
+			.onSuccess(dev -> {
+				this.srv.getImportManager()
+					.importRadmon()
+					.setDeviceId(dev.getId())
+					.setUsername(radmonUsername)
 					.execute()
 					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
 					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));

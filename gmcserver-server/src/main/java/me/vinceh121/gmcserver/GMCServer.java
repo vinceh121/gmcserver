@@ -39,6 +39,8 @@ import de.mkammerer.argon2.Argon2Factory;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -88,6 +90,7 @@ public class GMCServer {
 
 	private final HttpServer srv;
 	private final Router baseRouter, apiRouter;
+	private final HttpClient httpClient;
 	private final WebClient webClient;
 
 	private final Tokenize tokenize;
@@ -210,9 +213,13 @@ public class GMCServer {
 
 		this.apiRouter.route().handler(this.corsHandler);
 
-		final WebClientOptions opts = new WebClientOptions();
-		opts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://home.gmc.vinceh121.me");
-		this.webClient = WebClient.create(this.vertx, opts);
+		HttpClientOptions httpOpts = new HttpClientOptions();
+		httpOpts.setSsl(true);
+		this.httpClient = this.vertx.createHttpClient(httpOpts);
+
+		final WebClientOptions webOpts = new WebClientOptions();
+		webOpts.setUserAgent("GMCServer/" + GMCBuild.VERSION + " (Vert.x Web Client) - https://home.gmc.vinceh121.me");
+		this.webClient = WebClient.create(this.vertx, webOpts);
 
 		this.registerModules();
 
@@ -319,6 +326,10 @@ public class GMCServer {
 
 	public Properties getConfig() {
 		return this.config;
+	}
+
+	public HttpClient getHttpClient() {
+		return httpClient;
 	}
 
 	public WebClient getWebClient() {
