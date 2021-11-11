@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useParams, useHistory, Link } from "react-router-dom";
+import { useParams, useHistory, useLocation, Link } from "react-router-dom";
 import { exportTimeline, fetchDevice, fetchTimeline } from "../../GmcApi";
 import {
 	Button,
@@ -30,7 +30,9 @@ import {
 	PageHeader,
 	Result,
 	Tabs,
-	Spin
+	Spin,
+	Space,
+	Tooltip
 } from "antd";
 import DeviceBadge from "../../components/DeviceBadge";
 import Loader from "../../components/Loader";
@@ -38,7 +40,7 @@ import DeviceChart from "../../components/DeviceChart";
 import UserPill from "../../components/UserPill";
 import { exportTypes, numericRecordFields } from "../../GmcTypes";
 import DeviceCalendar from "../../components/DeviceCalendar";
-import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
+import { DownOutlined, LinkOutlined, LoadingOutlined } from "@ant-design/icons";
 import DeviceTable from "../../components/DeviceTable";
 import Modal from "antd/lib/modal/Modal";
 import RecordView from "../../components/RecordView";
@@ -52,14 +54,17 @@ const colorHash = new ColorHash();
 
 function Device() {
 	const history = useHistory();
+	const location = useLocation();
+	const searchParams = new URLSearchParams(location.search);
 	const [device, setDevice] = useState(null);
 	const [deviceError, setDeviceError] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	// const [timelineError, setTimelineError] = useState(null);
 	const [timelineLoading, setTimelineLoading] = useState(false);
 	const [input, setInput] = useState({
-		start: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12h ago
-		end: new Date()
+		start: searchParams.has("start") ? new Date(Number.parseInt(searchParams.get("start")))
+			: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12h ago
+		end: searchParams.has("end") ? new Date(Number.parseInt(searchParams.get("end"))) : new Date()
 	});
 	const [viewRecord, setViewRecord] = useState();
 	const [exportType, setExportType] = useState();
@@ -85,19 +90,27 @@ function Device() {
 	}, [device, input.start, input.end]);
 
 	const MyTimeRange = () => (
-		<RangePicker
-			showTime
-			onChange={(d) => {
-				setInput(
-					Object.assign({}, input, {
-						start: d[0].toDate(),
-						end: d[1].toDate(),
-					})
-				);
-				setTimelineLoading(true);
-			}}
-			value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]}
-		/>
+		<Space>
+			<RangePicker
+				showTime
+				onChange={(d) => {
+					setInput(
+						Object.assign({}, input, {
+							start: d[0].toDate(),
+							end: d[1].toDate(),
+						})
+					);
+					setTimelineLoading(true);
+				}}
+				value={[/*i'd like to interject for a */moment(input.start), moment(input.end)]}
+			/>
+			<Tooltip title="Copy URL to time frame">
+				<Button shape="circle" icon={<LinkOutlined />} onClick={() => {
+					const href = window.location.href.replace(/\?.*/, "") + "?start=" + input.start.getTime() + "&end=" + input.end.getTime();
+					navigator.clipboard.writeText(href);
+				}} />
+			</Tooltip>
+		</Space>
 	);
 
 	if (device) {
