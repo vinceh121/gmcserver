@@ -71,41 +71,44 @@ function User() {
 
 		const optionsMenu = (
 			<Menu>
-				<Menu.Item
-					onClick={() => history.push("/profile/edit")}
-				>
-					<Button
-						type="link"
-						icon={<EditOutlined />}
-					>
-						Edit
-					</Button>
-				</Menu.Item>
-				<Menu.Item
-					onClick={() => {
-						logoff();
-						history.push("/");
-					}}
-				>
-					<Button
-						type="link"
-						danger
-					>
-						Logout
-					</Button>
-				</Menu.Item>
-				<Menu.Item
-					onClick={() => {
-						history.push("/accountDeletion");
-					}}
-				>
-					<Button
-						type="link"
-						danger
-					>
-						Delete account
-					</Button>
-				</Menu.Item>
+				{user.self ?
+					<>
+						<Menu.Item
+							onClick={() => history.push("/profile/edit")}
+						>
+							<Button
+								type="link"
+								icon={<EditOutlined />}
+							>
+								Edit
+							</Button>
+						</Menu.Item>
+						<Menu.Item
+							onClick={() => {
+								logoff();
+								history.push("/");
+							}}
+						>
+							<Button
+								type="link"
+								danger
+							>
+								Logout
+							</Button>
+						</Menu.Item>
+						<Menu.Item
+							onClick={() => {
+								history.push("/accountDeletion");
+							}}
+						>
+							<Button
+								type="link"
+								danger
+							>
+								Delete account
+							</Button>
+						</Menu.Item>
+					</> : undefined}
 			</Menu>
 		);
 
@@ -123,12 +126,13 @@ function User() {
 					user.self ? <Tag key="you">This is you</Tag> : undefined,
 				]}
 				extra={[
-					<Button
+					user.self ? <Button
 						icon={<PlusOutlined />}
 						onClick={() => history.push("/device/new")}
 					>
 						New Device
-					</Button>,
+					</Button> : undefined
+					,
 					<Dropdown overlay={optionsMenu} placement="bottomRight">
 						<Button>
 							<DownOutlined />
