@@ -19,7 +19,7 @@
 import React, { useEffect, useState } from "react";
 
 import Loader from "./Loader";
-import { ResponsiveLine } from "@nivo/line";
+import { ResponsiveLine, ResponsiveLineCanvas } from "@nivo/line";
 import { TableTooltip, Chip } from "@nivo/tooltip";
 import ColorHash from 'color-hash';
 import { numericRecordFields } from "../GmcTypes";
@@ -50,6 +50,24 @@ const SliceTooltip = ({ slice, axis }) => {
 			rows={rows}
 		/>
 	)
+}
+
+const CanvasTooltip = ({ point }) => {
+	const date = new Date(point.data.x);
+	return (
+		<TableTooltip rows={[
+			[
+				<Chip key="chip" color="#ff5722" />,
+				"Date",
+				<span>{date.toLocaleDateString() + " " + date.toLocaleTimeString()}</span>
+			],
+			[
+				<Chip key="chip" color={point.color} />,
+				point.serieId,
+				<span key="value">{point.data.y}</span>
+			]
+		]} />
+	);
 }
 
 function DeviceChart(props) {
@@ -90,75 +108,82 @@ function DeviceChart(props) {
 	}, [props.timeline, props.hiddenFields]);
 
 	if (timeline) {
-		return (
-			<ResponsiveLine
-				theme={{
-					background: "#141414",
-					textColor: "#ffffff",
-					fontSize: 14,
-					tooltip: { container: { background: "#000000" } },
-					crosshair: {
-						line: { stroke: "#ffffff" },
-					},
-					axis: {
-						domain: {
-							line: {
-								stroke: "#777777",
-								strokeWidth: 1,
-							},
-						},
-						ticks: {
-							line: {
-								stroke: "#777777",
-								strokeWidth: 1,
-							},
-							text: { fontSize: "9px" },
-						},
-					},
-					grid: {
+		const lineProps = {
+			theme: {
+				background: "#141414",
+				textColor: "#ffffff",
+				fontSize: 14,
+				tooltip: { container: { background: "#000000" } },
+				crosshair: {
+					line: { stroke: "#ffffff" },
+				},
+				axis: {
+					domain: {
 						line: {
-							stroke: "#dddddd",
+							stroke: "#777777",
 							strokeWidth: 1,
 						},
 					},
-				}}
-				colors={(a) => colorHash.hex(a.id)}
-				data={timeline}
-				margin={{ top: 5, right: 5, bottom: 60, left: 30 }}
-				animate={true}
-				curve="linear"
-				useMesh={true}
-				enableSlices="x"
-				// onClick={(p) => props.onClick ? props.onClick(props.timeline[p.index]) : undefined} // sighhh onClick doesn't work with slices
-				sliceTooltip={SliceTooltip}
-				xScale={{
-					type: "linear",
-					min: "auto",
-					max: "auto",
-				}}
-				yScale={{
-					type: "linear",
-					min: "auto",
-					max: "auto",
-				}}
-				axisLeft={{
-					legendOffset: 12,
-				}}
-				axisBottom={{
-					legendOffset: -12,
-					format: (v) => {
-						const d = new Date(v);
-						return (
-							d.toLocaleDateString() +
-							" " +
-							d.toLocaleTimeString()
-						);
+					ticks: {
+						line: {
+							stroke: "#777777",
+							strokeWidth: 1,
+						},
+						text: { fontSize: "9px" },
 					},
-					tickRotation: -25,
-				}}
-				pointSize={4}
-			/>
-		);
+				},
+				grid: {
+					line: {
+						stroke: "#dddddd",
+						strokeWidth: 1,
+					},
+				},
+			},
+			colors: (a) => colorHash.hex(a.id),
+			data: timeline,
+			margin: { top: 5, right: 5, bottom: 60, left: 30 },
+			animate: true,
+			curve: "linear",
+			useMesh: true,
+			enableSlices: "x",
+			onClick: (p) => props.onClick ? props.onClick(props.timeline[p.index]) : undefined, // sighhh onClick doesn't work with slices
+			sliceTooltip: SliceTooltip,
+			xScale: {
+				type: "linear",
+				min: "auto",
+				max: "auto",
+
+			},
+			yScale: {
+				type: "linear",
+				min: "auto",
+				max: "auto",
+			},
+
+			axisLeft: {
+				legendOffset: 12,
+			},
+			axisBottom: {
+				legendOffset: -12,
+				format: (v) => {
+					const d = new Date(v);
+					return (
+						d.toLocaleDateString() +
+						" " +
+						d.toLocaleTimeString()
+					);
+				},
+				tickRotation: -25,
+			},
+			pointSize: 4
+		}
+
+		if (localStorage.getItem("setFancyChart") === "true") {
+			return <ResponsiveLine {...lineProps} />;
+		} else {
+			lineProps.tooltip = CanvasTooltip;
+			return <ResponsiveLineCanvas {...lineProps} />
+		}
 	} else {
 		return <Loader subTitle="Loading timeline..." />;
 	}
