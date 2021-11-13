@@ -83,7 +83,7 @@ public class DeviceManager extends AbstractManager {
 		}
 		return Arrays.asList(Aggregates.match(Filters.and(filters)),
 				Aggregates.sort(Sorts.descending("date")),
-				Aggregates.limit(limit),
+				Aggregates.sample(limit),
 				Aggregates.group(new BsonNull(),
 						Accumulators.avg("avg", "$" + field),
 						Accumulators.min("min", "$" + field),
@@ -124,7 +124,7 @@ public class DeviceManager extends AbstractManager {
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
 		private ObjectId devId;
-		private int sampleSize = 500;
+		private int sampleSize = 1000;
 		private Date start, end;
 
 		public DeviceStatsAction(final GMCServer srv) {
