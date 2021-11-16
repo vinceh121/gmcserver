@@ -35,7 +35,7 @@ import { fetchUser, logoff } from "../GmcApi";
 import AdminBadge from "../components/AdminBadge";
 import DeviceBadge from "../components/DeviceBadge";
 import Loader from "../components/Loader";
-import { DownOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownOutlined, EditOutlined, ImportOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -73,6 +73,16 @@ function User() {
 			<Menu>
 				{user.self ?
 					<>
+						<Menu.Item
+							onClick={() => history.push("/device/import")}
+						>
+							<Button
+								type="link"
+								icon={<ImportOutlined />}
+							>
+								Import Device
+							</Button>
+						</Menu.Item>
 						<Menu.Item
 							onClick={() => history.push("/profile/edit")}
 						>

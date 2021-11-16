@@ -40,6 +40,7 @@ import UserDeletion from "./pages/UserDeletion";
 import ProfileEdit from "./pages/ProfileEdit";
 
 import { GithubFilled } from "@ant-design/icons";
+import ImportDevice from "./pages/device/ImportDevice";
 const { Footer, Content, Header } = Layout;
 
 function App() {
@@ -60,6 +61,9 @@ function App() {
 						</Route>
 						<Route path="/device/new">
 							<NewDevice />
+						</Route>
+						<Route path="/device/import">
+							<ImportDevice />
 						</Route>
 						<Route path="/device/:id/edit">
 							<EditDevice />

@@ -110,6 +110,10 @@ export interface UserUpdateParams {
 	newPassword?: string;
 }
 
+export interface ImportStarted {
+	deviceId?: string;
+}
+
 export const numericRecordFields = [
 	"cpm",
 	"acpm",
@@ -140,3 +144,10 @@ export const proxySettingsModels = {
 		apiKey: "string"
 	}
 }
+
+export const platformImports = [
+	{name: "gmcmap", displayName: "gmcmap.com", fields: {gmcmapId: "number"}},
+	{name: "safecast", displayName: "Safecast", fields: {safecastId: "number"}},
+	{name: "uradmonitor", displayName: "uRadMonitor", fields: {uradmonitorId: "string"}},
+	{name: "radmon", displayName: "Radmon", fields: {radmonUsername: "string"}}
+];

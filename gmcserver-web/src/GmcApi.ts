@@ -29,6 +29,7 @@ import {
 	DeviceCalendar,
 	DeviceUpdate,
 	UserUpdateParams,
+	ImportStarted,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -325,6 +326,14 @@ export const exportTimeline = async (id: string, type: string, start: Date | und
 		url = "/api/v1/device/" + id + "/export/" + type;
 	}
 	window.open(url, "_blank");
+};
+
+export const importDevice = async (platform: string, options: object): Promise<ImportStarted> => {
+	const res = await request("/import/" + platform, {
+		method: "POST",
+		body: JSON.stringify(options)
+	});
+	return ((await res.json()) as ImportStarted);
 };
 
 export const openLiveTimeline = (id: string): WebSocket => {
