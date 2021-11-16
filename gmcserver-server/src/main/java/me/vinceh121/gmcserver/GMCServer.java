@@ -130,22 +130,20 @@ public class GMCServer {
 	}
 
 	public GMCServer() {
-		try {
-			final FileInputStream configInput = new FileInputStream(GMCBuild.CONFIG_PATH);
+		try (final FileInputStream configInput = new FileInputStream(GMCBuild.CONFIG_PATH)) {
 			this.config.load(configInput);
-			configInput.close();
-
-			for (String key : System.getenv().keySet()) {
-				if (key.startsWith("GMC_")) {
-					final String configKey = key.substring(4).toLowerCase().replaceAll(Pattern.quote("_"), ".");
-					final String val = System.getenv(key);
-					this.config.setProperty(configKey, val);
-					LOG.info("Overriding from envvar {}={}", key, val);
-				}
-			}
 		} catch (final IOException e) {
 			GMCServer.LOG.error("Failed to load config", e);
 			System.exit(-1);
+		}
+
+		for (String key : System.getenv().keySet()) {
+			if (key.startsWith("GMC_")) {
+				final String configKey = key.substring(4).toLowerCase().replaceAll(Pattern.quote("_"), ".");
+				final String val = System.getenv(key);
+				this.config.setProperty(configKey, val);
+				LOG.info("Overriding from envvar {}={}", key, val);
+			}
 		}
 
 		this.instanceInfo.fromProperties(this.config);
