@@ -90,9 +90,11 @@ public class GmcmapProxy extends AbstractProxy {
 				req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
 			}
 
-			req.send().onSuccess(res -> p.complete()).onSuccess(res -> {
+			req.send().onSuccess(res -> {
 				if (res.statusCode() != 200) {
 					p.fail("Non 200 status code: " + res.statusCode() + "\n" + res.body());
+				} else {
+					p.complete();
 				}
 			}).onFailure(p::fail);
 		});
