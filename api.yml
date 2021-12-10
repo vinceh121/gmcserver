@@ -225,8 +225,8 @@ components:
       discriminator:
         propertyName: own
         mapping:
-          true: ownedDevice
-          false: device
+          "true": ownedDevice
+          "false": device
       properties:
         id:
           type: string
@@ -275,8 +275,8 @@ components:
       discriminator:
         propertyName: self
         mapping:
-          true: selfUser
-          false: user
+          "true": selfUser
+          "false": user
       properties:
         id:
           type: string
