@@ -281,7 +281,7 @@ public class DeviceManager extends AbstractManager {
 	 * update.
 	 */
 	public class UpdateDeviceAction extends AbstractAction<Long> {
-		private Device device;
+		private ObjectId deviceId;
 		private String name, model;
 		private JsonArray arrLocation;
 		private JsonObject proxiesSettings;
@@ -318,7 +318,7 @@ public class DeviceManager extends AbstractManager {
 
 			final UpdateResult res = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
-				.updateOne(Filters.eq(this.device.getId()), Updates.combine(updates));
+				.updateOne(Filters.eq(this.deviceId), Updates.combine(updates));
 
 			if (res.getMatchedCount() == 0) {
 				promise.fail(new EntityNotFoundException("Device not found"));
@@ -329,12 +329,8 @@ public class DeviceManager extends AbstractManager {
 			}
 		}
 
-		public Device getDevice() {
-			return this.device;
-		}
-
 		public UpdateDeviceAction setDevice(final Device device) {
-			this.device = device;
+			this.deviceId = device.getId();
 			return this;
 		}
 
@@ -374,6 +370,14 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public UpdateDeviceAction setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
 	}
 
 	/**

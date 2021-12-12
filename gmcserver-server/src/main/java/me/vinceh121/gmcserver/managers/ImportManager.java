@@ -69,9 +69,13 @@ public class ImportManager extends AbstractManager {
 	public ImportGmcmap importGmcmap() {
 		return new ImportGmcmap(this.srv);
 	}
+	
+	public ImportSafecastMetadata importSafecastMetadata() {
+		return new ImportSafecastMetadata(this.srv);
+	}
 
-	public ImportSafecast importSafecast() {
-		return new ImportSafecast(this.srv);
+	public ImportSafecastTimeline importSafecastTimeline() {
+		return new ImportSafecastTimeline(this.srv);
 	}
 
 	public ImportURadMonitor importURadMonitor() {
@@ -303,11 +307,62 @@ public class ImportManager extends AbstractManager {
 		}
 	}
 
-	public class ImportSafecast extends AbstractAction<Void> {
+	public class ImportSafecastMetadata extends AbstractAction<Void> {
 		private ObjectId deviceId;
 		private String safeCastId;
 
-		public ImportSafecast(GMCServer srv) {
+		public ImportSafecastMetadata(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<Void> promise) {
+			this.srv.getWebClient()
+				.get("api.safecast.org", "/devices/" + this.safeCastId)
+				.addQueryParam("format", "json")
+				.as(BodyCodec.jsonObject())
+				.send()
+				.onSuccess(res -> {
+					final JsonObject obj = res.body();
+					final String manufacturer = obj.getString("manufacturer");
+					final String model = obj.getString("model");
+					final String sensor = obj.getString("sensor");
+
+					this.srv.getDeviceManager()
+						.updateDevice()
+						.setDeviceId(this.deviceId)
+						.setModel(manufacturer + " " + model + ", " + sensor)
+						.execute()
+						.onSuccess(l -> promise.complete())
+						.onFailure(promise::fail);
+				})
+				.onFailure(promise::fail);
+		}
+
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public ImportSafecastMetadata setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
+
+		public String getSafeCastId() {
+			return safeCastId;
+		}
+
+		public ImportSafecastMetadata setSafeCastId(String safeCastId) {
+			this.safeCastId = safeCastId;
+			return this;
+		}
+	}
+
+	public class ImportSafecastTimeline extends AbstractAction<Void> {
+		private ObjectId deviceId;
+		private String safeCastId;
+
+		public ImportSafecastTimeline(GMCServer srv) {
 			super(srv);
 		}
 
@@ -429,7 +484,7 @@ public class ImportManager extends AbstractManager {
 			return deviceId;
 		}
 
-		public ImportSafecast setDeviceId(ObjectId deviceId) {
+		public ImportSafecastTimeline setDeviceId(ObjectId deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -438,7 +493,7 @@ public class ImportManager extends AbstractManager {
 			return safeCastId;
 		}
 
-		public ImportSafecast setSafeCastId(String safeCastId) {
+		public ImportSafecastTimeline setSafeCastId(String safeCastId) {
 			this.safeCastId = safeCastId;
 			return this;
 		}

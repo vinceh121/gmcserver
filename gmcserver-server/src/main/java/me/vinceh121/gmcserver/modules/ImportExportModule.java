@@ -112,12 +112,20 @@ public class ImportExportModule extends AbstractModule {
 			.execute()
 			.onSuccess(dev -> {
 				this.srv.getImportManager()
-					.importSafecast()
+					.importSafecastMetadata()
 					.setDeviceId(dev.getId())
 					.setSafeCastId(safecastId)
 					.execute()
-					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
-					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+					.onSuccess(v -> {
+						this.srv.getImportManager()
+							.importSafecastTimeline()
+							.setDeviceId(dev.getId())
+							.setSafeCastId(safecastId)
+							.execute()
+							.onSuccess(v2 -> this.responseImportStarted(ctx, dev.getId()))
+							.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+					})
+					.onFailure(t -> this.error(ctx, 500, "Failed to import metadata: " + t));
 			})
 			.onFailure(t -> {
 				this.error(ctx, 500, "Failed to create device");
@@ -163,7 +171,7 @@ public class ImportExportModule extends AbstractModule {
 				this.error(ctx, 500, "Failed to create device");
 			});
 	}
-	
+
 	private void handleImportRadmon(final RoutingContext ctx) {
 		final JsonObject obj = ctx.getBodyAsJson();
 		if (obj == null) {
