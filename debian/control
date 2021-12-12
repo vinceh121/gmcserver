@@ -4,13 +4,13 @@ Priority: optional
 Maintainer: vinceh121 <contact@vinceh121.me>
 Build-Depends: debhelper-compat (= 9), maven, npm
 Standards-Version: 4.5.0
-Homepage: https://home.gmc.vinceh121.me
+Homepage: https://gmc.vinceh121.me
 Vcs-Browser: https://github.com/vinceh121/gmcserver
 Vcs-Git: https://github.com/vinceh121/gmcserver.git
 
 Package: gmcserver
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: java-wrappers, ${shlibs:Depends}, ${misc:Depends}
 Description: A lightweight service to store and analyze data from Geiger counters
  GMCServer (name subject to change) is a service to store
  and analyze data from Geiger counters, potentially
