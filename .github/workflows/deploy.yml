@@ -46,7 +46,7 @@ jobs:
         debug: true
         script: |
           # service
-          cp /tmp/gmcserver-deploy/deploy/usr/bin/gmcserver /usr/bin/gmcserver
+          cp /tmp/gmcserver-deploy/deploy/usr/share/java/gmcserver.jar /usr/bin/gmcserver
           # web
           rm -r /var/www/html/gmcserver/*
           cp -r /tmp/gmcserver-deploy/deploy/var/www/html/gmcserver/* /var/www/html/gmcserver
