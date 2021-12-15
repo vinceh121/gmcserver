@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CracoLessPlugin = require("craco-less");
+const CracoLessPlugin = require("craco-less-fix");
 
 const config = {
 	devServer: {
