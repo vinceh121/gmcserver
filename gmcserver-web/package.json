@@ -15,7 +15,7 @@
 		"@types/react-router-dom": "^5.3.2",
 		"antd": "^4.17.3",
 		"color-hash": "^2.0.1",
-		"craco-less-fix": "^1.21.1",
+		"craco-less": "^2.0.0",
 		"leaflet": "^1.7.1",
 		"moment": "^2.29.1",
 		"react": "^16.14.0",

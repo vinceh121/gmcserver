@@ -13,7 +13,7 @@ specifiers:
   '@types/react-router-dom': ^5.3.2
   antd: ^4.17.3
   color-hash: ^2.0.1
-  craco-less-fix: ^1.21.1
+  craco-less: ^2.0.0
   leaflet: ^1.7.1
   moment: ^2.29.1
   react: ^16.14.0
@@ -38,7 +38,7 @@ dependencies:
   '@types/react-router-dom': 5.3.2
   antd: 4.17.3_react-dom@16.14.0+react@16.14.0
   color-hash: 2.0.1
-  craco-less-fix: 1.21.1_66b49c99af659d7c23050d0db8706453
+  craco-less: 2.0.0_66b49c99af659d7c23050d0db8706453
   leaflet: 1.7.1
   moment: 2.29.1
   react: 16.14.0
@@ -3892,11 +3892,11 @@ packages:
       yaml: 1.10.2
     dev: false
 
-  /craco-less-fix/1.21.1_66b49c99af659d7c23050d0db8706453:
-    resolution: {integrity: sha512-6nZdAWVO1Ebkc1Tu+hLxrdBb2P8ZumceuUwIdY3K8KhT2iqV7a12tpP+VgzkYFKYPKKYHKbGOwgZVpXp6/6qYg==}
+  /craco-less/2.0.0_66b49c99af659d7c23050d0db8706453:
+    resolution: {integrity: sha512-980mQaZVrC4ZsvOwvud6/AgvW7fLY3mW5m5+gR4sw4krxszgHb+qoRyOjqsYPD0F4oUmQoSiZSrlYY/bFGD9kQ==}
     peerDependencies:
       '@craco/craco': ^6.0.0
-      react-scripts: ^4.0.0 || ^5.0.0
+      react-scripts: ^5.0.0
     dependencies:
       '@craco/craco': 6.4.3_742224095d24f094d29d6a310603219d
       less: 4.1.2
