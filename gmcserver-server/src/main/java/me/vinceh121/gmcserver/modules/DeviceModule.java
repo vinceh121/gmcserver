@@ -22,6 +22,9 @@ import java.util.Iterator;
 
 import org.bson.types.ObjectId;
 
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
+
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.ServerWebSocket;
@@ -177,10 +180,11 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final JsonArray loc;
+		final Point loc;
 		if (obj.containsKey("location") && obj.getValue("location") instanceof JsonArray) {
-			loc = obj.getJsonArray("location");
-			if (loc.size() != 2 && loc.size() != 3) {
+			final JsonArray arr = obj.getJsonArray("location");
+			
+			if (arr.size() != 2 && arr.size() != 3) {
 				this.error(ctx, 400, "Invalid location");
 				return;
 			}
@@ -189,6 +193,18 @@ public class DeviceModule extends AbstractModule {
 					this.error(ctx, 400, "Invalid location");
 					return;
 				}
+			}
+			
+			final double longitude = arr.getDouble(0);
+			final double latitude = arr.getDouble(1);
+			final double altitude = arr.getDouble(2);
+
+			if (longitude != 0 && latitude != 0 && altitude != 0) {
+				loc = new Point(new Position(longitude, latitude, altitude));
+			} else if (longitude != 0 && latitude != 0) {
+				loc = new Point(new Position(longitude, latitude));
+			} else {
+				loc = null;
 			}
 		} else {
 			loc = null;
@@ -206,7 +222,7 @@ public class DeviceModule extends AbstractModule {
 			final UpdateDeviceAction action = this.srv.getDeviceManager()
 				.updateDevice()
 				.setDevice(dev)
-				.setArrLocation(loc)
+				.setLocation(loc)
 				.setModel(model)
 				.setName(name)
 				.setProxiesSettings(obj.getJsonObject("proxiesSettings"));

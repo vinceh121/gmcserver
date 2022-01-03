@@ -69,13 +69,17 @@ public class ImportManager extends AbstractManager {
 	public ImportGmcmap importGmcmap() {
 		return new ImportGmcmap(this.srv);
 	}
-	
+
 	public ImportSafecastMetadata importSafecastMetadata() {
 		return new ImportSafecastMetadata(this.srv);
 	}
 
 	public ImportSafecastTimeline importSafecastTimeline() {
 		return new ImportSafecastTimeline(this.srv);
+	}
+
+	public ImportURadMonitorMetadata importURadMonitorMetadata() {
+		return new ImportURadMonitorMetadata(this.srv);
 	}
 
 	public ImportURadMonitor importURadMonitor() {
@@ -495,6 +499,99 @@ public class ImportManager extends AbstractManager {
 
 		public ImportSafecastTimeline setSafeCastId(String safeCastId) {
 			this.safeCastId = safeCastId;
+			return this;
+		}
+	}
+
+	public class ImportURadMonitorMetadata extends AbstractAction<Void> {
+		private ObjectId deviceId;
+		private String uRadMonitorId;
+
+		public ImportURadMonitorMetadata(GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(Promise<Void> promise) {
+			this.srv.getWebClient()
+				.get("data.uradmonitor.com", "/api/v1/devices")
+				.putHeader("X-User-hash", "global2")
+				.putHeader("X-User-id", "www")
+				.as(BodyCodec.jsonArray())
+				.send()
+				.onSuccess(res -> {
+					final JsonArray arr = res.body();
+
+					for (int i = 0; i < arr.size(); i++) {
+						final JsonObject obj = arr.getJsonObject(i);
+						if (this.uRadMonitorId.equals(obj.getString("id"))) {
+							final String city = obj.getString("city");
+							final String country = obj.getString("country");
+							final String note = obj.getString("note");
+							final String picture = obj.getString("picture");
+
+							final String sensor = obj.getString("detector");
+
+							final double longitude = obj.getDouble("longitude");
+							final double latitude = obj.getDouble("latitude");
+							final double altitude = obj.getDouble("altitude");
+
+							final Point point;
+							if (longitude != 0 && latitude != 0 && altitude != 0) {
+								point = new Point(new Position(longitude, latitude, altitude));
+							} else if (longitude != 0 && latitude != 0) {
+								point = new Point(new Position(longitude, latitude));
+							} else {
+								point = null;
+							}
+
+							final StringBuilder description = new StringBuilder(); // TODO description in device
+							if (!city.isEmpty()) {
+								description.append(city);
+								if (!country.isEmpty()) {
+									description.append(", ");
+								}
+							}
+							if (!country.isEmpty()) {
+								description.append(country);
+								description.append("\n");
+							}
+							if (!note.isEmpty()) {
+								description.append(note);
+							}
+							if (!picture.isEmpty()) {
+								description.append(picture);
+							}
+
+							this.srv.getDeviceManager()
+								.updateDevice()
+								.setDeviceId(this.deviceId)
+								.setLocation(point)
+								.setModel(sensor)
+								.execute()
+								.onSuccess(l -> promise.complete())
+								.onFailure(promise::fail);
+						}
+					}
+				})
+				.onFailure(promise::fail);
+		}
+
+		public ObjectId getDeviceId() {
+			return deviceId;
+		}
+
+		public ImportURadMonitorMetadata setDeviceId(ObjectId deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
+
+		public String getURadMonitorId() {
+			return uRadMonitorId;
+		}
+
+		public ImportURadMonitorMetadata setURadMonitorId(String uRadMonitorId) {
+			this.uRadMonitorId = uRadMonitorId;
 			return this;
 		}
 	}

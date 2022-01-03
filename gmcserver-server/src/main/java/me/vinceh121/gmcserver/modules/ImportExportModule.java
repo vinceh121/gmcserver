@@ -160,12 +160,19 @@ public class ImportExportModule extends AbstractModule {
 			.execute()
 			.onSuccess(dev -> {
 				this.srv.getImportManager()
-					.importURadMonitor()
+					.importURadMonitorMetadata()
 					.setDeviceId(dev.getId())
-					.setuRadMonitorId(uradmonitorId)
+					.setURadMonitorId(uradmonitorId)
 					.execute()
-					.onSuccess(v -> this.responseImportStarted(ctx, dev.getId()))
-					.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+					.onSuccess(v -> {
+						this.srv.getImportManager()
+							.importURadMonitor()
+							.setDeviceId(dev.getId())
+							.setuRadMonitorId(uradmonitorId)
+							.execute()
+							.onSuccess(v1 -> this.responseImportStarted(ctx, dev.getId()))
+							.onFailure(t -> this.error(ctx, 500, "Failed to start import: " + t));
+					});
 			})
 			.onFailure(t -> {
 				this.error(ctx, 500, "Failed to create device");

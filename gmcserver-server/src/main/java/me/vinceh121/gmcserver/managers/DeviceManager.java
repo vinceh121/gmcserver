@@ -283,7 +283,7 @@ public class DeviceManager extends AbstractManager {
 	public class UpdateDeviceAction extends AbstractAction<Long> {
 		private ObjectId deviceId;
 		private String name, model;
-		private JsonArray arrLocation;
+		private Point location;
 		private JsonObject proxiesSettings;
 
 		public UpdateDeviceAction(final GMCServer srv) {
@@ -302,8 +302,8 @@ public class DeviceManager extends AbstractManager {
 				updates.add(Updates.set("model", this.model));
 			}
 
-			if (this.arrLocation != null) {
-				updates.add(Updates.set("location", DeviceManager.jsonArrToPoint(this.arrLocation)));
+			if (this.location != null) {
+				updates.add(Updates.set("location", this.location));
 			}
 
 			if (this.proxiesSettings != null) {
@@ -352,15 +352,6 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
-		public JsonArray getArrLocation() {
-			return this.arrLocation;
-		}
-
-		public UpdateDeviceAction setArrLocation(final JsonArray arrLocation) {
-			this.arrLocation = arrLocation;
-			return this;
-		}
-
 		public JsonObject getProxiesSettings() {
 			return this.proxiesSettings;
 		}
@@ -376,6 +367,15 @@ public class DeviceManager extends AbstractManager {
 
 		public UpdateDeviceAction setDeviceId(ObjectId deviceId) {
 			this.deviceId = deviceId;
+			return this;
+		}
+
+		public Point getLocation() {
+			return location;
+		}
+
+		public UpdateDeviceAction setLocation(Point location) {
+			this.location = location;
 			return this;
 		}
 	}
