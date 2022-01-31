@@ -81,7 +81,7 @@ public class AlertManager extends AbstractManager {
 				.setDevId(this.dev.getId())
 				.execute()
 				.onSuccess(stats -> {
-					if (stats.getStdDev() >= this.dev.getStdDevAlertLimit()) { // too high
+					if (this.latestRecord.getCpm() > stats.getAvg() + 2 * stats.getStdDev()) { // too high
 						final Email email = new Email();
 						email.setTo(this.owner);
 						email.setTemplate("device-alert");
