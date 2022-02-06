@@ -32,7 +32,7 @@
 					The latest value was {{value}}.
 				</mj-text>
 				<mj-button
-					href="https://{{instance/host}}/device/{{device/id}}"
+					href="https://{{instance/host}}/device/{{device/id}}?start={{start}}&end={{end}}"
 				>
 					Device info
 				</mj-button>

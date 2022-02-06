@@ -18,6 +18,7 @@
 package me.vinceh121.gmcserver.managers;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 
@@ -89,6 +90,8 @@ public class AlertManager extends AbstractManager {
 						email.getContext().put("fieldname", "CPM");
 						email.getContext().put("value", this.latestRecord.getCpm());
 						email.getContext().put("device", this.dev.toPublicJson());
+						email.getContext().put("start", this.latestRecord.getDate().getTime() - TimeUnit.HOURS.toMillis(2));
+						email.getContext().put("end", this.latestRecord.getDate().getTime() + TimeUnit.HOURS.toMillis(2));
 						this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
 							this.srv.getDatabaseManager()
 								.getCollection(Device.class)
