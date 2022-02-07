@@ -3,8 +3,8 @@ info:
   title: "GMCServer Backend API"
   version: 0.1.0
   license:
-    name: GNU General Public License v3.0 or later
-    url: https://www.gnu.org/licenses/gpl-3.0-standalone.html
+    name: GNU Affero General Public License v3.0 or later
+    url: https://www.gnu.org/licenses/agpl-3.0-standalone.html
   contact:
     name: vinceh121
     email: contact@vinceh121.me
@@ -202,6 +202,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/record"
+  /device/{deviceId}/stats/{field}:
+    get:
+      description: Get statistical information for a specific field
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          example: "5ed7d9b8de22630a0105e7c0"
+          schema:
+            type: string
+        - name: field
+          in: path
+          required: true
+          example: "cpm"
+          schema:
+            type: string
+        - name: start
+          in: query
+          schema:
+            type: integer
+        - name: end
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully calculated stats
+          content:
+            'application/json':
+              schema:
+                $ref: "#/compenents/schemas/deviceStats"
+        '204':
+          description: No records withing constraints
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/errorResult"
 components:
   schemas:
     location:
@@ -248,7 +285,7 @@ components:
           type: boolean
     ownedDevice:
       allOf:
-        - $ref: "#components/schemas/anonDevice"
+        - $ref: "#components/schemas/device"
         - type: object
           properties:
             gmcId:
@@ -314,7 +351,7 @@ components:
               type: string
             currentPassword:
               type: string
-              description: Only required is newPassword is defined
+              description: Only required if newPassword is defined
     instanceInfo:
       type: object
       properties:
@@ -336,7 +373,6 @@ components:
           type: number
           nullable: true
         acpm:
-          type: number
           nullable: true
         usv:
           type: number
@@ -408,4 +444,21 @@ components:
         - $ref: "#/components/schemas/proxyRadmon"
         - $ref: "#/components/schemas/proxySafecast"
         - $ref: "#/components/schemas/proxyGmcmap"
+    deviceStats:
+      type: object
+      properties:
+        field:
+          type: string
+        device:
+          type: string
+        avg:
+          type: number
+        min:
+          type: number
+        max:
+          type: number
+        stdDev:
+          type: number
+        sampleSize:
+          type: number
 
