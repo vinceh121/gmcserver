@@ -8,7 +8,7 @@
   "license": "AGPL-3.0-or-later",
   "private": true,
   "scripts": {
-    "build": "mjml -r *.mjml -o out/ "
+    "build": "mjml -r *.mjml --config.fonts='{}' --config.minify --config.beautify=false -o out/ "
   },
   "dependencies": {
     "mjml": "^4.6.3"
