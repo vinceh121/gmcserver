@@ -33,57 +33,27 @@ public class GeoModule extends AbstractModule {
 
 	public GeoModule(final GMCServer srv) {
 		super(srv);
-		this.registerRoute(HttpMethod.GET, "/map/:boundingBox", this::handleMap);
+		this.registerRoute(HttpMethod.GET, "/map", this::handleMap);
 	}
 
 	private void handleMap(final RoutingContext ctx) {
-		// lowerLeftX
-		// lowerLeftY
-		// upperRightX
-		// upperRightY
-		final String rawBB = ctx.pathParam("boundingBox");
-		if (rawBB == null) {
-			this.error(ctx, 400, "Missing BB");
-			return;
-		}
-
-		final JsonArray bb;
+		final double swlon;
+		final double swlat;
+		final double nelon;
+		final double nelat;
 		try {
-			bb = new JsonArray(rawBB);
-		} catch (final Exception e) {
-			this.error(ctx, 400, "Invalid BB");
+			swlon = Double.parseDouble(ctx.request().getParam("swlon"));
+			swlat = Double.parseDouble(ctx.request().getParam("swlat"));
+			nelon = Double.parseDouble(ctx.request().getParam("nelon"));
+			nelat = Double.parseDouble(ctx.request().getParam("nelat"));
+		} catch (final NumberFormatException e) {
+			this.error(ctx, 400, "Invalid parameter format");
 			return;
 		}
-
-		if (bb.size() != 4) {
-			this.error(ctx, 400, "Invalid BB");
-			return;
-		}
-
-		for (final Object obj : bb) {
-			if (!(obj instanceof Number)) {
-				this.error(ctx, 400, "Invalid BB");
-				return;
-			}
-		}
-
-		// final List<Position> ext = new Vector<>();
-		//
-		// for (final Object arr : bb) {
-		// if (!(arr instanceof JsonArray)) {
-		// this.error(ctx, 400, "Invalid BB");
-		// return;
-		// }
-		// ext.add(new Position(((JsonArray) arr).getList()));
-		// }
-		//
-		// final PolygonCoordinates coords = new PolygonCoordinates(ext);
-		//
-		// final Polygon poly = new Polygon(coords);
 
 		final FindIterable<Device> it = this.srv.getDatabaseManager()
 			.getCollection(Device.class)
-			.find(Filters.geoWithinBox("location", bb.getDouble(0), bb.getDouble(1), bb.getDouble(2), bb.getDouble(3)));
+			.find(Filters.geoWithinBox("location", swlon, swlat, nelon, nelat));
 
 		final JsonArray res = new JsonArray();
 		it.forEach(d -> {

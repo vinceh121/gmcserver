@@ -54,8 +54,8 @@ function GmcMap() {
 	const [input, setInput] = useState(null);
 
 	useEffect(() => {
-		if (input && input.rect) {
-			fetchMap(input.rect).then(
+		if (input && input.swlon) {
+			fetchMap(input).then(
 				(devs) => setDevices(devs),
 				(err) => message.error("Error while loading map: " + String(err))
 			);
@@ -66,12 +66,10 @@ function GmcMap() {
 		if (map) {
 			const bounds = map.getBounds();
 			setInput({
-				rect: [
-					bounds.getSouthWest().lng,
-					bounds.getSouthWest().lat,
-					bounds.getNorthEast().lng,
-					bounds.getNorthEast().lat,
-				],
+					swlon: bounds.getSouthWest().lng,
+					swlat: bounds.getSouthWest().lat,
+					nelon: bounds.getNorthEast().lng,
+					nelat: bounds.getNorthEast().lat
 			});
 		}
 	}

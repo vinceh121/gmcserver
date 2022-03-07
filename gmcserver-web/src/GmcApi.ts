@@ -30,6 +30,7 @@ import {
 	DeviceUpdate,
 	UserUpdateParams,
 	ImportStarted,
+	MapRequest,
 } from "./GmcTypes";
 
 const baseUrl: string = "/api/v1";
@@ -308,8 +309,13 @@ export const fetchCalendar = async (id: string): Promise<DeviceCalendar> => {
 	return (await res.json()) as DeviceCalendar;
 };
 
-export const fetchMap = async (rect: number[]): Promise<MapDevice[]> => {
-	const res = await request("/map/" + JSON.stringify(rect));
+export const fetchMap = async (req: MapRequest): Promise<MapDevice[]> => {
+	const params: URLSearchParams = new URLSearchParams();
+	params.append("swlon", String(req.swlon));
+	params.append("swlat", String(req.swlat));
+	params.append("nelon", String(req.nelon));
+	params.append("nelat", String(req.nelat));
+	const res = await request("/map?" + params.toString());
 	return (await res.json()) as MapDevice[];
 };
 

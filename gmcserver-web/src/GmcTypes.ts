@@ -114,6 +114,13 @@ export interface ImportStarted {
 	deviceId?: string;
 }
 
+export interface MapRequest {
+	swlon: number;
+	swlat: number;
+	nelon: number;
+	nelat: number;
+}
+
 export const numericRecordFields = [
 	"cpm",
 	"acpm",
@@ -146,8 +153,8 @@ export const proxySettingsModels = {
 }
 
 export const platformImports = [
-	{name: "gmcmap", displayName: "gmcmap.com", fields: {gmcmapId: "number"}},
-	{name: "safecast", displayName: "Safecast", fields: {safecastId: "number"}},
-	{name: "uradmonitor", displayName: "uRadMonitor", fields: {uradmonitorId: "string"}},
-	{name: "radmon", displayName: "Radmon", fields: {radmonUsername: "string"}}
+	{ name: "gmcmap", displayName: "gmcmap.com", fields: { gmcmapId: "number" } },
+	{ name: "safecast", displayName: "Safecast", fields: { safecastId: "number" } },
+	{ name: "uradmonitor", displayName: "uRadMonitor", fields: { uradmonitorId: "string" } },
+	{ name: "radmon", displayName: "Radmon", fields: { radmonUsername: "string" } }
 ];
