@@ -310,6 +310,35 @@ paths:
             'application/json':
               schema:
                 $ref: "#/components/schemas/errorResult"
+  /map:
+    get:
+      description: Fetch a world map of devices
+      parameters:
+        - name: swlon
+          in: query
+          schema:
+            type: number
+        - name: swlat
+          in: query
+          schema:
+            type: number
+        - name: nelon
+          in: query
+          schema:
+            type: number
+        - name: nelat
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successfully fetched map
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/mapDevice"
   /import/gmcmap:
     post:
       description: Import a device from gmcmap.com
