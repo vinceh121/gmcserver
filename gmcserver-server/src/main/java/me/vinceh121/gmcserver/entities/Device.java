@@ -20,6 +20,7 @@ package me.vinceh121.gmcserver.entities;
 import java.util.Date;
 import java.util.Map;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.model.geojson.Point;
@@ -29,12 +30,13 @@ import io.vertx.core.json.JsonObject;
 public class Device extends AbstractEntity {
 	private String model, name, importedFrom;
 	private Point location;
-	private ObjectId owner;
+	private ObjectId owner, lastRecordId;
 	private long gmcId;
 	private boolean disabled;
 	private Date lastEmailAlert = new Date(0L);
 	private double stdDevAlertLimit = Double.NaN;
 	private Map<String, Map<String, Object>> proxiesSettings;
+	private Record lastRecord;
 
 	public long getGmcId() {
 		return this.gmcId;
@@ -124,6 +126,28 @@ public class Device extends AbstractEntity {
 		this.proxiesSettings = proxiesSettings;
 	}
 
+	public ObjectId getLastRecordId() {
+		return lastRecordId;
+	}
+
+	public Device setLastRecordId(ObjectId lastRecordId) {
+		this.lastRecordId = lastRecordId;
+		return this;
+	}
+
+	/**
+	 * Aggregated field
+	 */
+	@BsonIgnore
+	public Record getLastRecord() {
+		return lastRecord;
+	}
+
+	public Device setLastRecord(Record lastRecord) {
+		this.lastRecord = lastRecord;
+		return this;
+	}
+
 	@Override
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
@@ -141,6 +165,10 @@ public class Device extends AbstractEntity {
 		obj.remove("proxiesSettings");
 		obj.remove("lastEmailAlert");
 		obj.remove("stdDevAlertLimit");
+		obj.remove("lastRecordId");
+		if (this.getLastRecord() == null) {
+			obj.remove("lastRecord");
+		}
 		return obj;
 	}
 
@@ -149,6 +177,7 @@ public class Device extends AbstractEntity {
 		obj.put("id", this.getId().toHexString());
 		obj.put("name", this.getName());
 		obj.put("location", this.location.getCoordinates().getValues());
+		obj.put("lastRecord", this.getLastRecord().toPublicJson());
 		return obj;
 	}
 }

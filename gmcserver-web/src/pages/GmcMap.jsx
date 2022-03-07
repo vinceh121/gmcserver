@@ -39,7 +39,8 @@ function DeviceMarker(props) {
 			<Popup>
 				<Space direction="vertical">
 					{device.name}<br />
-					{device.cpm} CPM
+					{device.lastRecord.cpm} CPM<br />
+					{device.lastRecord.usv} µSv/h
 					<Link to={"/device/" + device.id}>
 						<Button type="link">More info</Button>
 					</Link>

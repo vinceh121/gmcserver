@@ -22,6 +22,9 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -46,12 +49,13 @@ public class LoggingManager extends AbstractManager {
 	}
 
 	/**
-	 * Inserts a record.
-	 * This will (optionnally) check for alerts, process proxying, publish it to the event bus.
+	 * Inserts a record. This will (optionnally) check for alerts, process proxying,
+	 * publish it to the event bus.
 	 *
 	 * Alerting and proxying can be differed.
 	 *
-	 * Rethrows exceptions thrown by {@code CheckAlertAction}, {@code ProcessDeviceProxiesAction}
+	 * Rethrows exceptions thrown by {@code CheckAlertAction},
+	 * {@code ProcessDeviceProxiesAction}
 	 */
 	public class InsertRecordAction extends AbstractAction<Void> {
 		private Record record;
@@ -75,6 +79,9 @@ public class LoggingManager extends AbstractManager {
 				joinedFutures.add(Future.future(p -> {
 					try {
 						this.srv.getDatabaseManager().getCollection(Record.class).insertOne(this.record);
+						this.srv.getDatabaseManager()
+							.getCollection(Device.class)
+							.updateOne(Filters.eq(this.device.getId()), Updates.set("lastRecordId", this.record.getId()));
 						p.complete();
 					} catch (final Exception e) {
 						p.fail(e);

@@ -477,8 +477,8 @@ components:
           type: string
         location:
           $ref: "#/components/schemas/location"
-        cpm:
-          type: number
+        lastRecord:
+          $ref: "#/components/schemas/record"
     user:
       type: object
       discriminator:

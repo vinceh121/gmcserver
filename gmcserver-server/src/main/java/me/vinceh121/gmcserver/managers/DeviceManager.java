@@ -30,10 +30,12 @@ import org.bson.BsonNull;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.geojson.Point;
@@ -105,6 +107,10 @@ public class DeviceManager extends AbstractManager {
 
 	public GetDeviceAction getDevice() {
 		return new GetDeviceAction(this.srv);
+	}
+
+	public GetMapAction getMap() {
+		return new GetMapAction(this.srv);
 	}
 
 	public DeleteDeviceAction deleteDevice() {
@@ -387,6 +393,7 @@ public class DeviceManager extends AbstractManager {
 	 */
 	public class GetDeviceAction extends AbstractAction<Device> {
 		private ObjectId id;
+		private boolean fetchLastRecord;
 
 		public GetDeviceAction(final GMCServer srv) {
 			super(srv);
@@ -394,6 +401,30 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Device> promise) {
+			if (this.fetchLastRecord) {
+				this.aggregateLastRecord(promise);
+			} else {
+				this.classicFind(promise);
+			}
+		}
+
+		private void aggregateLastRecord(final Promise<Device> promise) {
+			final Device dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.aggregate(Arrays.asList(Aggregates.match(Filters.eq(this.id)),
+						Aggregates.lookup("records", "lastRecordId", "_id", "lastRecord"),
+						Aggregates.unwind("$lastRecord")))
+				.first();
+
+			if (dev == null) {
+				promise.fail(new EntityNotFoundException("Device not found"));
+				return;
+			}
+
+			promise.complete(dev);
+		}
+
+		private void classicFind(final Promise<Device> promise) {
 			final Device dev = this.srv.getDatabaseManager()
 				.getCollection(Device.class)
 				.find(Filters.eq(this.id))
@@ -413,6 +444,73 @@ public class DeviceManager extends AbstractManager {
 
 		public GetDeviceAction setId(final ObjectId id) {
 			this.id = id;
+			return this;
+		}
+
+		public boolean isFetchLastRecord() {
+			return fetchLastRecord;
+		}
+
+		public GetDeviceAction setFetchLastRecord(boolean fetchLastRecord) {
+			this.fetchLastRecord = fetchLastRecord;
+			return this;
+		}
+	}
+
+	public class GetMapAction extends AbstractAction<AggregateIterable<Device>> {
+		private double swlon;
+		private double swlat;
+		private double nelon;
+		private double nelat;
+
+		public GetMapAction(final GMCServer srv) {
+			super(srv);
+		}
+
+		@Override
+		protected void executeSync(final Promise<AggregateIterable<Device>> promise) {
+			final AggregateIterable<Device> dev = this.srv.getDatabaseManager()
+				.getCollection(Device.class)
+				.aggregate(Arrays.asList(Aggregates.match(Filters.geoWithinBox("location", swlon, swlat, nelon, nelat)),
+						Aggregates.lookup("records", "lastRecordId", "_id", "lastRecord"),
+						Aggregates.unwind("$lastRecord")));
+
+			promise.complete(dev);
+		}
+
+		public double getSwlon() {
+			return swlon;
+		}
+
+		public GetMapAction setSwlon(double swlon) {
+			this.swlon = swlon;
+			return this;
+		}
+
+		public double getSwlat() {
+			return swlat;
+		}
+
+		public GetMapAction setSwlat(double swlat) {
+			this.swlat = swlat;
+			return this;
+		}
+
+		public double getNelon() {
+			return nelon;
+		}
+
+		public GetMapAction setNelon(double nelon) {
+			this.nelon = nelon;
+			return this;
+		}
+
+		public double getNelat() {
+			return nelat;
+		}
+
+		public GetMapAction setNelat(double nelat) {
+			this.nelat = nelat;
 			return this;
 		}
 	}

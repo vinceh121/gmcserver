@@ -39,6 +39,8 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 
@@ -51,6 +53,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
+import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
 
@@ -120,6 +123,9 @@ public class ImportManager extends AbstractManager {
 
 				if (recs.size() != 0) {
 					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+					this.srv.getDatabaseManager()
+						.getCollection(Device.class)
+						.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
 					this.importPageRecurse(page + 1);
 				} else {
 					log.info("Finished GMC import for {}", gmcmapId);
@@ -379,6 +385,9 @@ public class ImportManager extends AbstractManager {
 				}
 
 				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+				this.srv.getDatabaseManager()
+					.getCollection(Device.class)
+					.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
 
 				promise.complete();
 
@@ -392,6 +401,9 @@ public class ImportManager extends AbstractManager {
 
 				if (recs.size() != 0) {
 					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
+					this.srv.getDatabaseManager()
+						.getCollection(Device.class)
+						.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
 					this.importPageRecurse(page + 1);
 				} else {
 					log.info("Finished SafeCast import for {}", this.safeCastId);
@@ -717,6 +729,9 @@ public class ImportManager extends AbstractManager {
 								rec.setDate(date);
 								// TODO batch inserts
 								this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
+								this.srv.getDatabaseManager()
+									.getCollection(Device.class)
+									.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", rec.getId()));
 							} catch (final ParseException e) {
 								// we silently ignore those for now...
 							}

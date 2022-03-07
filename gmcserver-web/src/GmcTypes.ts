@@ -28,6 +28,7 @@ export interface MapDevice {
 	name?: string;
 	location?: number[];
 	cpm: number;
+	lastRecord: Record | undefined;
 }
 
 export interface Device extends MapDevice {
