@@ -342,11 +342,14 @@ paths:
   /import/gmcmap:
     post:
       description: Import a device from gmcmap.com
-      parameters:
-        - name: gmcmapId
-          in: query
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                gmcmapId:
+                  type: string
       responses:
         '200':
           description: Successfully started device import
@@ -357,11 +360,14 @@ paths:
   /import/safecast:
     post:
       description: Import a device from safecast.org
-      parameters:
-        - name: safecastId
-          in: query
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                safecastId:
+                  type: string
       responses:
         '200':
           description: Successfully started device import
@@ -372,11 +378,14 @@ paths:
   /import/uradmonitor:
     post:
       description: Import a device from uradmonitor.com
-      parameters:
-        - name: uradmonitorId
-          in: query
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                uradmonitorId:
+                  type: string
       responses:
         '200':
           description: Successfully started device import
@@ -387,11 +396,14 @@ paths:
   /import/radmon:
     post:
       description: Import a device from radmon.org
-      parameters:
-        - name: radmonUsername
-          in: query
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                radmonUsername:
+                  type: string
       responses:
         '200':
           description: Successfully started device import
@@ -399,7 +411,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/importResult"
-
 components:
   schemas:
     location:
