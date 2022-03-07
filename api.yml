@@ -303,7 +303,7 @@ paths:
           content:
             'application/json':
               schema:
-                $ref: "#/compenents/schemas/deviceStats"
+                $ref: "#/components/schemas/deviceStats"
         '204':
           description: No records withing constraints
           content:
