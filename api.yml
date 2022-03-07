@@ -12,6 +12,77 @@ info:
 servers:
   - url: https://gmc.vinceh121.me/api/v1
 paths:
+  /auth/login:
+    post:
+      description: Perform a login
+      parameters:
+        - name: username
+          in: query
+          required: true
+          example: "vinceh121"
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          example: "12345"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully logged-in
+          content:
+            application/json:
+              schema:
+                parameters:
+                  - name: token
+                    type: string
+                    description: Token to be passed in Authorization header
+                  - name: id
+                    type: string
+                    description: User's ID
+                  - name: mfa
+                    type: boolean
+  /auth/register:
+    post:
+      description: Create an account
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: captchaId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: captchaAnswer
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully created account
+          content:
+            application/json:
+              schema:
+                parameters:
+                  - name: token
+                    type: string
+                  - name: id
+                    type: string
   /user/{userId}:
     get:
       description: Fetch a user
@@ -239,6 +310,67 @@ paths:
             'application/json':
               schema:
                 $ref: "#/components/schemas/errorResult"
+  /import/gmcmap:
+    post:
+      description: Import a device from gmcmap.com
+      parameters:
+        - name: gmcmapId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started device import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/importResult"
+  /import/safecast:
+    post:
+      description: Import a device from safecast.org
+      parameters:
+        - name: safecastId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started device import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/importResult"
+  /import/uradmonitor:
+    post:
+      description: Import a device from uradmonitor.com
+      parameters:
+        - name: uradmonitorId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started device import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/importResult"
+  /import/radmon:
+    post:
+      description: Import a device from radmon.org
+      parameters:
+        - name: radmonUsername
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started device import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/importResult"
+
 components:
   schemas:
     location:
@@ -461,4 +593,9 @@ components:
           type: number
         sampleSize:
           type: number
+    importResult:
+      type: object
+      properties:
+        deviceId:
+          type: string
 
