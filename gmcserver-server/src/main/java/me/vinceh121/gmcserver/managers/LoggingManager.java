@@ -84,6 +84,7 @@ public class LoggingManager extends AbstractManager {
 							.updateOne(Filters.eq(this.device.getId()), Updates.set("lastRecordId", this.record.getId()));
 						p.complete();
 					} catch (final Exception e) {
+						log.error("Failed to insert record into DB", e);
 						p.fail(e);
 					}
 				}));
