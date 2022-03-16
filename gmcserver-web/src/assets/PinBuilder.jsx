@@ -39,13 +39,14 @@ function getColor(cpm) {
 
 function gmcCpmPin(props) {
 	const device = props.device;
-	const cpm = device.lastRecord && device.lastRecord.cpm
-		? device.lastRecord.cpm : "";
+	const field = props.field ? props.field : "cpm";
+	const cpm = device.lastRecord && device.lastRecord[field]
+		? device.lastRecord[field] : "";
 	return (
 		"data:image/svg+xml," +
 		encodeURIComponent(
 			cpmPinSvg
-				.replace("{color}", getColor(device.lastRecord.cpm))
+				.replace("{color}", getColor(device.lastRecord.cpm)) // TODO: color ranges per value
 				.replace("{cpm}", cpm)
 		)
 	);

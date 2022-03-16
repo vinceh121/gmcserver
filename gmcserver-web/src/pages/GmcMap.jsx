@@ -20,20 +20,24 @@ import React, { useEffect, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Button, Card, message, Space } from "antd";
+import { Button, Card, message, Select, Space } from "antd";
 import { fetchMap } from "../GmcApi";
 import { Link } from "react-router-dom";
 import gmcCpmPin from "../assets/PinBuilder";
+import { numericRecordFields } from "../GmcTypes";
+
+const { Option } = Select;
 
 function DeviceMarker(props) {
 	const device = props.device;
+	const field = props.field;
 	return (
 		<Marker
 			position={device.location.reverse()} // we return lon/lat, leaflet wants lat/lon
 			icon={L.icon({
 				iconSize: [42, 42],
 				iconAnchor: [16, 32],
-				iconUrl: gmcCpmPin({ device }),
+				iconUrl: gmcCpmPin({ device, field }),
 			})}
 		>
 			<Popup>
@@ -53,6 +57,7 @@ function DeviceMarker(props) {
 function GmcMap() {
 	const [devices, setDevices] = useState(null);
 	const [input, setInput] = useState(null);
+	const [field, setField] = useState(null);
 
 	useEffect(() => {
 		if (input && input.swlon) {
@@ -79,6 +84,19 @@ function GmcMap() {
 		<Card
 			style={{ margin: "16px" }}
 		>
+			<Select
+				onChange={setField}
+				style={{ width: "120px", marginBottom: "16px" }}
+				defaultValue={"cpm"}
+			>
+				{numericRecordFields.map((f, i) => {
+					return (
+						<Option key={i} value={f}>
+							{f}
+						</Option>
+					);
+				})}
+			</Select>
 			<MapContainer
 				center={[48.743611, 18.930556]}
 				zoom={4}
@@ -95,10 +113,10 @@ function GmcMap() {
 					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 				/>
 				{devices ? devices.map((dev) => (
-					<DeviceMarker key={dev.id} device={dev} />
+					<DeviceMarker key={dev.id} device={dev} field={field} />
 				)) : undefined}
 			</MapContainer>
-		</Card >
+		</Card>
 	);
 }
 
