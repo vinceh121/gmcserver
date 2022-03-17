@@ -98,7 +98,8 @@ const logSafecast = async () => {
 			captured_at: DATE,
 			longitude: LON,
 			latitude: LAT
-		})
+		}),
+		headers: { "Content-Type": "application/json" }
 	});
 	const logData = await logRes.text();
 	expect(logRes.status).toBe(200);

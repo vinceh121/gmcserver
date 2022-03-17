@@ -27,7 +27,8 @@ const login = async () => {
 		return TOKEN;
 	const res = await fetch(URL + "/auth/login", {
 		method: "POST",
-		body: JSON.stringify({ username: USERNAME, password: PASSWORD })
+		body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
+		headers: { "Content-Type": "application/json" }
 	});
 	const data = await res.json();
 	return data.token;
@@ -36,11 +37,11 @@ const login = async () => {
 const loginDevice = async (deviceId) => {
 	const token = await login();
 
-	const deviceRes = await fetch(URL + "/device/" + deviceId, { headers: { Authorization: token } });
+	const deviceRes = await fetch(URL + "/device/" + deviceId, { headers: { Authorization: token, "Content-Type": "application/json" } });
 	const deviceData = await deviceRes.json();
 	const deviceGmcId = deviceData.gmcId;
 
-	const userRes = await fetch(URL + "/user/me", { headers: { Authorization: token } });
+	const userRes = await fetch(URL + "/user/me", { headers: { Authorization: token, "Content-Type": "application/json" } });
 	const userData = await userRes.json();
 	const userGmcId = userData.gmcId;
 
