@@ -35,8 +35,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.UnwindOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
@@ -413,7 +413,7 @@ public class DeviceManager extends AbstractManager {
 				.getCollection(Device.class)
 				.aggregate(Arrays.asList(Aggregates.match(Filters.eq(this.id)),
 						Aggregates.lookup("records", "lastRecordId", "_id", "lastRecord"),
-						Aggregates.unwind("$lastRecord")))
+						Aggregates.unwind("$lastRecord", new UnwindOptions().preserveNullAndEmptyArrays(true))))
 				.first();
 
 			if (dev == null) {
