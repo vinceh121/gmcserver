@@ -256,7 +256,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final GetDeviceAction action = this.srv.getDeviceManager().getDevice().setId(deviceId);
+		final GetDeviceAction action = this.srv.getDeviceManager().getDevice().setFetchLastRecord(true).setId(deviceId);
 
 		action.execute().onSuccess(dev -> {
 			final User user = ctx.get(AuthHandler.USER_KEY);

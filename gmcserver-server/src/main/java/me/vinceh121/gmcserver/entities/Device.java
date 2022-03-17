@@ -155,6 +155,12 @@ public class Device extends AbstractEntity {
 			obj.put("location", this.location.getCoordinates().getValues());
 		}
 		obj.put("owner", this.getOwner().toHexString());
+		obj.remove("lastRecordId");
+		if (this.getLastRecord() == null) {
+			obj.remove("lastRecord");
+		} else {
+			obj.put("lastRecord", this.getLastRecord().toJson());
+		}
 		return obj;
 	}
 
@@ -168,6 +174,8 @@ public class Device extends AbstractEntity {
 		obj.remove("lastRecordId");
 		if (this.getLastRecord() == null) {
 			obj.remove("lastRecord");
+		} else {
+			obj.put("lastRecord", this.getLastRecord().toPublicJson());
 		}
 		return obj;
 	}
