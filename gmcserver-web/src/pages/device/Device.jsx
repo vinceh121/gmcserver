@@ -166,6 +166,12 @@ function Device() {
 								{device.location[1]}, {device.location[0]}
 							</Descriptions.Item>
 						) : undefined}
+
+						{device.lastRecord ? (
+							<Descriptions.Item label="Last record">
+								{moment(device.lastRecord.date).fromNow()}
+							</Descriptions.Item>
+						) : undefined}
 					</Descriptions>
 					<Tabs defaultActiveKey="timeline">
 						<TabPane tab="Timeline" key="timeline">
