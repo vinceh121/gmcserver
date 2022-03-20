@@ -233,15 +233,9 @@ public class GMCServer {
 		webHandler.setIncludeHidden(false);
 		webHandler.setAllowRootFileSystemAccess(true);
 		webHandler.setWebRoot(this.config.getProperty("web.root"));
-		webRouter.route().handler(ctx -> {
-			// single-page app routing hack
-			if (!"/".equals(ctx.normalizedPath())) {
-				ctx.reroute("/");
-			} else {
-				ctx.next();
-			}
-		}).handler(webHandler);
+		webRouter.route().handler(webHandler).handler(ctx -> ctx.reroute("/"));
 		this.baseRouter.mountSubRouter("/", webRouter);
+
 	}
 
 	private void setupEventBusCodecs() {
