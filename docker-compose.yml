@@ -1,0 +1,35 @@
+version: '3.7'
+services:
+  gmcserver:
+    build: .
+    environment:
+      # Values from config.properties can be included as environment variables
+      # Convert from dot notation to snake case and prefix with GMC_
+      # Values for the parameters below should be provided in a .env file
+      GMC_MONGO_CONSTRING: 'mongodb://${MONGODB_USER:-root}:${MONGODB_PASSWORD:-hunter2}@mongodb'
+      GMC_MONGO_DATABASE: '${MONGODB_DB_NAME:-gmcserver}'
+      GMC_SERVER_HOST: 0.0.0.0
+      GMC_SERVER_PORT: 8080
+      GMC_WEB_ENABLED: 'true'
+      GMC_WEB_ROOT: /build/gmcserver-web
+    ports:
+      - '8080:8080'
+    depends_on:
+      - gmc_mongodb
+    links:
+      - 'gmc_mongodb:mongodb'
+    # You can also include a config.properties
+    # The environment variables above take precident over the config.properties
+    # volumes:
+    #  - ./config.properties:/build/config.properties
+
+  gmc_mongodb:
+    image: 'mongo:latest'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '${MONGODB_USER:-root}'
+      MONGO_INITDB_ROOT_PASSWORD: '${MONGODB_PASSWORD:-hunter2}'
+      MONGO_INITDB_DATABASE: '${MONGODB_DB_NAME:-gmcserver}'
+    ports:
+      - '27017:27017'
+    volumes:
+      - './gmc_mongodb_data:/data/db'
