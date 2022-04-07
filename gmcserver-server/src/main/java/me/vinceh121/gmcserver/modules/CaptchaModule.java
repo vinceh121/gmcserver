@@ -24,7 +24,7 @@ import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
 
 public class CaptchaModule extends AbstractModule {
-	private final String captchaUrl, inputType, level, media;
+	private final String captchaUrl, inputType, level, media, size;
 
 	public CaptchaModule(final GMCServer srv) {
 		super(srv);
@@ -32,6 +32,7 @@ public class CaptchaModule extends AbstractModule {
 		this.inputType = this.srv.getConfig().getProperty("captcha.input-type");
 		this.level = this.srv.getConfig().getProperty("captcha.level");
 		this.media = this.srv.getConfig().getProperty("captcha.media");
+		this.size = this.srv.getConfig().getProperty("captcha.size");
 
 		this.registerRoute(HttpMethod.GET, "/captcha", this::handleCaptchaGet);
 	}
@@ -50,7 +51,8 @@ public class CaptchaModule extends AbstractModule {
 			.as(BodyCodec.jsonObject())
 			.sendJsonObject(new JsonObject().put("input_type", this.inputType)
 				.put("level", this.level)
-				.put("media", this.media))
+				.put("media", this.media)
+				.put("size", this.size))
 			.onSuccess(res -> {
 				final String captchaId = res.body().getString("id");
 				ctx.response().end(new JsonObject().put("id", captchaId).toBuffer());
