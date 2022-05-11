@@ -17,11 +17,14 @@
  */
 package me.vinceh121.gmcserver.modules;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
 
 import org.bson.types.ObjectId;
 
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 
@@ -46,6 +49,7 @@ import me.vinceh121.gmcserver.managers.LoggingManager;
 import me.vinceh121.gmcserver.managers.UserManager.GetUserAction;
 
 public class DeviceModule extends AbstractModule {
+	public static final DateFormat LAST_MODIFIED_DATE = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss ZZZ");
 
 	public DeviceModule(final GMCServer srv) {
 		super(srv);
@@ -183,7 +187,7 @@ public class DeviceModule extends AbstractModule {
 		final Point loc;
 		if (obj.containsKey("location") && obj.getValue("location") instanceof JsonArray) {
 			final JsonArray arr = obj.getJsonArray("location");
-			
+
 			if (arr.size() != 2 && arr.size() != 3) {
 				this.error(ctx, 400, "Invalid location");
 				return;
@@ -194,7 +198,7 @@ public class DeviceModule extends AbstractModule {
 					return;
 				}
 			}
-			
+
 			final double longitude = arr.getDouble(0);
 			final double latitude = arr.getDouble(1);
 			final double altitude = arr.getDouble(2);
@@ -333,22 +337,42 @@ public class DeviceModule extends AbstractModule {
 				.setFull(full)
 				.setDev(dev);
 			histAction.execute().onSuccess(hist -> {
+				final Record firstRec = hist.first();
+				if (firstRec != null) {
+					final Date lastDate = firstRec.getDate();
+					ctx.response().putHeader("Last-Modified", LAST_MODIFIED_DATE.format(lastDate));
+
+					if (ctx.request().headers().contains("If-Modified-Since")) {
+						try {
+							final Date reqDate = LAST_MODIFIED_DATE.parse(ctx.request().getHeader("If-Modified-Since"));
+							if (lastDate.after(reqDate) || lastDate.equals(reqDate)) {
+								// timeline hasn't changed since last request
+								ctx.response().setStatusCode(304).end();
+								return;
+							}
+						} catch (ParseException e) {
+							this.error(ctx, 400, "Invalid If-Modified-Since date");
+							return;
+						}
+					}
+				}
+
 				ctx.response().setChunked(true);
 
 				ctx.response().write("[");
 
-				final Iterator<Record> recs = hist.iterator();
-
-				recs.forEachRemaining(r -> {
-					if (user != null && user.getId().equals(dev.getOwner())) {
-						ctx.response().write(r.toJson().toString());
-					} else {
-						ctx.response().write(r.toPublicJson().toString());
-					}
-					if (recs.hasNext()) {
-						ctx.response().write(",");
-					}
-				});
+				try (final MongoCursor<Record> recs = hist.iterator()) {
+					recs.forEachRemaining(r -> {
+						if (user != null && user.getId().equals(dev.getOwner())) {
+							ctx.response().write(r.toJson().toString());
+						} else {
+							ctx.response().write(r.toPublicJson().toString());
+						}
+						if (recs.hasNext()) {
+							ctx.response().write(",");
+						}
+					});
+				}
 				ctx.response().write("]");
 				ctx.response().end();
 			}).onFailure(t -> this.error(ctx, 500, t.getMessage()));

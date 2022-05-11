@@ -205,7 +205,7 @@ public class DeviceManager extends AbstractManager {
 	 * Returns an iterable that allows streaming a device's timeline, in full or
 	 * within given limits.
 	 */
-	public class DeviceFullTimelineAction extends AbstractAction<Iterable<Record>> {
+	public class DeviceFullTimelineAction extends AbstractAction<FindIterable<Record>> {
 		private Device dev;
 		private Date start, end;
 		private boolean full;
@@ -215,7 +215,7 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		@Override
-		protected void executeSync(final Promise<Iterable<Record>> promise) {
+		protected void executeSync(final Promise<FindIterable<Record>> promise) {
 
 			final Collection<Bson> filters = new Vector<>();
 
