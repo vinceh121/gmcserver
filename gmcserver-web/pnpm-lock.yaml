@@ -2,53 +2,147 @@ lockfileVersion: 5.4
 
 specifiers:
   '@ant-design/icons': ^4.7.0
+  '@babel/core': ^7.16.0
   '@craco/craco': ^6.4.3
   '@nivo/calendar': ^0.68.0
   '@nivo/core': ^0.68.0
   '@nivo/line': ^0.68.0
   '@nivo/tooltip': ^0.68.0
+  '@pmmmwh/react-refresh-webpack-plugin': ^0.5.3
+  '@svgr/webpack': ^5.5.0
   '@testing-library/jest-dom': ^5.16.4
   '@testing-library/react': ^10.4.9
   '@testing-library/user-event': ^7.2.1
   '@types/react-router-dom': ^5.3.3
   antd: ^4.20.4
+  babel-jest: ^27.4.2
+  babel-loader: ^8.2.3
+  babel-plugin-named-asset-import: ^0.3.8
+  babel-preset-react-app: ^10.0.1
+  bfj: ^7.0.2
+  browserslist: ^4.18.1
+  camelcase: ^6.2.1
+  case-sensitive-paths-webpack-plugin: ^2.4.0
   color-hash: ^2.0.1
   craco-less: ^2.0.0
+  css-loader: ^6.5.1
+  css-minimizer-webpack-plugin: ^3.2.0
+  dotenv: ^10.0.0
+  dotenv-expand: ^5.1.0
+  eslint: ^8.3.0
+  eslint-config-react-app: ^7.0.0
+  eslint-webpack-plugin: ^3.1.1
+  file-loader: ^6.2.0
+  fs-extra: ^10.0.0
+  html-webpack-plugin: ^5.5.0
+  identity-obj-proxy: ^3.0.0
+  jest: ^27.4.3
+  jest-resolve: ^27.4.2
+  jest-watch-typeahead: ^1.0.0
   leaflet: ^1.8.0
+  less-loader: ^10.2.0
+  mini-css-extract-plugin: ^2.4.5
   moment: ^2.29.3
+  postcss: ^8.4.4
+  postcss-flexbugs-fixes: ^5.0.2
+  postcss-loader: ^6.2.1
+  postcss-normalize: ^10.0.1
+  postcss-preset-env: ^7.0.1
+  prompts: ^2.4.2
   react: ^16.14.0
+  react-app-polyfill: ^3.0.0
+  react-dev-utils: ^12.0.0
   react-dom: ^16.14.0
   react-leaflet: 3.1.0
   react-qr-code: ^1.1.1
+  react-refresh: ^0.11.0
   react-router-dom: ^5.3.1
-  react-scripts: 5.0.0
+  resolve: ^1.20.0
+  resolve-url-loader: ^4.0.0
+  sass-loader: ^12.3.0
+  semver: ^7.3.5
   snarkdown: ^2.0.0
+  source-map-loader: ^3.0.0
+  style-loader: ^3.3.1
+  tailwindcss: ^3.0.2
+  terser-webpack-plugin: ^5.2.5
   typescript: ^4.6.4
+  webpack: ^5.64.4
+  webpack-dev-server: ^4.6.0
+  webpack-manifest-plugin: ^4.0.2
+  workbox-webpack-plugin: ^6.4.1
 
 dependencies:
   '@ant-design/icons': 4.7.0_wcqkhtmu7mswc6yz4uyexck3ty
-  '@craco/craco': 6.4.3_bw7wcfqasimmvmivcpix3qf63m
+  '@babel/core': 7.17.10
+  '@craco/craco': 6.4.3_typescript@4.6.4
   '@nivo/calendar': 0.68.0_iyyzy7lttm7e52ewsb37dblpua
   '@nivo/core': 0.68.0_4yxzhuypk3l4jolm3ndm5npz4q
   '@nivo/line': 0.68.0_iyyzy7lttm7e52ewsb37dblpua
   '@nivo/tooltip': 0.68.0_iyyzy7lttm7e52ewsb37dblpua
+  '@pmmmwh/react-refresh-webpack-plugin': 0.5.6_cduugdvdzx7dfkit7irvewwovq
+  '@svgr/webpack': 5.5.0
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 10.4.9_wcqkhtmu7mswc6yz4uyexck3ty
   '@testing-library/user-event': 7.2.1
   '@types/react-router-dom': 5.3.3
   antd: 4.20.4_wcqkhtmu7mswc6yz4uyexck3ty
+  babel-jest: 27.5.1_@babel+core@7.17.10
+  babel-loader: 8.2.5_we4j6ycntotymd3gptdmlkk2fi
+  babel-plugin-named-asset-import: 0.3.8_@babel+core@7.17.10
+  babel-preset-react-app: 10.0.1
+  bfj: 7.0.2
+  browserslist: 4.20.3
+  camelcase: 6.3.0
+  case-sensitive-paths-webpack-plugin: 2.4.0
   color-hash: 2.0.1
-  craco-less: 2.0.0_m22jzgnpmwoxyiyfbug3q4dekm
+  craco-less: 2.0.0_x25vm344assi42xvgkavwvywvy
+  css-loader: 6.7.1_webpack@5.72.1
+  css-minimizer-webpack-plugin: 3.4.1_webpack@5.72.1
+  dotenv: 10.0.0
+  dotenv-expand: 5.1.0
+  eslint: 8.15.0
+  eslint-config-react-app: 7.0.1_dd4i5mzpotzxf2zfmskcgyw5ia
+  eslint-webpack-plugin: 3.1.1_hh6scbnshc6m7pi3schtvhblta
+  file-loader: 6.2.0_webpack@5.72.1
+  fs-extra: 10.1.0
+  html-webpack-plugin: 5.5.0_webpack@5.72.1
+  identity-obj-proxy: 3.0.0
+  jest: 27.5.1
+  jest-resolve: 27.5.1
+  jest-watch-typeahead: 1.1.0_jest@27.5.1
   leaflet: 1.8.0
+  less-loader: 10.2.0_webpack@5.72.1
+  mini-css-extract-plugin: 2.6.0_webpack@5.72.1
   moment: 2.29.3
+  postcss: 8.4.13
+  postcss-flexbugs-fixes: 5.0.2_postcss@8.4.13
+  postcss-loader: 6.2.1_yokl3cbwhadljnh75p6ymh6bce
+  postcss-normalize: 10.0.1_3a4j5usjtoc23kersryedrwazm
+  postcss-preset-env: 7.5.0_postcss@8.4.13
+  prompts: 2.4.2
   react: 16.14.0
+  react-app-polyfill: 3.0.0
+  react-dev-utils: 12.0.1_zudz4vp6oszo6itumaaaxpnhja
   react-dom: 16.14.0_react@16.14.0
   react-leaflet: 3.1.0_itwcxlfi5bjznio5tx2hps7v5m
   react-qr-code: 1.1.1_react@16.14.0
+  react-refresh: 0.11.0
   react-router-dom: 5.3.1_react@16.14.0
-  react-scripts: 5.0.0_v66w5x2htfvwa4ww5uvd2tqp7a
+  resolve: 1.22.0
+  resolve-url-loader: 4.0.0
+  sass-loader: 12.6.0_webpack@5.72.1
+  semver: 7.3.7
   snarkdown: 2.0.0
+  source-map-loader: 3.0.1_webpack@5.72.1
+  style-loader: 3.3.1_webpack@5.72.1
+  tailwindcss: 3.0.24
+  terser-webpack-plugin: 5.3.1_webpack@5.72.1
   typescript: 4.6.4
+  webpack: 5.72.1
+  webpack-dev-server: 4.9.0_webpack@5.72.1
+  webpack-manifest-plugin: 4.1.1_webpack@5.72.1
+  workbox-webpack-plugin: 6.5.3_webpack@5.72.1
 
 packages:
 
@@ -1457,7 +1551,7 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: false
 
-  /@craco/craco/6.4.3_bw7wcfqasimmvmivcpix3qf63m:
+  /@craco/craco/6.4.3_typescript@4.6.4:
     resolution: {integrity: sha512-RzkXYmNzRCGUyG7mM+IUMM+nvrpSfA34352sPSGQN76UivAmCAht3sI4v5JKgzO05oUK9Zwi6abCKD7iKXI8hQ==}
     engines: {node: '>=6'}
     hasBin: true
@@ -1468,7 +1562,6 @@ packages:
       cosmiconfig-typescript-loader: 1.0.9_typescript@4.6.4
       cross-spawn: 7.0.3
       lodash: 4.17.21
-      react-scripts: 5.0.0_v66w5x2htfvwa4ww5uvd2tqp7a
       semver: 7.3.7
       webpack-merge: 4.2.2
     transitivePeerDependencies:
@@ -4190,16 +4283,15 @@ packages:
       yaml: 1.10.2
     dev: false
 
-  /craco-less/2.0.0_m22jzgnpmwoxyiyfbug3q4dekm:
+  /craco-less/2.0.0_x25vm344assi42xvgkavwvywvy:
     resolution: {integrity: sha512-980mQaZVrC4ZsvOwvud6/AgvW7fLY3mW5m5+gR4sw4krxszgHb+qoRyOjqsYPD0F4oUmQoSiZSrlYY/bFGD9kQ==}
     peerDependencies:
       '@craco/craco': ^6.0.0
       react-scripts: ^5.0.0
     dependencies:
-      '@craco/craco': 6.4.3_bw7wcfqasimmvmivcpix3qf63m
+      '@craco/craco': 6.4.3_typescript@4.6.4
       less: 4.1.2
-      less-loader: 7.3.0_less@4.1.2
-      react-scripts: 5.0.0_v66w5x2htfvwa4ww5uvd2tqp7a
+      less-loader: 7.3.0_less@4.1.2+webpack@5.72.1
     transitivePeerDependencies:
       - supports-color
       - webpack
@@ -7124,7 +7216,18 @@ packages:
     resolution: {integrity: sha512-gwhMjFCQiYs3x/Sf+d49f10ERXaEFCPr+nVTryhAW8DWbMGqJqt9G4XuIaHmFW08zYvhgdzqXGr8AlW8v8dQkA==}
     dev: false
 
-  /less-loader/7.3.0_less@4.1.2:
+  /less-loader/10.2.0_webpack@5.72.1:
+    resolution: {integrity: sha512-AV5KHWvCezW27GT90WATaDnfXBv99llDbtaj4bshq6DvAihMdNjaPDcUMa6EXKLRF+P2opFenJp89BXg91XLYg==}
+    engines: {node: '>= 12.13.0'}
+    peerDependencies:
+      less: ^3.5.0 || ^4.0.0
+      webpack: ^5.0.0
+    dependencies:
+      klona: 2.0.5
+      webpack: 5.72.1
+    dev: false
+
+  /less-loader/7.3.0_less@4.1.2+webpack@5.72.1:
     resolution: {integrity: sha512-Mi8915g7NMaLlgi77mgTTQvK022xKRQBIVDSyfl3ErTuBhmZBQab0mjeJjNNqGbdR+qrfTleKXqbGI4uEFavxg==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -7135,6 +7238,7 @@ packages:
       less: 4.1.2
       loader-utils: 2.0.2
       schema-utils: 3.1.1
+      webpack: 5.72.1
     dev: false
 
   /less/4.1.2:
@@ -9502,102 +9606,6 @@ packages:
       react-is: 16.13.1
       tiny-invariant: 1.2.0
       tiny-warning: 1.0.3
-    dev: false
-
-  /react-scripts/5.0.0_v66w5x2htfvwa4ww5uvd2tqp7a:
-    resolution: {integrity: sha512-3i0L2CyIlROz7mxETEdfif6Sfhh9Lfpzi10CtcGs1emDQStmZfWjJbAIMtRD0opVUjQuFWqHZyRZ9PPzKCFxWg==}
-    engines: {node: '>=14.0.0'}
-    hasBin: true
-    peerDependencies:
-      react: '>= 16'
-      typescript: ^3.2.1 || ^4
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@babel/core': 7.17.10
-      '@pmmmwh/react-refresh-webpack-plugin': 0.5.6_cduugdvdzx7dfkit7irvewwovq
-      '@svgr/webpack': 5.5.0
-      babel-jest: 27.5.1_@babel+core@7.17.10
-      babel-loader: 8.2.5_we4j6ycntotymd3gptdmlkk2fi
-      babel-plugin-named-asset-import: 0.3.8_@babel+core@7.17.10
-      babel-preset-react-app: 10.0.1
-      bfj: 7.0.2
-      browserslist: 4.20.3
-      camelcase: 6.3.0
-      case-sensitive-paths-webpack-plugin: 2.4.0
-      css-loader: 6.7.1_webpack@5.72.1
-      css-minimizer-webpack-plugin: 3.4.1_webpack@5.72.1
-      dotenv: 10.0.0
-      dotenv-expand: 5.1.0
-      eslint: 8.15.0
-      eslint-config-react-app: 7.0.1_dd4i5mzpotzxf2zfmskcgyw5ia
-      eslint-webpack-plugin: 3.1.1_hh6scbnshc6m7pi3schtvhblta
-      file-loader: 6.2.0_webpack@5.72.1
-      fs-extra: 10.1.0
-      html-webpack-plugin: 5.5.0_webpack@5.72.1
-      identity-obj-proxy: 3.0.0
-      jest: 27.5.1
-      jest-resolve: 27.5.1
-      jest-watch-typeahead: 1.1.0_jest@27.5.1
-      mini-css-extract-plugin: 2.6.0_webpack@5.72.1
-      postcss: 8.4.13
-      postcss-flexbugs-fixes: 5.0.2_postcss@8.4.13
-      postcss-loader: 6.2.1_yokl3cbwhadljnh75p6ymh6bce
-      postcss-normalize: 10.0.1_3a4j5usjtoc23kersryedrwazm
-      postcss-preset-env: 7.5.0_postcss@8.4.13
-      prompts: 2.4.2
-      react: 16.14.0
-      react-app-polyfill: 3.0.0
-      react-dev-utils: 12.0.1_zudz4vp6oszo6itumaaaxpnhja
-      react-refresh: 0.11.0
-      resolve: 1.22.0
-      resolve-url-loader: 4.0.0
-      sass-loader: 12.6.0_webpack@5.72.1
-      semver: 7.3.7
-      source-map-loader: 3.0.1_webpack@5.72.1
-      style-loader: 3.3.1_webpack@5.72.1
-      tailwindcss: 3.0.24
-      terser-webpack-plugin: 5.3.1_webpack@5.72.1
-      typescript: 4.6.4
-      webpack: 5.72.1
-      webpack-dev-server: 4.9.0_webpack@5.72.1
-      webpack-manifest-plugin: 4.1.1_webpack@5.72.1
-      workbox-webpack-plugin: 6.5.3_webpack@5.72.1
-    optionalDependencies:
-      fsevents: 2.3.2
-    transitivePeerDependencies:
-      - '@babel/plugin-syntax-flow'
-      - '@babel/plugin-transform-react-jsx'
-      - '@parcel/css'
-      - '@swc/core'
-      - '@types/babel__core'
-      - '@types/webpack'
-      - bufferutil
-      - canvas
-      - clean-css
-      - csso
-      - debug
-      - esbuild
-      - eslint-import-resolver-typescript
-      - eslint-import-resolver-webpack
-      - fibers
-      - node-notifier
-      - node-sass
-      - rework
-      - rework-visit
-      - sass
-      - sass-embedded
-      - sockjs-client
-      - supports-color
-      - ts-node
-      - type-fest
-      - uglify-js
-      - utf-8-validate
-      - vue-template-compiler
-      - webpack-cli
-      - webpack-hot-middleware
-      - webpack-plugin-serve
     dev: false
 
   /react-spring/9.1.2_wcqkhtmu7mswc6yz4uyexck3ty:

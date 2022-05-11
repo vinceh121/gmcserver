@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CracoLessPlugin = require("craco-less");
-
 const config = {
 	devServer: {
 		proxy: {
@@ -30,19 +28,24 @@ const config = {
 			},
 		},
 	},
-	plugins: [
-		{
-			plugin: CracoLessPlugin,
-			options: {
-				lessLoaderOptions: {
-					lessOptions: {
-						modifyVars: { "@primary-color": "#ff5722" },
-						javascriptEnabled: true,
-					},
-				},
-			},
-		},
-	],
+	module: {
+		rules: [
+			{
+				test: /\.less$/i,
+				use: [
+					{ loader: "style-loader" },
+					{ loader: "css-loader" },
+					{
+						loader: "less-loader",
+						lessOptions: {
+							modifyVars: { "@primary-color": "#ff5722" },
+							javascriptEnabled: true,
+						}
+					}
+				]
+			}
+		]
+	}
 };
 
 module.exports = config;
