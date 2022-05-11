@@ -42,6 +42,7 @@
     "jest-resolve": "^27.4.2",
     "jest-watch-typeahead": "^1.0.0",
     "leaflet": "^1.8.0",
+    "less": "^4.1.2",
     "less-loader": "^10.2.0",
     "mini-css-extract-plugin": "^2.4.5",
     "moment": "^2.29.3",
@@ -149,5 +150,6 @@
     "presets": [
       "react-app"
     ]
-  }
+  },
+  "proxy": "http://gmc.vinceh121.me"
 }

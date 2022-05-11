@@ -40,6 +40,7 @@ specifiers:
   jest-resolve: ^27.4.2
   jest-watch-typeahead: ^1.0.0
   leaflet: ^1.8.0
+  less: ^4.1.2
   less-loader: ^10.2.0
   mini-css-extract-plugin: ^2.4.5
   moment: ^2.29.3
@@ -112,7 +113,8 @@ dependencies:
   jest-resolve: 27.5.1
   jest-watch-typeahead: 1.1.0_jest@27.5.1
   leaflet: 1.8.0
-  less-loader: 10.2.0_webpack@5.72.1
+  less: 4.1.2
+  less-loader: 10.2.0_less@4.1.2+webpack@5.72.1
   mini-css-extract-plugin: 2.6.0_webpack@5.72.1
   moment: 2.29.3
   postcss: 8.4.13
@@ -7216,7 +7218,7 @@ packages:
     resolution: {integrity: sha512-gwhMjFCQiYs3x/Sf+d49f10ERXaEFCPr+nVTryhAW8DWbMGqJqt9G4XuIaHmFW08zYvhgdzqXGr8AlW8v8dQkA==}
     dev: false
 
-  /less-loader/10.2.0_webpack@5.72.1:
+  /less-loader/10.2.0_less@4.1.2+webpack@5.72.1:
     resolution: {integrity: sha512-AV5KHWvCezW27GT90WATaDnfXBv99llDbtaj4bshq6DvAihMdNjaPDcUMa6EXKLRF+P2opFenJp89BXg91XLYg==}
     engines: {node: '>= 12.13.0'}
     peerDependencies:
@@ -7224,6 +7226,7 @@ packages:
       webpack: ^5.0.0
     dependencies:
       klona: 2.0.5
+      less: 4.1.2
       webpack: 5.72.1
     dev: false
 
