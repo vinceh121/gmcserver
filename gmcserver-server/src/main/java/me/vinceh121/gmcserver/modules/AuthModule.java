@@ -45,7 +45,7 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private void handleRegister(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final String username = obj.getString("username");
 		if (username == null) {
@@ -134,7 +134,7 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private void handleLogin(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final String username = obj.getString("username");
 		final String password = obj.getString("password");
@@ -163,7 +163,7 @@ public class AuthModule extends AbstractModule {
 	}
 
 	private void handleSubmitMfa(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final Integer pass = obj.getInteger("pass");
 		if (pass == null) {
@@ -213,7 +213,7 @@ public class AuthModule extends AbstractModule {
 				ctx.response().end(new JsonObject().put("mfaUri", res).toBuffer());
 			}).onFailure(t -> this.error(ctx, 500, "Failed to setup MFA: " + t.getMessage()));
 		} else {
-			final Integer pass = ctx.getBodyAsJson().getInteger("pass");
+			final Integer pass = ctx.body().asJsonObject().getInteger("pass");
 			if (pass == null) {
 				this.error(ctx, 400, "Missing pass");
 				return;
@@ -239,7 +239,7 @@ public class AuthModule extends AbstractModule {
 			return;
 		}
 
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final Integer pass = obj.getInteger("pass");
 		if (pass == null) {

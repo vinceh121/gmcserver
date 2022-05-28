@@ -64,7 +64,7 @@ public class DeviceModule extends AbstractModule {
 	}
 
 	private void handleCreateDevice(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final User user = ctx.get(AuthHandler.USER_KEY);
 
@@ -131,7 +131,7 @@ public class DeviceModule extends AbstractModule {
 				return;
 			}
 
-			final JsonObject obj = ctx.getBodyAsJson();
+			final JsonObject obj = ctx.body().asJsonObject();
 			final boolean delete = obj.getBoolean("delete");
 
 			this.srv.getDeviceManager()
@@ -165,7 +165,7 @@ public class DeviceModule extends AbstractModule {
 			return;
 		}
 
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final String name = obj.getString("name");
 		if (name != null && name.length() > 2 && name.length() < 64) {

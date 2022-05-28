@@ -366,7 +366,7 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final long gmcDeviceId;
 		try {
