@@ -55,7 +55,7 @@ public class ImportExportModule extends AbstractModule {
 	}
 
 	private void handleImportGmcMap(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 		if (obj == null) {
 			this.error(ctx, 400, "Invalid JSON");
 			return;
@@ -89,7 +89,7 @@ public class ImportExportModule extends AbstractModule {
 	}
 
 	private void handleImportSafecast(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 		if (obj == null) {
 			this.error(ctx, 400, "Invalid JSON");
 			return;
@@ -133,7 +133,7 @@ public class ImportExportModule extends AbstractModule {
 	}
 
 	private void handleImportURadMonitor(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 		if (obj == null) {
 			this.error(ctx, 400, "Invalid JSON");
 			return;
@@ -180,7 +180,7 @@ public class ImportExportModule extends AbstractModule {
 	}
 
 	private void handleImportRadmon(final RoutingContext ctx) {
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 		if (obj == null) {
 			this.error(ctx, 400, "Invalid JSON");
 			return;

@@ -102,7 +102,7 @@ public class UserModule extends AbstractModule {
 
 	private void handleUpdateMe(final RoutingContext ctx) {
 		final User user = ctx.get(AuthHandler.USER_KEY);
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final String username = obj.getString("username");
 
@@ -161,7 +161,7 @@ public class UserModule extends AbstractModule {
 
 	private void handleDeleteMe(final RoutingContext ctx) {
 		final User user = ctx.get(AuthHandler.USER_KEY);
-		final JsonObject obj = ctx.getBodyAsJson();
+		final JsonObject obj = ctx.body().asJsonObject();
 
 		final String password = obj.getString("password");
 		if (password == null) {

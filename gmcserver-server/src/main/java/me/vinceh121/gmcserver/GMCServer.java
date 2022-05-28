@@ -47,6 +47,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import me.vinceh121.gmcserver.auth.AbstractAuthenticator;
 import me.vinceh121.gmcserver.auth.InternalAuthenticator;
@@ -200,7 +201,7 @@ public class GMCServer {
 		this.srv.requestHandler(this.baseRouter);
 
 		this.apiRouter = Router.router(this.vertx);
-		this.baseRouter.mountSubRouter("/api/v1/", this.apiRouter);
+		this.baseRouter.route("/api/v1/*").subRouter(this.apiRouter);
 		this.apiRouter.errorHandler(500, ctx -> GMCServer.LOG.error("Unexpected error in API", ctx.failure()));
 
 		this.bodyHandler = BodyHandler.create();
@@ -229,13 +230,11 @@ public class GMCServer {
 	private void setupWebRouter(final Vertx vertx) {
 		GMCServer.LOG.info("Starting web server");
 		final Router webRouter = Router.router(vertx);
-		final StaticHandler webHandler = StaticHandler.create();
+		final StaticHandler webHandler = StaticHandler.create(FileSystemAccess.ROOT,
+				this.config.getProperty("web.root"));
 		webHandler.setIncludeHidden(false);
-		webHandler.setAllowRootFileSystemAccess(true);
-		webHandler.setWebRoot(this.config.getProperty("web.root"));
 		webRouter.route().handler(webHandler).handler(ctx -> ctx.reroute("/"));
-		this.baseRouter.mountSubRouter("/", webRouter);
-
+		this.baseRouter.route("/*").subRouter(webRouter);
 	}
 
 	private void setupEventBusCodecs() {
