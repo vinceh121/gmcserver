@@ -72,7 +72,16 @@ function Device() {
 
 	useEffect(() => {
 		fetchDevice(id).then(
-			(device) => setDevice(device),
+			(device) => {
+				if (!searchParams.has("start") && !searchParams.has("end") && device.lastRecord) {
+					const lastRec = device.lastRecord.date;
+					setInput({
+						start: new Date(lastRec - 12 * 60 * 60 * 1000), // 12h before last record date
+						end: new Date(lastRec)
+					});
+				}
+				setDevice(device);
+			},
 			(error) => setDeviceError(error)
 		);
 	}, [id]);

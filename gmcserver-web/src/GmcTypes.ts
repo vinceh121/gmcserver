@@ -17,7 +17,7 @@
  */
 
 export interface Record {
-	date: Date;
+	date: number;
 	cpm: number;
 	acpm: number;
 	usv: number;
