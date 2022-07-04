@@ -70,10 +70,12 @@ function Device() {
 	const [exportType, setExportType] = useState();
 	const { id } = useParams();
 
+	const hasParams = !searchParams.has("start") && !searchParams.has("end")
+
 	useEffect(() => {
 		fetchDevice(id).then(
 			(device) => {
-				if (!searchParams.has("start") && !searchParams.has("end") && device.lastRecord) {
+				if (hasParams && device.lastRecord) {
 					const lastRec = device.lastRecord.date;
 					setInput({
 						start: new Date(lastRec - 12 * 60 * 60 * 1000), // 12h before last record date
@@ -84,7 +86,7 @@ function Device() {
 			},
 			(error) => setDeviceError(error)
 		);
-	}, [id]);
+	}, [id, hasParams]);
 
 	useEffect(() => {
 		if (device) {
