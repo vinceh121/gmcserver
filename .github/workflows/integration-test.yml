@@ -24,6 +24,9 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
     - name: Dependencies
       run: sudo apt-get update && sudo apt-get install npm && sudo npm install -g pnpm
     - name: Build with Maven

@@ -32,7 +32,9 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
       ########## BUILD
     - name: Build package
       run: dpkg-buildpackage -b

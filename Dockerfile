@@ -14,13 +14,13 @@ RUN PATH_CONFIG=./config.properties \
 	PATH_MAIL_TEMPLATES=./gmcserver-email/ \
 	make -e
 
-FROM node:16.2.0-buster AS builder-web
+FROM node:16-buster AS builder-web
 WORKDIR /build
 COPY gmcserver-web/ .
 RUN npm install -g pnpm && \
 	make
 
-FROM node:16.2.0-buster AS builder-email
+FROM node:16-buster AS builder-email
 WORKDIR /build
 COPY gmcserver-email/ .
 RUN npm install -g pnpm && \
