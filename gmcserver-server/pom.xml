@@ -6,7 +6,8 @@
 	<artifactId>gmcserver</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>GMCServer</name>
-	<description>Lightweight server to log, analyze and proxy data measured by internet connected Geiger counters</description>
+	<description>Lightweight server to log, analyze and proxy data measured by
+		internet connected Geiger counters</description>
 	<url>https://home.gmc.vinceh121.me</url>
 
 	<licenses>
@@ -66,11 +67,17 @@
 			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-pg-client</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>2.13.4.2</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-csv -->
+		<!--
+		https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-csv -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-csv</artifactId>
@@ -82,21 +89,18 @@
 			<version>1.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-sync</artifactId>
-			<version>4.1.2</version>
-		</dependency>
-		<dependency>
 			<groupId>de.mkammerer</groupId>
 			<artifactId>argon2-jvm</artifactId>
 			<version>2.7</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+		<!--
+		https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.17.1</version>
-		</dependency><!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
+		</dependency><!--
+		https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
@@ -108,7 +112,8 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.14</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
+		<!--
+		https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
@@ -133,7 +138,8 @@
 			<version>2.1.1</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+		<!--
+		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
@@ -186,7 +192,8 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M5</version>
 				<dependencies>
-					<!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-runner -->
+					<!--
+					https://mvnrepository.com/artifact/org.junit.platform/junit-platform-runner -->
 					<dependency>
 						<groupId>org.junit.platform</groupId>
 						<artifactId>junit-platform-runner</artifactId>
@@ -220,7 +227,8 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.basedir}/target/me/vinceh121/gmcserver/</outputDirectory>
+							<outputDirectory>
+								${project.basedir}/target/me/vinceh121/gmcserver/</outputDirectory>
 							<resources>
 								<resource>
 									<directory>

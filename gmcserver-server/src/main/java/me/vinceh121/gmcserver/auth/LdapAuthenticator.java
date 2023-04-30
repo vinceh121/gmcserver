@@ -31,10 +31,10 @@ import org.ldaptive.auth.Authenticator;
 import org.ldaptive.auth.SearchDnResolver;
 import org.ldaptive.auth.SimpleBindAuthenticationHandler;
 
-import com.mongodb.client.model.Filters;
-
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.sqlclient.Tuple;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
@@ -94,23 +94,27 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 		final String uid = e.getAttribute(this.fieldUid).getStringValue();
 		final String email = e.getAttribute(this.fieldEmail).getStringValue();
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.eq("username", uid))
-			.first();
+		this.srv.getDatabaseManager()
+			.getClient()
+			.preparedQuery("SELECT * FROM users WHERE username=$1")
+			.execute(Tuple.of(uid))
+			.onSuccess(res -> {
+				final User user = DatabaseManager.mapRowset(res.iterator().next(), User.class);
 
-		if (user != null) {
-			promise.complete(user);
-		} else {
-			LdapAuthenticator.LOG.info("First login for LDAP user {} <{}>", uid, email);
-			final CreateUserAction userCreate = this.srv.getUserManager()
-				.createUser()
-				.setEmail(email)
-				.setGenerateGmcId(true)
-				.setPassword(null)
-				.setUsername(uid);
-			userCreate.execute().onSuccess(promise::complete).onFailure(promise::fail);
-		}
+				if (user != null) {
+					promise.complete(user);
+				} else {
+					LdapAuthenticator.LOG.info("First login for LDAP user {} <{}>", uid, email);
+					final CreateUserAction userCreate = this.srv.getUserManager()
+						.createUser()
+						.setEmail(email)
+						.setGenerateGmcId(true)
+						.setPassword(null)
+						.setUsername(uid);
+					userCreate.execute().onSuccess(promise::complete).onFailure(promise::fail);
+				}
+			})
+			.onFailure(promise::fail);
 	}
 
 	@Override

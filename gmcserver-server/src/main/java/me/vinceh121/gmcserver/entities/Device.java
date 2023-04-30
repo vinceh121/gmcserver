@@ -19,18 +19,15 @@ package me.vinceh121.gmcserver.entities;
 
 import java.util.Date;
 import java.util.Map;
-
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.model.geojson.Point;
+import java.util.UUID;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.data.Point;
 
 public class Device extends AbstractEntity {
 	private String model, name, importedFrom;
 	private Point location;
-	private ObjectId owner, lastRecordId;
+	private UUID owner, lastRecordId;
 	private long gmcId;
 	private boolean disabled;
 	private Date lastEmailAlert = new Date(0L);
@@ -46,11 +43,11 @@ public class Device extends AbstractEntity {
 		this.gmcId = gmcId;
 	}
 
-	public ObjectId getOwner() {
+	public UUID getOwner() {
 		return this.owner;
 	}
 
-	public void setOwner(final ObjectId owner) {
+	public void setOwner(final UUID owner) {
 		this.owner = owner;
 	}
 
@@ -126,11 +123,11 @@ public class Device extends AbstractEntity {
 		this.proxiesSettings = proxiesSettings;
 	}
 
-	public ObjectId getLastRecordId() {
+	public UUID getLastRecordId() {
 		return lastRecordId;
 	}
 
-	public Device setLastRecordId(ObjectId lastRecordId) {
+	public Device setLastRecordId(UUID lastRecordId) {
 		this.lastRecordId = lastRecordId;
 		return this;
 	}
@@ -138,7 +135,6 @@ public class Device extends AbstractEntity {
 	/**
 	 * Aggregated field
 	 */
-	@BsonIgnore
 	public Record getLastRecord() {
 		return lastRecord;
 	}
@@ -152,9 +148,9 @@ public class Device extends AbstractEntity {
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
 		if (this.location != null) {
-			obj.put("location", this.location.getCoordinates().getValues());
+			obj.put("location", new double[] { this.location.x, this.location.y });
 		}
-		obj.put("owner", this.getOwner().toHexString());
+		obj.put("owner", this.getOwner().toString());
 		obj.remove("lastRecordId");
 		if (this.getLastRecord() == null) {
 			obj.remove("lastRecord");
@@ -182,9 +178,9 @@ public class Device extends AbstractEntity {
 
 	public JsonObject toMapJson() {
 		final JsonObject obj = new JsonObject();
-		obj.put("id", this.getId().toHexString());
+		obj.put("id", this.getId().toString());
 		obj.put("name", this.getName());
-		obj.put("location", this.location.getCoordinates().getValues());
+		obj.put("location", new double[] { this.location.x, this.location.y });
 		obj.put("lastRecord", this.getLastRecord().toPublicJson());
 		return obj;
 	}

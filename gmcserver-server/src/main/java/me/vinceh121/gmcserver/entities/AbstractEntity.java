@@ -17,25 +17,24 @@
  */
 package me.vinceh121.gmcserver.entities;
 
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.vertx.core.json.JsonObject;
 
 public abstract class AbstractEntity {
-	private ObjectId id = new ObjectId();
+	private UUID id = UUID.randomUUID();
 
 	public AbstractEntity() {
-		this.id = new ObjectId();
+		this.id = UUID.randomUUID();
 	}
 
-	public ObjectId getId() {
+	public UUID getId() {
 		return this.id;
 	}
 
-	public void setId(final ObjectId id) {
+	public void setId(final UUID id) {
 		this.id = id;
 	}
 
@@ -45,7 +44,6 @@ public abstract class AbstractEntity {
 	}
 
 	@JsonIgnore
-	@BsonIgnore
 	public JsonObject toPublicJson() {
 		return this.toJson();
 	}

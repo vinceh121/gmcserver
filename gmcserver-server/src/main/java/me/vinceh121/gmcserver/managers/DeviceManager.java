@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.bson.BsonNull;
@@ -31,20 +32,23 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UnwindOptions;
 import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 import com.mongodb.client.result.UpdateResult;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.data.Point;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.Tuple;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
@@ -67,8 +71,7 @@ public class DeviceManager extends AbstractManager {
 	}
 
 	private static Point jsonArrToPoint(final JsonArray arr) {
-		final Position pos = new Position(arr.getDouble(0), arr.getDouble(1));
-		final Point point = new Point(pos);
+		final Point point = new Point(arr.getDouble(0), arr.getDouble(1));
 		return point;
 	}
 
@@ -129,7 +132,7 @@ public class DeviceManager extends AbstractManager {
 	 */
 	public class DeviceStatsAction extends AbstractAction<DeviceStats> {
 		private String field;
-		private ObjectId devId;
+		private UUID devId;
 		private int sampleSize = 1000;
 		private Date start, end;
 
@@ -165,11 +168,11 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
-		public ObjectId getDevId() {
+		public UUID getDevId() {
 			return this.devId;
 		}
 
-		public DeviceStatsAction setDevId(final ObjectId devId) {
+		public DeviceStatsAction setDevId(final UUID devId) {
 			this.devId = devId;
 			return this;
 		}
@@ -205,7 +208,7 @@ public class DeviceManager extends AbstractManager {
 	 * Returns an iterable that allows streaming a device's timeline, in full or
 	 * within given limits.
 	 */
-	public class DeviceFullTimelineAction extends AbstractAction<FindIterable<Record>> {
+	public class DeviceFullTimelineAction extends AbstractAction<Iterable<Record>> {
 		private Device dev;
 		private Date start, end;
 		private boolean full;
@@ -215,7 +218,7 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		@Override
-		protected void executeSync(final Promise<FindIterable<Record>> promise) {
+		protected void executeSync(final Promise<Iterable<Record>> promise) {
 
 			final Collection<Bson> filters = new Vector<>();
 
@@ -229,7 +232,7 @@ public class DeviceManager extends AbstractManager {
 				filters.add(Filters.lte("date", this.end));
 			}
 
-			final FindIterable<Record> it = this.srv.getDatabaseManager()
+			final Iterable<Record> it = this.srv.getDatabaseManager()
 				.getCollection(Record.class)
 				.find(Filters.and(filters));
 			it.sort(Sorts.descending("date"));
@@ -286,8 +289,8 @@ public class DeviceManager extends AbstractManager {
 	 * Throws {@code IllegalStateException} if the database didn't acknowledge the
 	 * update.
 	 */
-	public class UpdateDeviceAction extends AbstractAction<Long> {
-		private ObjectId deviceId;
+	public class UpdateDeviceAction extends AbstractAction<Void> {
+		private UUID deviceId;
 		private String name, model;
 		private Point location;
 		private JsonObject proxiesSettings;
@@ -297,19 +300,29 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		@Override
-		protected void executeSync(final Promise<Long> promise) {
-			final List<Bson> updates = new Vector<>();
+		protected void executeSync(final Promise<Void> promise) {
+			@SuppressWarnings("rawtypes") // bad vertx, CompositeFuture.all doesn't use proper type args
+			List<Future> updates = new ArrayList<>(3);
 
 			if (this.name != null) {
-				updates.add(Updates.set("name", this.name));
+				updates.add(this.srv.getDatabaseManager()
+					.getClient()
+					.preparedQuery("UPDATE devices SET name=$1 WHERE id=$2")
+					.execute(Tuple.of(this.name, this.deviceId)));
 			}
 
 			if (this.model != null) {
-				updates.add(Updates.set("model", this.model));
+				updates.add(this.srv.getDatabaseManager()
+					.getClient()
+					.preparedQuery("UPDATE devices SET model=$1 WHERE id=$2")
+					.execute(Tuple.of(this.model, this.deviceId)));
 			}
 
 			if (this.location != null) {
-				updates.add(Updates.set("location", this.location));
+				updates.add(this.srv.getDatabaseManager()
+					.getClient()
+					.preparedQuery("UPDATE devices SET location=$1 WHERE id=$2")
+					.execute(Tuple.of(this.location, this.deviceId)));
 			}
 
 			if (this.proxiesSettings != null) {
@@ -319,20 +332,13 @@ public class DeviceManager extends AbstractManager {
 						return;
 					}
 				}
-				updates.add(Updates.set("proxiesSettings", this.proxiesSettings.getMap()));
+				updates.add(this.srv.getDatabaseManager()
+						.getClient()
+						.preparedQuery("UPDATE devices SET proxiesSettings=$1 WHERE id=$2")
+						.execute(Tuple.of(this.proxiesSettings, this.deviceId)));
 			}
 
-			final UpdateResult res = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.updateOne(Filters.eq(this.deviceId), Updates.combine(updates));
-
-			if (res.getMatchedCount() == 0) {
-				promise.fail(new EntityNotFoundException("Device not found"));
-			} else if (res.wasAcknowledged()) {
-				promise.complete(res.getModifiedCount());
-			} else {
-				promise.fail(new IllegalStateException("Failed to save changes"));
-			}
+			CompositeFuture.all(updates).onSuccess(f -> promise.complete()).onFailure(promise::fail);
 		}
 
 		public UpdateDeviceAction setDevice(final Device device) {
@@ -367,11 +373,11 @@ public class DeviceManager extends AbstractManager {
 			return this;
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public UpdateDeviceAction setDeviceId(ObjectId deviceId) {
+		public UpdateDeviceAction setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -392,7 +398,7 @@ public class DeviceManager extends AbstractManager {
 	 * Throws a {@code EntityNotFoundException} if the device was not found.
 	 */
 	public class GetDeviceAction extends AbstractAction<Device> {
-		private ObjectId id;
+		private UUID id;
 		private boolean fetchLastRecord;
 
 		public GetDeviceAction(final GMCServer srv) {
@@ -438,11 +444,11 @@ public class DeviceManager extends AbstractManager {
 			promise.complete(dev);
 		}
 
-		public ObjectId getId() {
+		public UUID getId() {
 			return this.id;
 		}
 
-		public GetDeviceAction setId(final ObjectId id) {
+		public GetDeviceAction setId(final UUID id) {
 			this.id = id;
 			return this;
 		}

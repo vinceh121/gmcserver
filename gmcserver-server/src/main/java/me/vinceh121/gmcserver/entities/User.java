@@ -17,8 +17,6 @@
  */
 package me.vinceh121.gmcserver.entities;
 
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.vertx.core.json.JsonObject;
@@ -115,9 +113,8 @@ public class User extends AbstractEntity implements IAccount {
 
 	@Override
 	@JsonIgnore
-	@BsonIgnore
 	public String getTokenId() {
-		return this.getId().toHexString();
+		return this.getId().toString();
 	}
 
 	@Override

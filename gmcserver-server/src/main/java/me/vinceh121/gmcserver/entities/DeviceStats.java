@@ -17,13 +17,13 @@
  */
 package me.vinceh121.gmcserver.entities;
 
-import org.bson.types.ObjectId;
+import java.util.UUID;
 
 import io.vertx.core.json.JsonObject;
 
 public class DeviceStats extends AbstractEntity {
 	private String field;
-	private ObjectId device;
+	private UUID device;
 	private double avg, min, max, stdDev;
 	private int sampleSize;
 
@@ -35,11 +35,11 @@ public class DeviceStats extends AbstractEntity {
 		this.field = field;
 	}
 
-	public ObjectId getDevice() {
+	public UUID getDevice() {
 		return this.device;
 	}
 
-	public void setDevice(final ObjectId device) {
+	public void setDevice(final UUID device) {
 		this.device = device;
 	}
 

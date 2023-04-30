@@ -20,21 +20,21 @@ package me.vinceh121.gmcserver.entities;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 public class DeviceCalendar extends AbstractEntity {
-	private ObjectId deviceId;
+	private UUID deviceId;
 	private Date createdAt = new Date(0L);
 	private List<Document> recs = Collections.emptyList();
 	private boolean inProgress;
 
-	public ObjectId getDeviceId() {
+	public UUID getDeviceId() {
 		return this.deviceId;
 	}
 
-	public void setDeviceId(final ObjectId deviceId) {
+	public void setDeviceId(final UUID deviceId) {
 		this.deviceId = deviceId;
 	}
 

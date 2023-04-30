@@ -17,9 +17,9 @@
  */
 package me.vinceh121.gmcserver.auth;
 
-import com.mongodb.client.model.Filters;
-
 import io.vertx.core.Future;
+import io.vertx.sqlclient.Tuple;
+import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.exceptions.AuthenticationException;
@@ -40,26 +40,29 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 	@Override
 	public Future<User> login(final String username, final String password) {
 		return Future.future(promise -> {
-			final User user = this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.find(Filters.or(Filters.eq("username", username), Filters.eq("email", username)))
-				.first();
+			this.srv.getDatabaseManager()
+				.getClient()
+				.preparedQuery("SELECT * FROM users WHERE username=$1 AND email=$2")
+				.execute(Tuple.of(username, password))
+				.onSuccess(res -> {
+					final User user = DatabaseManager.mapRowset(res.iterator().next(), User.class);
 
-			if (user == null) {
-				promise.fail(new EntityNotFoundException("User not found"));
-				return;
-			}
+					if (user == null) {
+						promise.fail(new EntityNotFoundException("User not found"));
+						return;
+					}
 
-			if (user.getPassword() == null) {
-				promise.fail(new IllegalStateException("User account disabled"));
-				return;
-			}
+					if (user.getPassword() == null) {
+						promise.fail(new IllegalStateException("User account disabled"));
+						return;
+					}
 
-			if (!this.srv.getArgon().verify(user.getPassword(), password.toCharArray())) {
-				promise.fail(new AuthenticationException("Invalid password"));
-				return;
-			}
-			promise.complete(user);
+					if (!this.srv.getArgon().verify(user.getPassword(), password.toCharArray())) {
+						promise.fail(new AuthenticationException("Invalid password"));
+						return;
+					}
+					promise.complete(user);
+				}).onFailure(promise::fail);
 		});
 	}
 

@@ -25,18 +25,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.bson.types.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.data.Point;
 
 public class Record extends AbstractEntity {
 	public static final Collection<String> STAT_FIELDS = Arrays
@@ -62,18 +59,18 @@ public class Record extends AbstractEntity {
 			"idTube" // optional: tube type ID TODO
 	);
 
-	private ObjectId deviceId;
+	private UUID deviceId;
 	private double cpm = Double.NaN, acpm = Double.NaN, usv = Double.NaN, co2 = Double.NaN, hcho = Double.NaN,
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
 	private Date date;
 	private String ip, type;
 	private Point location;
 
-	public ObjectId getDeviceId() {
+	public UUID getDeviceId() {
 		return this.deviceId;
 	}
 
-	public void setDeviceId(final ObjectId deviceId) {
+	public void setDeviceId(final UUID deviceId) {
 		this.deviceId = deviceId;
 	}
 
@@ -265,19 +262,18 @@ public class Record extends AbstractEntity {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public JsonObject toJson() {
 		final JsonObject obj = super.toJson();
 		if (this.location != null) {
-			obj.put("location", this.location.getCoordinates().getValues());
+			obj.put("location", new double[] { this.location.x, this.location.y });
 		}
 		return obj;
 	}
 
 	@Override
 	@JsonIgnore
-	@BsonIgnore
 	public JsonObject toPublicJson() {
 		final JsonObject obj = this.toJson();
 		obj.remove("id");
@@ -328,7 +324,7 @@ public class Record extends AbstractEntity {
 		public Builder() {
 		}
 
-		public Builder withDevice(final ObjectId id) {
+		public Builder withDevice(final UUID id) {
 			this.record.setDeviceId(id);
 			return this;
 		}
@@ -372,7 +368,8 @@ public class Record extends AbstractEntity {
 		public Builder withGmcPosition(final MultiMap params) {
 			final String rawLon = params.get("lon");
 			final String rawLat = params.get("lat");
-			final String rawAlt = params.get("alt");
+			// FIXME here I removed the altitude since Postgres doesn't support it. Might
+			// wanna add it as a separate field.
 
 			if (rawLat == null || rawLon == null) {
 				return this;
@@ -385,13 +382,7 @@ public class Record extends AbstractEntity {
 			values.add(lon);
 			values.add(lat);
 
-			if (rawAlt != null) {
-				final double alt = Double.parseDouble(rawAlt);
-				values.add(alt);
-			}
-
-			final Position pos = new Position(values);
-			final Point point = new Point(pos);
+			final Point point = new Point(lon, lat);
 			this.record.setLocation(point);
 			return this;
 		}
