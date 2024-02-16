@@ -75,7 +75,7 @@ public class LoggingManager extends AbstractManager {
 			if (this.insertInDb) {
 				joinedFutures.add(Future.future(p -> {
 					this.srv.getDatabaseManager()
-						.update("INSERT INTO records VALUES")
+						.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 						.mapFrom(Record.class)
 						.execute(this.record)
 						.onSuccess(e -> p.complete())

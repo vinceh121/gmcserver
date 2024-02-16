@@ -109,7 +109,7 @@ public class DeviceCalendarManager extends AbstractManager {
 			cal.setInProgress(true);
 
 			this.srv.getDatabaseManager()
-				.update("INSERT INTO calendar VALUES")
+				.update("INSERT INTO calendar VALUES (" + DeviceCalendar.sqlFields() + ")")
 				.mapFrom(DeviceCalendar.class)
 				.execute(cal)
 				.onSuccess(r -> {

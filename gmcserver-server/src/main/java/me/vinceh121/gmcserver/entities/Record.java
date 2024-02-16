@@ -318,6 +318,10 @@ public class Record extends AbstractEntity {
 				+ ", location=" + this.location + "]";
 	}
 
+	public static String sqlFields() {
+		return AbstractEntity.sqlFields(Record.class);
+	}
+
 	public static class Builder { // XXX this will need a big clean up but at least it splits stuff
 		private final Record record = new Record();
 

@@ -89,4 +89,8 @@ public class DeviceStats extends AbstractEntity {
 		obj.remove("id");
 		return obj;
 	}
+
+	public static String sqlFields() {
+		return AbstractEntity.sqlFields(DeviceStats.class);
+	}
 }

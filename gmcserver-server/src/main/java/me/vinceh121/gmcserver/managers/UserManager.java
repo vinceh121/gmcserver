@@ -20,7 +20,6 @@ package me.vinceh121.gmcserver.managers;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +31,7 @@ import java.util.regex.Pattern;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.Tuple;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
@@ -96,14 +96,17 @@ public class UserManager extends AbstractManager {
 			this.srv.getDatabaseManager()
 				.query("SELECT * FROM users WHERE " + (this.gmcId == null ? "id = #{id}" : "gmcId = #{gmcId}"))
 				.mapTo(User.class)
-				.execute(Map.of("id", this.id, "gmcId", this.gmcId))
+				.execute(this.gmcId == null ? Map.of("id", this.id) : Map.of("gmcId", this.gmcId))
 				.onSuccess(rowSet -> {
-					User user = rowSet.iterator().next();
-					if (user != null) {
-						promise.complete(user);
-					} else {
+					final RowIterator<User> iter = rowSet.iterator();
+
+					if (!iter.hasNext()) {
 						promise.fail(new EntityNotFoundException("Failed to get user"));
+						return;
 					}
+
+					final User user = iter.next();
+					promise.complete(user);
 				})
 				.onFailure(promise::fail);
 		}
@@ -256,8 +259,7 @@ public class UserManager extends AbstractManager {
 				user.setGmcId(this.gmcId);
 			}
 
-			@SuppressWarnings("rawtypes")
-			List<Future> checks = new ArrayList<>(2);
+			List<Future<?>> checks = new ArrayList<>(2);
 			// FIXME rely on UNIQUE constraints
 			if (this.checkUsernameAvailable) {
 				checks.add(Future.future(p -> {
@@ -291,10 +293,10 @@ public class UserManager extends AbstractManager {
 				}));
 			}
 
-			CompositeFuture.all(checks).onSuccess(f -> {
+			Future.all(checks).onSuccess(f -> {
 				if (this.insertInDb) {
 					this.srv.getDatabaseManager()
-						.update("INSERT INTO users VALUES")
+						.update("INSERT INTO users VALUES (" + User.sqlFields() + ")")
 						.mapFrom(User.class)
 						.execute(user)
 						.onSuccess(e -> promise.complete(user))

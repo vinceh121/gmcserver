@@ -17,11 +17,15 @@
  */
 package me.vinceh121.gmcserver.entities;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 
 public abstract class AbstractEntity {
 	private UUID id = UUID.randomUUID();
@@ -45,5 +49,15 @@ public abstract class AbstractEntity {
 	@JsonIgnore
 	public JsonObject toPublicJson() {
 		return this.toJson();
+	}
+
+	public static String sqlFields(final Class<? extends AbstractEntity> cls) {
+		final List<BeanPropertyDefinition> list = DatabindCodec.mapper()
+			.writerFor(cls)
+			.getConfig()
+			.introspect(DatabindCodec.mapper().constructType(cls))
+			.findProperties();
+
+		return list.stream().map(p -> "#{" + p.getName() + "}").collect(Collectors.joining(","));
 	}
 }

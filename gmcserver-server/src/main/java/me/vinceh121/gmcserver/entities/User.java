@@ -148,4 +148,7 @@ public class User extends AbstractEntity implements IAccount {
 		return this.getUsername() + " (" + this.getId().toString() + ")";
 	}
 
+	public static String sqlFields() {
+		return AbstractEntity.sqlFields(User.class);
+	}
 }

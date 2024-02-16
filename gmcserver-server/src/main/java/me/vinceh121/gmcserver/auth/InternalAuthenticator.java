@@ -20,6 +20,7 @@ package me.vinceh121.gmcserver.auth;
 import java.util.Collections;
 
 import io.vertx.core.Future;
+import io.vertx.sqlclient.RowIterator;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.exceptions.AuthenticationException;
@@ -45,12 +46,14 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 				.mapTo(User.class)
 				.execute(Collections.singletonMap("username", username))
 				.onSuccess(rowSet -> {
-					final User user = rowSet.iterator().next();
+					final RowIterator<User> iter = rowSet.iterator();
 
-					if (user == null) {
+					if (!iter.hasNext()) {
 						promise.fail(new EntityNotFoundException("User not found"));
 						return;
 					}
+
+					final User user = iter.next();
 
 					if (user.getPassword() == null) {
 						promise.fail(new IllegalStateException("User account disabled"));

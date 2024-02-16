@@ -19,8 +19,10 @@ package me.vinceh121.gmcserver;
 
 import java.util.Map;
 
+import io.vertx.core.tracing.TracingPolicy;
+import io.vertx.pgclient.PgBuilder;
 import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -29,24 +31,28 @@ import io.vertx.sqlclient.templates.SqlTemplate;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
 public class DatabaseManager extends AbstractManager {
-	private final PgPool pool;
+	private final Pool pool;
 
 	public DatabaseManager(final GMCServer srv) {
 		super(srv);
+
 		final PgConnectOptions optsConfig;
-		if (srv.getConfig().contains("db.uri")) {
+
+		if (srv.getConfig().containsKey("db.uri")) {
 			optsConfig = PgConnectOptions.fromUri(srv.getConfig().getProperty("db.uri"));
 		} else {
 			optsConfig = new PgConnectOptions();
 		}
 
 		final PgConnectOptions optsEnv = PgConnectOptions.fromEnv();
-		final PgConnectOptions optsEffective = optsConfig.merge(optsEnv.toJson());
+		final PgConnectOptions optsEffective = optsEnv.merge(optsConfig.toJson());
+		
+		optsEffective.setTracingPolicy(TracingPolicy.ALWAYS);
 
 		final PoolOptions poolOpts = new PoolOptions();
 		poolOpts.setMaxSize(5);
 
-		this.pool = PgPool.pool(srv.getVertx(), optsEffective, poolOpts);
+		this.pool = PgBuilder.pool().with(poolOpts).connectingTo(optsEffective).build();
 
 		this.checkIndexes();
 	}
@@ -55,7 +61,7 @@ public class DatabaseManager extends AbstractManager {
 	private void checkIndexes() {
 	}
 
-	public PgPool getPool() {
+	public Pool getPool() {
 		return this.pool;
 	}
 

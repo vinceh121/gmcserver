@@ -59,4 +59,8 @@ public class DeviceCalendar extends AbstractEntity {
 	public void setInProgress(final boolean inProgress) {
 		this.inProgress = inProgress;
 	}
+
+	public static String sqlFields() {
+		return AbstractEntity.sqlFields(DeviceCalendar.class);
+	}
 }

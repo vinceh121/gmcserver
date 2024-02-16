@@ -184,4 +184,8 @@ public class Device extends AbstractEntity {
 		obj.put("lastRecord", this.getLastRecord().toPublicJson());
 		return obj;
 	}
+
+	public static String sqlFields() {
+		return AbstractEntity.sqlFields(Device.class);
+	}
 }

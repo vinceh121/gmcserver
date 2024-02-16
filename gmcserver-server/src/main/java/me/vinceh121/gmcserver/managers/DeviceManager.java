@@ -612,15 +612,15 @@ public class DeviceManager extends AbstractManager {
 					}
 					dev.setLocation(location);
 
-					promise.complete(dev);
-
 					if (this.insertInDb) {
 						this.srv.getDatabaseManager()
-							.update("INSERT INTO devices VALUES")
+							.update("INSERT INTO devices VALUES (" + Device.sqlFields() + ")")
 							.mapFrom(Device.class)
 							.execute(dev)
 							.onSuccess(rs -> promise.complete(dev))
 							.onFailure(promise::fail);
+					} else {
+						promise.complete(dev);
 					}
 				})
 				.onFailure(promise::fail);

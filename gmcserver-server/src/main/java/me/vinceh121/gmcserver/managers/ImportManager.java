@@ -106,7 +106,7 @@ public class ImportManager extends AbstractManager {
 				}
 
 				this.srv.getDatabaseManager()
-					.update("INSERT INTO records VALUES")
+					.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 					.mapFrom(Record.class)
 					.executeBatch(recs)
 					.onSuccess(res -> {
@@ -123,7 +123,7 @@ public class ImportManager extends AbstractManager {
 
 				if (recs.size() != 0) {
 					this.srv.getDatabaseManager()
-						.update("INSERT INTO records VALUES")
+						.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 						.mapFrom(Record.class)
 						.executeBatch(recs)
 						.onSuccess(res -> {
@@ -396,7 +396,7 @@ public class ImportManager extends AbstractManager {
 				}
 
 				this.srv.getDatabaseManager()
-					.update("INSERT INTO records VALUES")
+					.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 					.mapFrom(Record.class)
 					.executeBatch(recs)
 					.onSuccess(res -> {
@@ -415,7 +415,7 @@ public class ImportManager extends AbstractManager {
 
 				if (recs.size() != 0) {
 					this.srv.getDatabaseManager()
-						.update("INSERT INTO records VALUES")
+						.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 						.mapFrom(Record.class)
 						.executeBatch(recs)
 						.onSuccess(res -> {
@@ -693,7 +693,7 @@ public class ImportManager extends AbstractManager {
 					}
 
 					this.srv.getDatabaseManager()
-					.update("INSERT INTO records VALUES")
+					.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 					.mapFrom(Record.class)
 					.executeBatch(recs)
 					.onSuccess(r -> {
@@ -760,7 +760,7 @@ public class ImportManager extends AbstractManager {
 								rec.setDate(date);
 								// TODO batch inserts
 								this.srv.getDatabaseManager()
-								.update("INSERT INTO records VALUES")
+								.update("INSERT INTO records VALUES (" + Record.sqlFields() + ")")
 								.mapFrom(Record.class)
 								.execute(rec)
 								.onSuccess(r -> {
