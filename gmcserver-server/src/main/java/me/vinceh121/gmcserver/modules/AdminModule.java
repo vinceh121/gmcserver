@@ -17,7 +17,7 @@
  */
 package me.vinceh121.gmcserver.modules;
 
-import org.bson.types.ObjectId;
+import java.util.UUID;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
@@ -53,7 +53,7 @@ public class AdminModule extends AbstractModule {
 		}
 
 		final Email email = new Email();
-		this.srv.getUserManager().getUser().setId(new ObjectId(to)).execute().onSuccess(user -> {
+		this.srv.getUserManager().getUser().setId(UUID.fromString(to)).execute().onSuccess(user -> {
 			email.setTo(user);
 			email.setTemplate(template);
 			email.setSubject("GMCServer test email");

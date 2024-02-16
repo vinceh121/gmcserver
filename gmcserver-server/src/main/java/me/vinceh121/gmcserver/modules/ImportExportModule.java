@@ -21,11 +21,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.FormattedMessage;
-import org.bson.types.ObjectId;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -60,6 +60,7 @@ public class ImportExportModule extends AbstractModule {
 			this.error(ctx, 400, "Invalid JSON");
 			return;
 		}
+
 		if (!obj.containsKey("gmcmapId")) {
 			this.error(ctx, 400, "Missing 'gmcmapId' parameter");
 			return;
@@ -219,17 +220,17 @@ public class ImportExportModule extends AbstractModule {
 			});
 	}
 
-	private void responseImportStarted(RoutingContext ctx, ObjectId device) {
+	private void responseImportStarted(RoutingContext ctx, UUID device) {
 		ctx.end(new JsonObject().put("deviceId", device).toBuffer());
 	}
 
 	private void handleCsvExport(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
-		final ObjectId deviceId;
+		final UUID deviceId;
 		final Date start, end;
 
 		try {
-			deviceId = new ObjectId(rawDeviceId);
+			deviceId = UUID.fromString(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
@@ -259,7 +260,7 @@ public class ImportExportModule extends AbstractModule {
 
 		ctx.response()
 			.putHeader("Content-Type", "text/csv")
-			.putHeader("Content-Disposition", "attachment; filename=\"gmcserver-" + deviceId.toHexString() + ".csv\"");
+			.putHeader("Content-Disposition", "attachment; filename=\"gmcserver-" + deviceId.toString() + ".csv\"");
 
 		ctx.response().setChunked(true);
 
@@ -284,9 +285,8 @@ public class ImportExportModule extends AbstractModule {
 										r.getUsv(),
 										r.getDate().getTime(),
 										r.getType(),
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0) : "",
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
-												: ""));
+										r.getLocation() != null ? r.getLocation().x : "",
+										r.getLocation() != null ? r.getLocation().y : ""));
 						}
 					} else {
 						ctx.response()
@@ -308,10 +308,8 @@ public class ImportExportModule extends AbstractModule {
 										r.getDate().getTime(),
 										r.getIp(),
 										r.getType(),
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(0)
-												: null,
-										r.getLocation() != null ? r.getLocation().getPosition().getValues().get(1)
-												: null));
+										r.getLocation() != null ? r.getLocation().x : null,
+										r.getLocation() != null ? r.getLocation().y : null));
 						}
 					}
 					ctx.response().end();

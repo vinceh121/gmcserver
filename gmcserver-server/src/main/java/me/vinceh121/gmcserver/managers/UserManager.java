@@ -19,26 +19,23 @@ package me.vinceh121.gmcserver.managers;
 
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionStage;
 import java.util.regex.Pattern;
-
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.sqlclient.Tuple;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
-import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.User;
-import me.vinceh121.gmcserver.exceptions.AuthenticationException;
 import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
 import xyz.bowser65.tokenize.IAccount;
 import xyz.bowser65.tokenize.Token;
@@ -87,7 +84,8 @@ public class UserManager extends AbstractManager {
 	 * Throws {@code EntityNotFoundException} if the user was not found.
 	 */
 	public class GetUserAction extends AbstractAction<User> {
-		private ObjectId id;
+		private UUID id;
+		private Long gmcId;
 
 		public GetUserAction(final GMCServer srv) {
 			super(srv);
@@ -95,20 +93,36 @@ public class UserManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<User> promise) {
-			final User user = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(this.id)).first();
-			if (user != null) {
-				promise.complete(user);
-			} else {
-				promise.fail(new EntityNotFoundException("Failed to get user"));
-			}
+			this.srv.getDatabaseManager()
+				.query("SELECT * FROM users WHERE " + (this.gmcId == null ? "id = #{id}" : "gmcId = #{gmcId}"))
+				.mapTo(User.class)
+				.execute(Map.of("id", this.id, "gmcId", this.gmcId))
+				.onSuccess(rowSet -> {
+					User user = rowSet.iterator().next();
+					if (user != null) {
+						promise.complete(user);
+					} else {
+						promise.fail(new EntityNotFoundException("Failed to get user"));
+					}
+				})
+				.onFailure(promise::fail);
 		}
 
-		public ObjectId getId() {
+		public UUID getId() {
 			return this.id;
 		}
 
-		public GetUserAction setId(final ObjectId id) {
+		public GetUserAction setId(final UUID id) {
 			this.id = id;
+			return this;
+		}
+
+		public Long getGmcId() {
+			return gmcId;
+		}
+
+		public GetUserAction setGmcId(final Long gmcId) {
+			this.gmcId = gmcId;
 			return this;
 		}
 	}
@@ -135,20 +149,19 @@ public class UserManager extends AbstractManager {
 				return;
 			}
 
-			final Token token;
 			try {
-				token = this.srv.getTokenize().validateToken(this.tokenString, this::fetchAccount);
+				this.srv.getTokenize().validateToken(this.tokenString, this::fetchAccount).thenAccept(token -> {
+					if (token == null) {
+						promise.fail(new IllegalStateException("Invalid token"));
+						return;
+					}
+
+					promise.complete(token);
+				});
 			} catch (final SignatureException e) {
 				promise.fail(new SignatureException("Couldn't validate token", e));
 				return;
 			}
-
-			if (token == null) {
-				promise.fail(new IllegalStateException("Invalid token"));
-				return;
-			}
-
-			promise.complete(token);
 		}
 
 		public String getTokenString() {
@@ -160,8 +173,13 @@ public class UserManager extends AbstractManager {
 			return this;
 		}
 
-		private IAccount fetchAccount(final String id) {
-			return this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(new ObjectId(id))).first();
+		private CompletionStage<IAccount> fetchAccount(final String id) {
+			CompletableFuture<IAccount> future = new CompletableFuture<>();
+			getUser().setId(UUID.fromString(id))
+				.execute()
+				.onSuccess(future::complete)
+				.onFailure(future::completeExceptionally);
+			return future;
 		}
 
 	}
@@ -238,27 +256,53 @@ public class UserManager extends AbstractManager {
 				user.setGmcId(this.gmcId);
 			}
 
-			if (this.checkUsernameAvailable && this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.find(Filters.eq("username", this.username))
-				.first() != null) {
-				promise.fail(new IllegalStateException("Username taken"));
-				return;
+			@SuppressWarnings("rawtypes")
+			List<Future> checks = new ArrayList<>(2);
+			// FIXME rely on UNIQUE constraints
+			if (this.checkUsernameAvailable) {
+				checks.add(Future.future(p -> {
+					this.srv.getDatabaseManager()
+						.query("SELECT 1 FROM users WHERE username=#{username}")
+						.execute(Map.of("username", this.username))
+						.onSuccess(rowSet -> {
+							if (rowSet.iterator().hasNext()) {
+								p.fail(new IllegalStateException("Username taken"));
+							} else {
+								p.complete();
+							}
+						})
+						.onFailure(p::fail);
+				}));
 			}
 
-			if (this.checkEmailAvailable && this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.find(Filters.eq("email", this.email))
-				.first() != null) {
-				promise.fail(new IllegalStateException("Email taken"));
-				return;
+			if (this.checkEmailAvailable) {
+				checks.add(Future.future(p -> {
+					this.srv.getDatabaseManager()
+						.query("SELECT 1 FROM users WHERE email=#{email}")
+						.execute(Map.of("email", this.email))
+						.onSuccess(rowSet -> {
+							if (rowSet.iterator().hasNext()) {
+								p.fail(new IllegalStateException("Email taken"));
+							} else {
+								p.complete();
+							}
+						})
+						.onFailure(p::fail);
+				}));
 			}
 
-			promise.complete(user);
-
-			if (this.insertInDb) {
-				this.srv.getDatabaseManager().getCollection(User.class).insertOne(user);
-			}
+			CompositeFuture.all(checks).onSuccess(f -> {
+				if (this.insertInDb) {
+					this.srv.getDatabaseManager()
+						.update("INSERT INTO users VALUES")
+						.mapFrom(User.class)
+						.execute(user)
+						.onSuccess(e -> promise.complete(user))
+						.onFailure(promise::fail);
+				} else {
+					promise.complete(user);
+				}
+			}).onFailure(promise::fail);
 		}
 
 		public String getUsername() {
@@ -345,60 +389,35 @@ public class UserManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			final List<Bson> updates = new Vector<>();
+			this.srv.getDatabaseManager().getPool().withTransaction(conn -> {
+				@SuppressWarnings("rawtypes")
+				final List<Future> updates = new Vector<>();
 
-			if (this.username != null) {
-				if (this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.find(Filters.eq("username", this.username))
-					.first() != null) {
-					promise.fail(new IllegalStateException("Username is taken"));
-					return;
+				if (this.username != null) {
+					updates.add(conn.preparedQuery("UPDATE users SET username = $1 WHERE id = $2")
+						.execute(Tuple.of(this.username, this.user.getId())));
 				}
 
-				updates.add(Updates.set("username", this.username));
-			}
-
-			if (this.email != null) {
-				if (this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.find(Filters.eq("email", this.email))
-					.first() != null) {
-					promise.fail(new IllegalStateException("Email is taken"));
-					return;
+				if (this.email != null) {
+					updates.add(conn.preparedQuery("UPDATE users SET email = $1 WHERE id = $2")
+						.execute(Tuple.of(this.email, this.user.getId())));
 				}
 
-				updates.add(Updates.set("email", this.email));
-			}
-
-			if (this.newPassword != null && this.currentPassword != null) {
-				try {
-					final CompletableFuture<User> fut = this.srv.getAuthenticator()
+				if (this.newPassword != null && this.currentPassword != null) {
+					updates.add(this.srv.getAuthenticator()
 						.login(this.user.getUsername(), this.currentPassword)
-						.toCompletionStage() // FIXME this should be proper future handling
-						.toCompletableFuture();
-
-					if (fut.get() == null && fut.isCompletedExceptionally()) {
-						promise.fail(new AuthenticationException("Failed to authenticate"));
-						return;
-					}
-
-					updates.add(Updates.set("password",
-							this.srv.getArgon().hash(10, 65536, 1, this.newPassword.toCharArray())));
-				} catch (final InterruptedException | ExecutionException e) {
-					promise.fail(e);
-					return;
+						.compose(u -> conn.preparedQuery("UPDATE users SET password = $1 WHERE id = $2")
+							.execute(Tuple.of(this.srv.getArgon().hash(10, 65536, 1, this.newPassword.toCharArray()),
+									this.user.getId()))));
 				}
-			}
 
-			if (this.alertEmails != null) {
-				updates.add(Updates.set("alertEmails", this.alertEmails));
-			}
+				if (this.alertEmails != null) {
+					updates.add(conn.preparedQuery("UPDATE users SET alertEmails = $1 WHERE id = $2")
+						.execute(Tuple.of(this.alertEmails, this.user.getId())));
+				}
 
-			this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.updateOne(Filters.eq(this.user.getId()), Updates.combine(updates));
-			promise.complete();
+				return CompositeFuture.all(updates);
+			}).onSuccess(f -> promise.complete()).onFailure(promise::fail);
 		}
 
 		public User getUser() {
@@ -472,38 +491,13 @@ public class UserManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			try {
-				final CompletableFuture<User> fut = this.srv.getAuthenticator()
+			this.srv.getDatabaseManager()
+				.getPool()
+				.withTransaction(conn -> this.srv.getAuthenticator()
 					.login(this.user.getUsername(), this.confirmPassword)
-					.toCompletionStage() // FIXME this should be proper future handling
-					.toCompletableFuture();
+					.compose(u -> conn.preparedQuery("DELETE FROM users WHERE id = $1")
+						.execute(Tuple.of(this.user.getId()))));
 
-				if (fut.get() == null && fut.isCompletedExceptionally()) {
-					promise.fail(new AuthenticationException("Failed to authenticate"));
-					return;
-				}
-
-			} catch (final InterruptedException | ExecutionException e) {
-				promise.fail(e);
-				return;
-			}
-
-			// If reauth is successful:
-
-			@SuppressWarnings("rawtypes")
-			final List<Future> deletes = new Vector<>();
-
-			for (final Device dev : this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq("owner", this.user.getId()))) {
-				deletes
-					.add(this.srv.getDeviceManager().deleteDevice().setDeviceId(dev.getId()).setDelete(true).execute());
-			}
-
-			CompositeFuture.all(deletes).onSuccess(fut -> {
-				this.srv.getDatabaseManager().getCollection(User.class).deleteOne(Filters.eq(this.user.getId()));
-				promise.complete();
-			}).onFailure(promise::fail);
 		}
 
 		public String getConfirmPassword() {

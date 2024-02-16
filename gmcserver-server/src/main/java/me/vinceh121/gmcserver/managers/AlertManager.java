@@ -18,12 +18,10 @@
 package me.vinceh121.gmcserver.managers;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.message.FormattedMessage;
-
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 
 import io.vertx.core.Promise;
 import me.vinceh121.gmcserver.GMCServer;
@@ -46,8 +44,8 @@ public class AlertManager extends AbstractManager {
 	}
 
 	/**
-	 * Checks if the device's latest record should throw an alert.
-	 * Sends the email if it is required.
+	 * Checks if the device's latest record should throw an alert. Sends the email
+	 * if it is required.
 	 * 
 	 * Returns true if the alter has been throw, false otherwise.
 	 * 
@@ -90,12 +88,22 @@ public class AlertManager extends AbstractManager {
 						email.getContext().put("fieldname", "CPM");
 						email.getContext().put("value", this.latestRecord.getCpm());
 						email.getContext().put("device", this.dev.toPublicJson());
-						email.getContext().put("start", this.latestRecord.getDate().getTime() - TimeUnit.HOURS.toMillis(2));
-						email.getContext().put("end", this.latestRecord.getDate().getTime() + TimeUnit.HOURS.toMillis(2));
+						email.getContext()
+							.put("start", this.latestRecord.getDate().getTime() - TimeUnit.HOURS.toMillis(2));
+						email.getContext()
+							.put("end", this.latestRecord.getDate().getTime() + TimeUnit.HOURS.toMillis(2));
 						this.srv.getEmailManager().sendEmail(email).onSuccess(v -> {
 							this.srv.getDatabaseManager()
-								.getCollection(Device.class)
-								.updateOne(Filters.eq(this.dev.getId()), Updates.set("lastEmailAlert", new Date()));
+								.update("UPDATE devices SET lastEmailAlert = #{lastEmailAlert} WHERE id = #{id}")
+								.execute(Map.of("lastEmailAlert", new Date(), "id", this.dev.getId()))
+								.onSuccess(p -> promise.complete(true))
+								.onFailure(t -> {
+									AlertManager.this.log.error(
+											new FormattedMessage("Failed to update lastEmailAlert for device {}",
+													this.dev),
+											t);
+									promise.fail(new IllegalStateException("Failed to update lastEmailAlert"));
+								});
 						});
 					}
 				})

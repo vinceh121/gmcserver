@@ -68,11 +68,11 @@ public class SafecastProxy extends AbstractProxy {
 			final double latitude, longitude;
 
 			if (r.getLocation() != null) { // prioritize location from individual record, else use device's location
-				longitude = r.getLocation().getPosition().getValues().get(0);
-				latitude = r.getLocation().getPosition().getValues().get(1);
+				longitude = r.getLocation().x;
+				latitude = r.getLocation().x;
 			} else if (dev.getLocation() != null) {
-				longitude = dev.getLocation().getPosition().getValues().get(0);
-				latitude = dev.getLocation().getPosition().getValues().get(1);
+				longitude = dev.getLocation().x;
+				latitude = dev.getLocation().x;
 			} else {
 				p.fail(new IllegalStateException("Nor record or device have position set"));
 				return;

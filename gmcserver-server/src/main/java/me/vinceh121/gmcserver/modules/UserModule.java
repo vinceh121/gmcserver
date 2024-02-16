@@ -17,12 +17,12 @@
  */
 package me.vinceh121.gmcserver.modules;
 
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.logging.log4j.message.FormattedMessage;
-import org.bson.types.ObjectId;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Filters;
-
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -47,7 +47,7 @@ public class UserModule extends AbstractModule {
 	private void handleMe(final RoutingContext ctx) {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 		if (user != null) {
-			ctx.reroute(HttpMethod.GET, "/api/v1/user/" + user.getId().toHexString());
+			ctx.reroute(HttpMethod.GET, "/api/v1/user/" + user.getId().toString());
 		} else {
 			this.error(ctx, 404, "Not logged in");
 		}
@@ -56,48 +56,54 @@ public class UserModule extends AbstractModule {
 	private void handleUser(final RoutingContext ctx) {
 		final User authUser = ctx.get(AuthHandler.USER_KEY);
 
-		final ObjectId requestedId;
+		final UUID requestedId;
 		try {
-			requestedId = new ObjectId(ctx.pathParam("id"));
+			requestedId = UUID.fromString(ctx.pathParam("id"));
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid ID");
 			return;
 		}
 
-		final User user;
-		if (authUser != null && requestedId.equals(authUser.getId())) {
-			user = authUser;
-		} else {
-			user = this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(requestedId)).first();
-		}
-
-		if (user == null) {
-			this.error(ctx, 404, "User not found");
-			return;
-		}
-
-		final JsonObject obj;
-		if (authUser != null && requestedId.equals(authUser.getId())) {
-			obj = user.toJson();
-			if (user.getDeviceLimit() == -1) {
-				obj.put("deviceLimit", Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit")));
+		Future.succeededFuture().compose(v -> {
+			final User user;
+			if (authUser != null && requestedId.equals(authUser.getId())) {
+				return Future.succeededFuture(authUser);
+			} else {
+				return this.srv.getUserManager().getUser().setId(requestedId).execute();
 			}
-		} else {
-			obj = user.toPublicJson();
-		}
 
-		obj.put("self", authUser != null && requestedId.equals(authUser.getId()));
+		}).onSuccess(user -> {
+			if (user == null) {
+				this.error(ctx, 404, "User not found");
+				return;
+			}
 
-		final JsonArray devs = new JsonArray();
+			final JsonObject obj;
+			if (authUser != null && requestedId.equals(authUser.getId())) {
+				obj = user.toJson();
+				if (user.getDeviceLimit() == -1) {
+					obj.put("deviceLimit", Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit")));
+				}
+			} else {
+				obj = user.toPublicJson();
+			}
 
-		final FindIterable<Device> it = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("owner", user.getId()));
-		it.forEach(d -> devs.add(d.toPublicJson()));
+			obj.put("self", authUser != null && requestedId.equals(authUser.getId()));
 
-		obj.put("devices", devs);
+			this.srv.getDatabaseManager()
+				.query("SELECT * FROM devices WHERE user = #{id}")
+				.mapTo(Device.class)
+				.execute(Map.of("id", user.getId()))
+				.onSuccess(rowSet -> {
+					final JsonArray devs = new JsonArray();
+					rowSet.forEach(d -> devs.add(d.toPublicJson()));
 
-		ctx.response().end(obj.toBuffer());
+					obj.put("devices", devs);
+
+					ctx.response().end(obj.toBuffer());
+				})
+				.onFailure(t -> this.error(ctx, 500, t.toString()));
+		}).onFailure(t -> this.error(ctx, 500, t.toString()));
 	}
 
 	private void handleUpdateMe(final RoutingContext ctx) {

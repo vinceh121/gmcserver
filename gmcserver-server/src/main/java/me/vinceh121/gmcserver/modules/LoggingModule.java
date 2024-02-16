@@ -23,18 +23,15 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
+import java.util.Map;
+import java.util.UUID;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.pgclient.data.Point;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
@@ -100,57 +97,68 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.eq("gmcId", gmcUserId))
-			.first();
-		if (user == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
-			return;
-		}
+		this.srv.getDatabaseManager()
+			.query("SELECT * FROM users WHERE gmcid = #{gmcId}")
+			.mapTo(User.class)
+			.execute(Map.of("gmcId", gmcUserId))
+			.onSuccess(userRowSet -> {
+				final User user = userRowSet.iterator().next();
 
-		final Device device = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("gmcId", gmcDeviceId))
-			.first();
-		if (device == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
-			return;
-		}
+				if (user == null) {
+					this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
+					return;
+				}
 
-		if (device.getOwner() == null) {
-			this.log.error("Device with no owner: {}", device.getId());
-			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				this.srv.getDatabaseManager()
+					.query("SELECT * FROM devices WHERE gmcid = #{gmcId}")
+					.mapTo(Device.class)
+					.execute(Map.of("gmcId", gmcUserId))
+					.onSuccess(deviceRowSet -> {
+						final Device device = deviceRowSet.iterator().next();
 
-		if (!user.getId().equals(device.getOwner())) {
-			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+						if (device == null) {
+							this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
+							return;
+						}
 
-		final Builder build = new Record.Builder();
-		build.withGmcParams(ctx.request().params())
-			.withGmcPosition(ctx.request().params())
-			.withCurrentDate()
-			.withDevice(device.getId());
+						if (device.getOwner() == null) {
+							this.log.error("Device with no owner: {}", device.getId());
+							this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+							return;
+						}
 
-		final Record rec = build.build();
+						if (!user.getId().equals(device.getOwner())) {
+							this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+							return;
+						}
 
-		this.setRecordIp(ctx, rec);
+						final Builder build = new Record.Builder();
+						build.withGmcParams(ctx.request().params())
+							.withGmcPosition(ctx.request().params())
+							.withCurrentDate()
+							.withDevice(device.getId());
 
-		this.log.debug("Inserting record {}", rec);
-		this.srv.getLoggingManager()
-			.insertRecord()
-			.setDevice(device)
-			.setUser(user)
-			.setRecord(rec)
-			.execute()
-			.onSuccess(v -> {
-				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
-			})
-			.onFailure(t -> {
-				this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
+						final Record rec = build.build();
+
+						this.setRecordIp(ctx, rec);
+
+						this.log.debug("Inserting record {}", rec);
+						this.srv.getLoggingManager()
+							.insertRecord()
+							.setDevice(device)
+							.setUser(user)
+							.setRecord(rec)
+							.execute()
+							.onSuccess(v -> {
+								this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
+							})
+							.onFailure(t -> {
+								this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
+							});
+					})
+					.onFailure(t -> {
+						this.gmcError(ctx, 500, t.toString());
+					});
 			});
 	}
 
@@ -219,54 +227,38 @@ public class LoggingModule extends AbstractModule {
 			usv = Double.NaN;
 		}
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.eq("gmcId", userGmcId))
-			.first();
+		this.srv.getUserManager().getUser().setGmcId(userGmcId).execute().onSuccess(user -> {
+			this.srv.getDeviceManager().getDevice().setGmcId(deviceGmcId).execute().onSuccess(device -> {
+				if (!user.getId().equals(device.getOwner())) {
+					this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		if (user == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
-			return;
-		}
+				final Record rec = new Record();
+				rec.setDate(new Date());
+				rec.setAcpm(acpm);
+				rec.setCpm(cpm);
+				rec.setDeviceId(device.getId());
+				rec.setUsv(usv);
 
-		final Device device = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("gmcId", deviceGmcId))
-			.first();
+				this.setRecordIp(ctx, rec);
 
-		if (device == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
-			return;
-		}
+				this.log.debug("Inserting record using old log {}", rec);
 
-		if (!user.getId().equals(device.getOwner())) {
-			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
-
-		final Record rec = new Record();
-		rec.setDate(new Date());
-		rec.setAcpm(acpm);
-		rec.setCpm(cpm);
-		rec.setDeviceId(device.getId());
-		rec.setUsv(usv);
-
-		this.setRecordIp(ctx, rec);
-
-		this.log.debug("Inserting record using old log {}", rec);
-
-		this.srv.getLoggingManager()
-			.insertRecord()
-			.setDevice(device)
-			.setUser(user)
-			.setRecord(rec)
-			.execute()
-			.onSuccess(v -> {
-				this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
-			})
-			.onFailure(t -> {
-				this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
-			});
+				this.srv.getLoggingManager()
+					.insertRecord()
+					.setDevice(device)
+					.setUser(user)
+					.setRecord(rec)
+					.execute()
+					.onSuccess(v -> {
+						this.gmcError(ctx, 200, LoggingModule.ERROR_OK);
+					})
+					.onFailure(t -> {
+						this.gmcError(ctx, 500, t.getMessage() + ".ERR9999");
+					});
+			}).onFailure(t -> this.error(ctx, 500, ERROR_DEVICE_ID));
+		}).onFailure(t -> this.error(ctx, 500, ERROR_USER_ID));
 	}
 
 	private void handleRadmon(final RoutingContext ctx) {
@@ -295,66 +287,52 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.eq("gmcId", gmcUserId))
-			.first();
-		if (user == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_USER_ID);
-			return;
-		}
+		this.srv.getUserManager().getUser().setGmcId(gmcUserId).execute().onSuccess(user -> {
+			this.srv.getDeviceManager().getDevice().setGmcId(gmcDeviceId).execute().onSuccess(device -> {
+				if (device.getOwner() == null) {
+					this.log.error("Device with no owner: {}", device.getId());
+					this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		final Device device = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("gmcId", gmcDeviceId))
-			.first();
-		if (device == null) {
-			this.gmcError(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
-			return;
-		}
+				if (!user.getId().equals(device.getOwner())) {
+					this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		if (device.getOwner() == null) {
-			this.log.error("Device with no owner: {}", device.getId());
-			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				if (ctx.request().getParam("value") == null) {
+					this.error(ctx, 400, "Invalid value");
+					return;
+				}
 
-		if (!user.getId().equals(device.getOwner())) {
-			this.gmcError(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				final double cpm;
+				try {
+					cpm = Double.parseDouble(ctx.request().getParam("value"));
+				} catch (final NumberFormatException e) {
+					this.error(ctx, 400, "Invalid value");
+					return;
+				}
 
-		if (ctx.request().getParam("value") == null) {
-			this.error(ctx, 400, "Invalid value");
-			return;
-		}
+				final Record rec = new Record();
+				rec.setCpm(cpm);
+				rec.setDeviceId(device.getId());
+				rec.setDate(new Date());
+				this.setRecordIp(ctx, rec);
 
-		final double cpm;
-		try {
-			cpm = Double.parseDouble(ctx.request().getParam("value"));
-		} catch (final NumberFormatException e) {
-			this.error(ctx, 400, "Invalid value");
-			return;
-		}
-
-		final Record rec = new Record();
-		rec.setCpm(cpm);
-		rec.setDeviceId(device.getId());
-		rec.setDate(new Date());
-		this.setRecordIp(ctx, rec);
-
-		this.srv.getLoggingManager()
-			.insertRecord()
-			.setDevice(device)
-			.setUser(user)
-			.setRecord(rec)
-			.execute()
-			.onSuccess(v -> {
-				ctx.response().setStatusCode(200).end("OK<br>");
-			})
-			.onFailure(t -> {
-				this.error(ctx, 500, "Failed to insert record: " + t);
-			});
+				this.srv.getLoggingManager()
+					.insertRecord()
+					.setDevice(device)
+					.setUser(user)
+					.setRecord(rec)
+					.execute()
+					.onSuccess(v -> {
+						ctx.response().setStatusCode(200).end("OK<br>");
+					})
+					.onFailure(t -> {
+						this.error(ctx, 500, "Failed to insert record: " + t);
+					});
+			}).onFailure(t -> this.error(ctx, 500, ERROR_DEVICE_ID));
+		}).onFailure(t -> this.error(ctx, 500, ERROR_USER_ID));
 	}
 
 	private void handleSafecast(final RoutingContext ctx) {
@@ -376,94 +354,78 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.eq("gmcId", gmcUserId))
-			.first();
-		if (user == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
-			return;
-		}
+		this.srv.getUserManager().getUser().setGmcId(gmcUserId).execute().onSuccess(user -> {
+			this.srv.getDeviceManager().getDevice().setGmcId(gmcDeviceId).execute().onSuccess(device -> {
+				if (device.getOwner() == null) {
+					this.log.error("Device with no owner: {}", device.getId());
+					this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		final Device device = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("gmcId", gmcDeviceId))
-			.first();
-		if (device == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
-			return;
-		}
+				if (!user.getId().equals(device.getOwner())) {
+					this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		if (device.getOwner() == null) {
-			this.log.error("Device with no owner: {}", device.getId());
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				if (!"cpm".equals(obj.getString("unit"))) {
+					this.error(ctx, 400, "Value of `unit` must be `cpm`");
+					return;
+				}
 
-		if (!user.getId().equals(device.getOwner())) {
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				final Record r = new Record();
+				this.setRecordIp(ctx, r);
+				r.setDeviceId(device.getId());
 
-		if (!"cpm".equals(obj.getString("unit"))) {
-			this.error(ctx, 400, "Value of `unit` must be `cpm`");
-			return;
-		}
+				try {
+					final String rawDate = obj.getString("captured_at");
+					final Date date = LoggingModule.DATE_FORMAT_ISO_8601.parse(rawDate);
+					r.setDate(date);
+				} catch (final ClassCastException | ParseException e) {
+					this.error(ctx, 400, "Invalid date");
+					return;
+				}
 
-		final Record r = new Record();
-		this.setRecordIp(ctx, r);
-		r.setDeviceId(device.getId());
+				try {
+					final Double lon = obj.getDouble("longitude");
+					final Double lat = obj.getDouble("latitude");
+					if (lon == null || lat == null) {
+						this.error(ctx, 400, "Location is required");
+						return;
+					}
+					r.setLocation(new Point(lon, lat));
+				} catch (final ClassCastException e) {
+					this.error(ctx, 400, "Invalid location");
+					return;
+				}
 
-		try {
-			final String rawDate = obj.getString("captured_at");
-			final Date date = LoggingModule.DATE_FORMAT_ISO_8601.parse(rawDate);
-			r.setDate(date);
-		} catch (final ClassCastException | ParseException e) {
-			this.error(ctx, 400, "Invalid date");
-			return;
-		}
+				try {
+					final Integer cpm = obj.getInteger("value");
+					if (cpm == null) {
+						this.error(ctx, 400, "Value is required");
+						return;
+					}
+					r.setCpm(cpm);
+				} catch (final ClassCastException e) {
+					this.error(ctx, 400, "Invalid value");
+					return;
+				}
 
-		try {
-			final Double lon = obj.getDouble("longitude");
-			final Double lat = obj.getDouble("latitude");
-			if (lon == null || lat == null) {
-				this.error(ctx, 400, "Location is required");
-				return;
-			}
-			r.setLocation(new Point(new Position(lon, lat)));
-		} catch (final ClassCastException e) {
-			this.error(ctx, 400, "Invalid location");
-			return;
-		}
-
-		try {
-			final Integer cpm = obj.getInteger("value");
-			if (cpm == null) {
-				this.error(ctx, 400, "Value is required");
-				return;
-			}
-			r.setCpm(cpm);
-		} catch (final ClassCastException e) {
-			this.error(ctx, 400, "Invalid value");
-			return;
-		}
-
-		this.srv.getLoggingManager()
-			.insertRecord()
-			.setRecord(r)
-			.setDevice(device)
-			.setUser(user)
-			.execute()
-			.onSuccess(v -> this.error(ctx, 200, ""))
-			.onFailure(t -> {
-				this.error(ctx, 500, "Failed to insert record: " + t);
-			});
+				this.srv.getLoggingManager()
+					.insertRecord()
+					.setRecord(r)
+					.setDevice(device)
+					.setUser(user)
+					.execute()
+					.onSuccess(v -> this.error(ctx, 200, ""))
+					.onFailure(t -> this.error(ctx, 500, "Failed to insert record: " + t));
+			}).onFailure(t -> this.error(ctx, 500, ERROR_DEVICE_ID));
+		}).onFailure(t -> this.error(ctx, 500, ERROR_USER_ID));
 	}
 
 	private void handleURadMonitor(final RoutingContext ctx) {
-		final ObjectId userId;
+		final UUID userId;
 		try {
-			userId = new ObjectId(ctx.request().getHeader("X-User-id"));
+			userId = UUID.fromString(ctx.request().getHeader("X-User-id"));
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, LoggingModule.ERROR_USER_ID);
 			return;
@@ -485,51 +447,37 @@ public class LoggingModule extends AbstractModule {
 			return;
 		}
 
-		final User user = this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.find(Filters.and(Filters.eq(userId), Filters.eq("gmcId", gmcUserId)))
-			.first();
-		if (user == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_USER_ID);
-			return;
-		}
+		this.srv.getUserManager().getUser().setGmcId(gmcUserId).execute().onSuccess(user -> {
+			this.srv.getDeviceManager().getDevice().setGmcId(gmcDeviceId).execute().onSuccess(device -> {
+				if (device.getOwner() == null) {
+					this.log.error("Device with no owner: {}", device.getId());
+					this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		final Device device = this.srv.getDatabaseManager()
-			.getCollection(Device.class)
-			.find(Filters.eq("gmcId", gmcDeviceId))
-			.first();
-		if (device == null) {
-			this.error(ctx, 404, LoggingModule.ERROR_DEVICE_ID);
-			return;
-		}
+				if (!user.getId().equals(device.getOwner())) {
+					this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
+					return;
+				}
 
-		if (device.getOwner() == null) {
-			this.log.error("Device with no owner: {}", device.getId());
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
+				final Record rec = new Record.Builder().withURadMonitorUrl(ctx.request().absoluteURI()).build();
+				rec.setDeviceId(device.getId());
+				this.setRecordIp(ctx, rec);
 
-		if (!user.getId().equals(device.getOwner())) {
-			this.error(ctx, 403, LoggingModule.ERROR_DEVICE_NOT_OWNED);
-			return;
-		}
-
-		final Record rec = new Record.Builder().withURadMonitorUrl(ctx.request().absoluteURI()).build();
-		rec.setDeviceId(device.getId());
-		this.setRecordIp(ctx, rec);
-
-		this.srv.getLoggingManager()
-			.insertRecord()
-			.setDevice(device)
-			.setUser(user)
-			.setRecord(rec)
-			.execute()
-			.onSuccess(v -> {
-				ctx.end(new JsonObject().put("success", "ok").toBuffer());
-			})
-			.onFailure(t -> {
-				this.error(ctx, 500, "Failed to insert record: " + t);
-			});
+				this.srv.getLoggingManager()
+					.insertRecord()
+					.setDevice(device)
+					.setUser(user)
+					.setRecord(rec)
+					.execute()
+					.onSuccess(v -> {
+						ctx.end(new JsonObject().put("success", "ok").toBuffer());
+					})
+					.onFailure(t -> {
+						this.error(ctx, 500, "Failed to insert record: " + t);
+					});
+			}).onFailure(t -> this.error(ctx, 500, ERROR_DEVICE_ID));
+		}).onFailure(t -> this.error(ctx, 500, ERROR_USER_ID));
 	}
 
 	private void setRecordIp(final RoutingContext ctx, final Record r) {

@@ -22,9 +22,6 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.message.FormattedMessage;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -36,7 +33,7 @@ import me.vinceh121.gmcserver.entities.User;
 
 public class LoggingManager extends AbstractManager {
 	/**
-	 * Hex device ID must be appended
+	 * Device UUID must be appended
 	 */
 	public static final String ADDRESS_PREFIX_RECORD_LOG = "me.vinceh121.gmcserver.RECORD_LOG.";
 
@@ -77,16 +74,12 @@ public class LoggingManager extends AbstractManager {
 
 			if (this.insertInDb) {
 				joinedFutures.add(Future.future(p -> {
-					try {
-						this.srv.getDatabaseManager().getCollection(Record.class).insertOne(this.record);
-						this.srv.getDatabaseManager()
-							.getCollection(Device.class)
-							.updateOne(Filters.eq(this.device.getId()), Updates.set("lastRecordId", this.record.getId()));
-						p.complete();
-					} catch (final Exception e) {
-						log.error("Failed to insert record into DB", e);
-						p.fail(e);
-					}
+					this.srv.getDatabaseManager()
+						.update("INSERT INTO records VALUES")
+						.mapFrom(Record.class)
+						.execute(this.record)
+						.onSuccess(e -> p.complete())
+						.onFailure(promise::fail);
 				}));
 			}
 

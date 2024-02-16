@@ -27,7 +27,6 @@ public abstract class AbstractEntity {
 	private UUID id = UUID.randomUUID();
 
 	public AbstractEntity() {
-		this.id = UUID.randomUUID();
 	}
 
 	public UUID getId() {

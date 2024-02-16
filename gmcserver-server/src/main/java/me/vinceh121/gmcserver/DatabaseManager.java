@@ -17,15 +17,19 @@
  */
 package me.vinceh121.gmcserver;
 
+import java.util.Map;
+
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.SqlClient;
+import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.SqlResult;
+import io.vertx.sqlclient.templates.SqlTemplate;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 
 public class DatabaseManager extends AbstractManager {
-	private final SqlClient client;
+	private final PgPool pool;
 
 	public DatabaseManager(final GMCServer srv) {
 		super(srv);
@@ -42,7 +46,7 @@ public class DatabaseManager extends AbstractManager {
 		final PoolOptions poolOpts = new PoolOptions();
 		poolOpts.setMaxSize(5);
 
-		this.client = PgPool.client(srv.getVertx(), optsEffective, poolOpts);
+		this.pool = PgPool.pool(srv.getVertx(), optsEffective, poolOpts);
 
 		this.checkIndexes();
 	}
@@ -51,14 +55,15 @@ public class DatabaseManager extends AbstractManager {
 	private void checkIndexes() {
 	}
 
-	public SqlClient getClient() {
-		return client;
+	public PgPool getPool() {
+		return this.pool;
 	}
 
-	public static <U> U mapRowset(Row r, Class<U> cls) {
-		if (r == null) {
-			return null;
-		}
-		return r.toJson().mapTo(cls);
+	public SqlTemplate<Map<String, Object>, RowSet<Row>> query(String query) {
+		return SqlTemplate.forQuery(this.getPool(), query);
+	}
+
+	public SqlTemplate<Map<String, Object>, SqlResult<Void>> update(String query) {
+		return SqlTemplate.forUpdate(this.getPool(), query);
 	}
 }

@@ -61,11 +61,11 @@ public class GmcmapProxy extends AbstractProxy {
 			final double latitude, longitude;
 
 			if (r.getLocation() != null) { // prioritize location from individual record, else use device's location
-				longitude = r.getLocation().getPosition().getValues().get(0);
-				latitude = r.getLocation().getPosition().getValues().get(1);
+				longitude = r.getLocation().x;
+				latitude = r.getLocation().x;
 			} else if (dev.getLocation() != null) {
-				longitude = dev.getLocation().getPosition().getValues().get(0);
-				latitude = dev.getLocation().getPosition().getValues().get(1);
+				longitude = dev.getLocation().x;
+				latitude = dev.getLocation().x;
 			} else {
 				p.fail("Nor record or device have position set");
 				return;
@@ -86,9 +86,9 @@ public class GmcmapProxy extends AbstractProxy {
 
 			req.setQueryParam("lon", Double.toString(longitude));
 			req.setQueryParam("lat", Double.toString(latitude));
-			if (r.getLocation() != null && r.getLocation().getPosition().getValues().size() > 2) {
-				req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
-			}
+//			if (r.getLocation() != null && r.getLocation().getPosition().getValues().size() > 2) {
+//				req.setQueryParam("alt", Double.toString(r.getLocation().getPosition().getValues().get(2)));
+//			}
 
 			req.send().onSuccess(res -> {
 				if (res.statusCode() != 200) {

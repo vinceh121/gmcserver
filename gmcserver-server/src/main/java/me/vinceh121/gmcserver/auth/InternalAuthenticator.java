@@ -17,9 +17,9 @@
  */
 package me.vinceh121.gmcserver.auth;
 
+import java.util.Collections;
+
 import io.vertx.core.Future;
-import io.vertx.sqlclient.Tuple;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.exceptions.AuthenticationException;
@@ -41,11 +41,11 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 	public Future<User> login(final String username, final String password) {
 		return Future.future(promise -> {
 			this.srv.getDatabaseManager()
-				.getClient()
-				.preparedQuery("SELECT * FROM users WHERE username=$1 AND email=$2")
-				.execute(Tuple.of(username, password))
-				.onSuccess(res -> {
-					final User user = DatabaseManager.mapRowset(res.iterator().next(), User.class);
+				.query("SELECT * FROM users WHERE username=#{username}")
+				.mapTo(User.class)
+				.execute(Collections.singletonMap("username", username))
+				.onSuccess(rowSet -> {
+					final User user = rowSet.iterator().next();
 
 					if (user == null) {
 						promise.fail(new EntityNotFoundException("User not found"));
@@ -62,7 +62,8 @@ public class InternalAuthenticator extends AbstractAuthenticator {
 						return;
 					}
 					promise.complete(user);
-				}).onFailure(promise::fail);
+				})
+				.onFailure(promise::fail);
 		});
 	}
 

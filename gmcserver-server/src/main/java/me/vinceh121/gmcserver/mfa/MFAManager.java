@@ -22,18 +22,18 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.bson.types.ObjectId;
-
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.User;
@@ -62,40 +62,59 @@ public class MFAManager extends AbstractManager {
 		}
 	}
 
-	public boolean passwordMatches(final ObjectId id, final int pass) throws InvalidKeyException {
-		return this.passwordMatches(
-				this.srv.getDatabaseManager().getCollection(User.class).find(Filters.eq(id)).first(),
-				pass);
+	public Future<Boolean> passwordMatches(final UUID id, final int pass) {
+		return this.srv.getUserManager().getUser().setId(id).execute().compose(u -> this.passwordMatches(u, pass));
 	}
 
-	public boolean passwordMatches(final User user, final int pass) throws InvalidKeyException {
-		if (!user.isMfa()) {
-			throw new IllegalArgumentException("User does not have MFA set");
-		}
+	public Future<Boolean> passwordMatches(final User user, final int pass) {
+		return Future.future(promise -> {
+			if (!user.isMfa()) {
+				throw new IllegalArgumentException("User does not have MFA set");
+			}
 
-		final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
-		return actualPassword == pass;
+			try {
+				int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
+				promise.complete(actualPassword == pass);
+			} catch (final InvalidKeyException e) {
+				promise.fail(e);
+			}
+		});
 	}
 
-	public MFAKey setupMFA(final User user) {
-		final MFAKey key = this.generateKey();
-		this.srv.getDatabaseManager()
-			.getCollection(User.class)
-			.updateOne(Filters.eq(user.getId()), Updates.set("mfaKey", key));
-		user.setMfaKey(key);
-		return key;
-	}
-
-	public boolean completeMfaSetup(final User user, final int pass) throws InvalidKeyException {
-		final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
-		final boolean matches = actualPassword == pass;
-		if (matches) {
+	public Future<MFAKey> setupMFA(final User user) {
+		return Future.future(promise -> {
+			final MFAKey key = this.generateKey();
 			this.srv.getDatabaseManager()
-				.getCollection(User.class)
-				.updateOne(Filters.eq(user.getId()), Updates.set("mfa", true));
-			user.setMfa(true);
-		}
-		return matches;
+				.update("UPDATE users SET mfakey = #{mfaKey} WHERE id = #{id}")
+				.execute(Map.of("id", user.getId(), "mfaKey", JsonObject.mapFrom(key)))
+				.onSuccess(r -> {
+					user.setMfaKey(key);
+					promise.complete(key);
+				})
+				.onFailure(promise::fail);
+		});
+	}
+
+	public Future<Boolean> completeMfaSetup(final User user, final int pass) {
+		return Future.future(promise -> {
+			try {
+				final int actualPassword = this.generateOneTimePassword(user.getMfaKey(), Instant.now());
+				final boolean matches = actualPassword == pass;
+
+				if (matches) {
+					this.srv.getDatabaseManager()
+						.update("UPDATE users SET mfa = #{mfa} WHERE id = #{id}")
+						.execute(Map.of("id", user.getId(), "mfa", matches))
+						.onSuccess(r -> {
+							user.setMfa(true);
+							promise.complete(matches);
+						})
+						.onFailure(promise::fail);
+				}
+			} catch (final InvalidKeyException e) {
+				promise.fail(e);
+			}
+		});
 	}
 
 	public MFAKey generateKey() {
@@ -136,8 +155,8 @@ public class MFAManager extends AbstractManager {
 	/**
 	 * Process an MFA setup step.
 	 * 
-	 * Throws {@code InvalidKeyException} if the stored key isn't valid.
-	 * Throws {@code AuthenticationException} if the confirm code failed to validate.
+	 * Throws {@code InvalidKeyException} if the stored key isn't valid. Throws
+	 * {@code AuthenticationException} if the confirm code failed to validate.
 	 */
 	public class SetupMFAAction extends AbstractAction<String> {
 		private User user;
@@ -150,21 +169,17 @@ public class MFAManager extends AbstractManager {
 		@Override
 		protected void executeSync(final Promise<String> promise) {
 			if (this.user.getMfaKey() == null) { // MFA not setup at all
-				final MFAKey key = this.srv.getMfaManager().setupMFA(this.user);
-				promise.complete(key.toURI("GMCServer " + this.user.getUsername()));
+				this.srv.getMfaManager().setupMFA(this.user).onSuccess(key -> {
+					promise.complete(key.toURI("GMCServer " + this.user.getUsername()));
+				}).onFailure(promise::fail);
 			} else { // Complete MFA setup
-				boolean matches;
-				try {
-					matches = this.srv.getMfaManager().completeMfaSetup(this.user, this.pass);
-				} catch (final InvalidKeyException e) {
-					promise.fail(new InvalidKeyException("Invalid MFA key", e));
-					return;
-				}
-				if (matches) {
-					promise.complete();
-				} else {
-					promise.fail(new AuthenticationException("Invalid pass"));
-				}
+				this.srv.getMfaManager().completeMfaSetup(this.user, this.pass).onSuccess(matches -> {
+					if (matches) {
+						promise.complete();
+					} else {
+						promise.fail(new AuthenticationException("Invalid pass"));
+					}
+				}).onFailure(promise::fail);
 			}
 		}
 
@@ -191,8 +206,8 @@ public class MFAManager extends AbstractManager {
 	/**
 	 * Verifies the validity of an MFA code.
 	 *
-	 * Throws {@code InvalidKeyException} if the stored key is invalid.
-	 * Throws {@code IllegalArgumentException} if the code failed to validate.
+	 * Throws {@code InvalidKeyException} if the stored key is invalid. Throws
+	 * {@code IllegalArgumentException} if the code failed to validate.
 	 */
 	public class VerifyCodeAction extends AbstractAction<Void> {
 		private User user;
@@ -204,15 +219,13 @@ public class MFAManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			try {
-				if (this.srv.getMfaManager().passwordMatches(this.user, this.pass)) {
+			this.srv.getMfaManager().passwordMatches(this.user, this.pass).onSuccess(matches -> {
+				if (matches) {
 					promise.complete();
+				} else {
+					promise.fail("Invalid pass");
 				}
-			} catch (final InvalidKeyException e) {
-				promise.fail("Invalid MFA key");
-			} catch (final IllegalArgumentException e) {
-				promise.fail("User does not have MFA set");
-			}
+			}).onFailure(promise::fail);
 		}
 
 		public User getUser() {
@@ -246,10 +259,10 @@ public class MFAManager extends AbstractManager {
 		protected void executeSync(final Promise<Void> promise) {
 			MFAManager.this.verifyCode().setPass(this.code).setUser(this.user).execute().onSuccess(v -> {
 				this.srv.getDatabaseManager()
-					.getCollection(User.class)
-					.updateOne(Filters.eq(this.user.getId()),
-							Updates.combine(Updates.unset("mfaKey"), Updates.set("mfa", false)));
-				promise.complete();
+					.update("UPDATE users SET mfakey = NONE, mfa = false WHERE id = #{id}")
+					.execute(Map.of("id", this.user.getId()))
+					.onSuccess(r -> promise.complete())
+					.onFailure(promise::fail);
 			}).onFailure(promise::fail);
 		}
 

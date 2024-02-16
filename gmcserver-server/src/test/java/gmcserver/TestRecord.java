@@ -24,10 +24,8 @@ import java.util.Date;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
-
 import io.vertx.core.MultiMap;
+import io.vertx.pgclient.data.Point;
 import me.vinceh121.gmcserver.entities.Record;
 
 class TestRecord {
@@ -42,7 +40,7 @@ class TestRecord {
 
 		map.add("lat", "1.123");
 		map.add("lon", "3.21");
-		map.add("alt", "350.5");
+//		map.add("alt", "350.5");
 
 		final Record rec = new Record.Builder().withGmcParams(map).withGmcPosition(map).build();
 
@@ -51,8 +49,7 @@ class TestRecord {
 		Assertions.assertEquals(123.123D, rec.getUsv(), "usv");
 		Assertions.assertEquals(0.123D, rec.getAccy(), "accy");
 
-		final Position expectedPos = new Position(3.21, 1.123, 350.5);
-		final Point expectedPoint = new Point(expectedPos);
+		final Point expectedPoint = new Point(3.21, 1.123);
 
 		Assertions.assertEquals(expectedPoint, rec.getLocation(), "location");
 	}

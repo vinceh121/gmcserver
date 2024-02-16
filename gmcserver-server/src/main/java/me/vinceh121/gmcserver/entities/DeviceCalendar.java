@@ -17,17 +17,15 @@
  */
 package me.vinceh121.gmcserver.entities;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
-import org.bson.types.ObjectId;
+import io.vertx.core.json.JsonArray;
 
 public class DeviceCalendar extends AbstractEntity {
 	private UUID deviceId;
 	private Date createdAt = new Date(0L);
-	private List<Document> recs = Collections.emptyList();
+	private JsonArray recs = JsonArray.of();
 	private boolean inProgress;
 
 	public UUID getDeviceId() {
@@ -46,11 +44,11 @@ public class DeviceCalendar extends AbstractEntity {
 		this.createdAt = createdAt;
 	}
 
-	public List<Document> getRecs() {
+	public JsonArray getRecs() {
 		return this.recs;
 	}
 
-	public void setRecs(final List<Document> recs) {
+	public void setRecs(final JsonArray recs) {
 		this.recs = recs;
 	}
 

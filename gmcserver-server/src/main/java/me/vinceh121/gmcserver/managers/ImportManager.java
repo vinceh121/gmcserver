@@ -26,11 +26,11 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.message.FormattedMessage;
-import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,10 +39,6 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -51,9 +47,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.pgclient.data.Point;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
-import me.vinceh121.gmcserver.entities.Device;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.modules.ImportExportModule;
 
@@ -94,7 +90,7 @@ public class ImportManager extends AbstractManager {
 	}
 
 	public class ImportGmcmap extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private String gmcmapId;
 
 		public ImportGmcmap(GMCServer srv) {
@@ -109,11 +105,15 @@ public class ImportManager extends AbstractManager {
 					return;
 				}
 
-				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
-
-				promise.complete();
-
-				this.importPageRecurse(1);
+				this.srv.getDatabaseManager()
+					.update("INSERT INTO records VALUES")
+					.mapFrom(Record.class)
+					.executeBatch(recs)
+					.onSuccess(res -> {
+						promise.complete();
+						this.importPageRecurse(1);
+					})
+					.onFailure(promise::fail);
 			}).onFailure(promise::fail);
 		}
 
@@ -122,11 +122,21 @@ public class ImportManager extends AbstractManager {
 				log.info("Got {} records from device GMC import {}, page {}", recs.size(), deviceId, page);
 
 				if (recs.size() != 0) {
-					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 					this.srv.getDatabaseManager()
-						.getCollection(Device.class)
-						.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
-					this.importPageRecurse(page + 1);
+						.update("INSERT INTO records VALUES")
+						.mapFrom(Record.class)
+						.executeBatch(recs)
+						.onSuccess(res -> {
+							// TODO update device lastRecordId
+							this.importPageRecurse(page + 1);
+						})
+						.onFailure(t -> {
+							log.error(
+									new FormattedMessage("Error while importing GMC device {} at page {}",
+											gmcmapId,
+											page),
+									t);
+						});
 				} else {
 					log.info("Finished GMC import for {}", gmcmapId);
 				}
@@ -258,12 +268,13 @@ public class ImportManager extends AbstractManager {
 									pos.set(1, Double.parseDouble(elmLat.text()));
 								}
 
-								if (elmAlt != null) {
-									pos.set(2, Double.parseDouble(elmAlt.text()));
-								}
+								// TODO
+//								if (elmAlt != null) {
+//									pos.set(2, Double.parseDouble(elmAlt.text()));
+//								}
 
 								if (pos.size() > 0) {
-									r.setLocation(new Point(new Position(pos)));
+									r.setLocation(new Point(pos.get(0), pos.get(1)));
 								}
 
 								if (elmCO2 != null) {
@@ -298,11 +309,11 @@ public class ImportManager extends AbstractManager {
 			});
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportGmcmap setDeviceId(ObjectId deviceId) {
+		public ImportGmcmap setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -318,7 +329,7 @@ public class ImportManager extends AbstractManager {
 	}
 
 	public class ImportSafecastMetadata extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private String safeCastId;
 
 		public ImportSafecastMetadata(GMCServer srv) {
@@ -349,11 +360,11 @@ public class ImportManager extends AbstractManager {
 				.onFailure(promise::fail);
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportSafecastMetadata setDeviceId(ObjectId deviceId) {
+		public ImportSafecastMetadata setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -369,7 +380,7 @@ public class ImportManager extends AbstractManager {
 	}
 
 	public class ImportSafecastTimeline extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private String safeCastId;
 
 		public ImportSafecastTimeline(GMCServer srv) {
@@ -384,14 +395,17 @@ public class ImportManager extends AbstractManager {
 					return;
 				}
 
-				this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 				this.srv.getDatabaseManager()
-					.getCollection(Device.class)
-					.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
+					.update("INSERT INTO records VALUES")
+					.mapFrom(Record.class)
+					.executeBatch(recs)
+					.onSuccess(res -> {
+						// TODO update device lastRecordId
+						promise.complete();
 
-				promise.complete();
-
-				this.importPageRecurse(1);
+						this.importPageRecurse(1);
+					})
+					.onFailure(promise::fail);
 			}).onFailure(promise::fail);
 		}
 
@@ -400,11 +414,21 @@ public class ImportManager extends AbstractManager {
 				log.info("Got {} records from SafeCast device import {}, page {}", recs.size(), deviceId, page);
 
 				if (recs.size() != 0) {
-					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
 					this.srv.getDatabaseManager()
-						.getCollection(Device.class)
-						.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", recs.get(0).getId()));
-					this.importPageRecurse(page + 1);
+						.update("INSERT INTO records VALUES")
+						.mapFrom(Record.class)
+						.executeBatch(recs)
+						.onSuccess(res -> {
+							// TODO update device lastRecordId
+							this.importPageRecurse(page + 1);
+						})
+						.onFailure(t -> {
+							log.error(
+									new FormattedMessage("Error while importing SafeCast device {} at page {}",
+											this.safeCastId,
+											page),
+									t);
+						});
 				} else {
 					log.info("Finished SafeCast import for {}", this.safeCastId);
 				}
@@ -469,13 +493,13 @@ public class ImportManager extends AbstractManager {
 									pos.set(1, obj.getDouble("latitude"));
 								}
 
-								if (obj.getValue("height") != null) {
-									pos.set(2, obj.getDouble("height"));
-								} else {
-									pos.remove(2);
-								}
+//								if (obj.getValue("height") != null) {
+//									pos.set(2, obj.getDouble("height"));
+//								} else {
+//									pos.remove(2);
+//								}
 
-								rec.setLocation(new Point(new Position(pos)));
+								rec.setLocation(new Point(pos.get(0), pos.get(1)));
 							}
 
 							try {
@@ -496,11 +520,11 @@ public class ImportManager extends AbstractManager {
 			});
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportSafecastTimeline setDeviceId(ObjectId deviceId) {
+		public ImportSafecastTimeline setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -516,7 +540,7 @@ public class ImportManager extends AbstractManager {
 	}
 
 	public class ImportURadMonitorMetadata extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private String uRadMonitorId;
 
 		public ImportURadMonitorMetadata(GMCServer srv) {
@@ -546,13 +570,14 @@ public class ImportManager extends AbstractManager {
 
 							final double longitude = obj.getDouble("longitude");
 							final double latitude = obj.getDouble("latitude");
-							final double altitude = obj.getDouble("altitude");
+//							final double altitude = obj.getDouble("altitude");
 
 							final Point point;
-							if (longitude != 0 && latitude != 0 && altitude != 0) {
-								point = new Point(new Position(longitude, latitude, altitude));
-							} else if (longitude != 0 && latitude != 0) {
-								point = new Point(new Position(longitude, latitude));
+//							if (longitude != 0 && latitude != 0 && altitude != 0) {
+//								point = new Point(new Position(longitude, latitude, altitude));
+//							} else
+							if (longitude != 0 && latitude != 0) {
+								point = new Point(longitude, latitude);
 							} else {
 								point = null;
 							}
@@ -589,11 +614,11 @@ public class ImportManager extends AbstractManager {
 				.onFailure(promise::fail);
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportURadMonitorMetadata setDeviceId(ObjectId deviceId) {
+		public ImportURadMonitorMetadata setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
@@ -610,7 +635,7 @@ public class ImportManager extends AbstractManager {
 
 	public class ImportURadMonitor extends AbstractAction<Void> {
 		private String uRadMonitorId;
-		private ObjectId deviceId;
+		private UUID deviceId;
 
 		public ImportURadMonitor(GMCServer srv) {
 			super(srv);
@@ -667,8 +692,14 @@ public class ImportManager extends AbstractManager {
 						recs.add(rec);
 					}
 
-					this.srv.getDatabaseManager().getCollection(Record.class).insertMany(recs);
-					promise.complete();
+					this.srv.getDatabaseManager()
+					.update("INSERT INTO records VALUES")
+					.mapFrom(Record.class)
+					.executeBatch(recs)
+					.onSuccess(r -> {
+						promise.complete();
+					})
+					.onFailure(promise::fail);
 				})
 				.onFailure(t -> promise.fail(new IllegalStateException("Connection failed", t)));
 		}
@@ -682,18 +713,18 @@ public class ImportManager extends AbstractManager {
 			return this;
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportURadMonitor setDeviceId(ObjectId deviceId) {
+		public ImportURadMonitor setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
 	}
 
 	public class ImportRadmon extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private String username;
 
 		public ImportRadmon(final GMCServer srv) {
@@ -728,10 +759,14 @@ public class ImportManager extends AbstractManager {
 								rec.setCpm(cpm);
 								rec.setDate(date);
 								// TODO batch inserts
-								this.srv.getDatabaseManager().getCollection(Record.class).insertOne(rec);
 								this.srv.getDatabaseManager()
-									.getCollection(Device.class)
-									.updateOne(Filters.eq(this.deviceId), Updates.set("lastRecordId", rec.getId()));
+								.update("INSERT INTO records VALUES")
+								.mapFrom(Record.class)
+								.execute(rec)
+								.onSuccess(r -> {
+									// TODO update device lastRecordId
+								})
+								.onFailure(promise::fail);
 							} catch (final ParseException e) {
 								// we silently ignore those for now...
 							}
@@ -752,11 +787,11 @@ public class ImportManager extends AbstractManager {
 			return this;
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return deviceId;
 		}
 
-		public ImportRadmon setDeviceId(ObjectId deviceId) {
+		public ImportRadmon setDeviceId(UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}

@@ -21,12 +21,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
+import java.util.Iterator;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
@@ -34,6 +31,7 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.pgclient.data.Point;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
@@ -115,9 +113,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleRemoveDevice(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
 
-		final ObjectId deviceId;
+		final UUID deviceId;
 		try {
-			deviceId = new ObjectId(rawDeviceId);
+			deviceId = UUID.fromString(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
@@ -157,9 +155,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleUpdateDevice(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId"); // TODO make action somehow
 
-		final ObjectId deviceId;
+		final UUID deviceId;
 		try {
-			deviceId = new ObjectId(rawDeviceId);
+			deviceId = UUID.fromString(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
@@ -201,12 +199,13 @@ public class DeviceModule extends AbstractModule {
 
 			final double longitude = arr.getDouble(0);
 			final double latitude = arr.getDouble(1);
-			final double altitude = arr.getDouble(2);
+//			final double altitude = arr.getDouble(2);
 
-			if (longitude != 0 && latitude != 0 && altitude != 0) {
-				loc = new Point(new Position(longitude, latitude, altitude));
-			} else if (longitude != 0 && latitude != 0) {
-				loc = new Point(new Position(longitude, latitude));
+//			if (longitude != 0 && latitude != 0 && altitude != 0) {
+//				loc = new Point(longitude, latitude, altitude);
+//			} else
+			if (longitude != 0 && latitude != 0) {
+				loc = new Point(longitude, latitude);
 			} else {
 				loc = null;
 			}
@@ -252,9 +251,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleDevice(final RoutingContext ctx) {
 		final String rawDeviceId = ctx.pathParam("deviceId");
 
-		final ObjectId deviceId;
+		final UUID deviceId;
 		try {
-			deviceId = new ObjectId(rawDeviceId);
+			deviceId = UUID.fromString(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
@@ -294,9 +293,9 @@ public class DeviceModule extends AbstractModule {
 		final User user = ctx.get(AuthHandler.USER_KEY);
 		final String rawDeviceId = ctx.pathParam("deviceId");
 
-		final ObjectId deviceId;
+		final UUID deviceId;
 		try {
-			deviceId = new ObjectId(rawDeviceId);
+			deviceId = UUID.fromString(rawDeviceId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid device ID");
 			return;
@@ -336,8 +335,10 @@ public class DeviceModule extends AbstractModule {
 				.setEnd(end)
 				.setFull(full)
 				.setDev(dev);
-			histAction.execute().onSuccess(hist -> {
-				final Record firstRec = hist.first();
+			histAction.execute().onSuccess(histIter -> {
+				final Iterator<Record> hist = histIter.iterator();
+				final Record firstRec = hist.next();
+
 				if (firstRec != null) {
 					final Date lastDate = firstRec.getDate();
 					ctx.response().putHeader("Last-Modified", LAST_MODIFIED_DATE.format(lastDate));
@@ -361,18 +362,19 @@ public class DeviceModule extends AbstractModule {
 
 				ctx.response().write("[");
 
-				try (final MongoCursor<Record> recs = hist.iterator()) {
-					recs.forEachRemaining(r -> {
-						if (user != null && user.getId().equals(dev.getOwner())) {
-							ctx.response().write(r.toJson().toString());
-						} else {
-							ctx.response().write(r.toPublicJson().toString());
-						}
-						if (recs.hasNext()) {
-							ctx.response().write(",");
-						}
-					});
-				}
+				// use this stream utility in order to keep the first record
+				Stream.iterate(firstRec, r -> hist.hasNext(), r -> hist.next()).forEach(r -> {
+					if (user != null && user.getId().equals(dev.getOwner())) {
+						ctx.response().write(r.toJson().toString());
+					} else {
+						ctx.response().write(r.toPublicJson().toString());
+					}
+
+					if (hist.hasNext()) {
+						ctx.response().write(",");
+					}
+				});
+
 				ctx.response().write("]");
 				ctx.response().end();
 			}).onFailure(t -> this.error(ctx, 500, t.getMessage()));
@@ -389,9 +391,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleStats(final RoutingContext ctx) {
 		final String rawDevId = ctx.pathParam("deviceId");
 
-		final ObjectId devId;
+		final UUID devId;
 		try {
-			devId = new ObjectId(rawDevId);
+			devId = UUID.fromString(rawDevId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid ID");
 			return;
@@ -460,9 +462,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleLive(final RoutingContext ctx) {
 		final String rawDevId = ctx.pathParam("deviceId");
 
-		final ObjectId devId;
+		final UUID devId;
 		try {
-			devId = new ObjectId(rawDevId);
+			devId = UUID.fromString(rawDevId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid ID");
 			return;
@@ -478,7 +480,7 @@ public class DeviceModule extends AbstractModule {
 				final ServerWebSocket sock = webRes.result();
 
 				final MessageConsumer<Record> consumer = this.srv.getEventBus()
-					.consumer(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + devId.toHexString());
+					.consumer(LoggingManager.ADDRESS_PREFIX_RECORD_LOG + devId.toString());
 
 				consumer.handler(msg -> sock.writeTextMessage(msg.body().toPublicJson().encode()));
 
@@ -500,9 +502,9 @@ public class DeviceModule extends AbstractModule {
 	private void handleCalendar(final RoutingContext ctx) {
 		final String rawDevId = ctx.pathParam("deviceId");
 
-		final ObjectId devId;
+		final UUID devId;
 		try {
-			devId = new ObjectId(rawDevId);
+			devId = UUID.fromString(rawDevId);
 		} catch (final IllegalArgumentException e) {
 			this.error(ctx, 400, "Invalid ID");
 			return;

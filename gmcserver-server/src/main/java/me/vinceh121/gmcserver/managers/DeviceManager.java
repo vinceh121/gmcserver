@@ -19,26 +19,12 @@ package me.vinceh121.gmcserver.managers;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.Vector;
-
-import org.bson.BsonNull;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.UnwindOptions;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.result.UpdateResult;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -46,13 +32,10 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.data.Point;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.actions.AbstractAction;
 import me.vinceh121.gmcserver.entities.Device;
-import me.vinceh121.gmcserver.entities.DeviceCalendar;
 import me.vinceh121.gmcserver.entities.DeviceStats;
 import me.vinceh121.gmcserver.entities.Record;
 import me.vinceh121.gmcserver.entities.User;
@@ -73,27 +56,6 @@ public class DeviceManager extends AbstractManager {
 	private static Point jsonArrToPoint(final JsonArray arr) {
 		final Point point = new Point(arr.getDouble(0), arr.getDouble(1));
 		return point;
-	}
-
-	private static List<Bson> getStatsAggregation(final String field, final ObjectId devId, final int limit,
-			final Date start, final Date end) {
-		List<Bson> filters = new ArrayList<>(3);
-		filters.add(Filters.eq("deviceId", devId));
-		if (start != null) {
-			filters.add(Filters.gte("date", start));
-		}
-
-		if (end != null) {
-			filters.add(Filters.lte("date", end));
-		}
-		return Arrays.asList(Aggregates.match(Filters.and(filters)),
-				Aggregates.sort(Sorts.descending("date")),
-				Aggregates.sample(limit),
-				Aggregates.group(new BsonNull(),
-						Accumulators.avg("avg", "$" + field),
-						Accumulators.min("min", "$" + field),
-						Accumulators.max("max", "$" + field),
-						Accumulators.stdDevPop("stdDev", "$" + field)));
 	}
 
 	public DeviceStatsAction deviceStats() {
@@ -142,13 +104,8 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<DeviceStats> promise) {
-			final DeviceStats stats = this.srv.getDatabaseManager()
-				.getCollection(Record.class)
-				.aggregate(
-						DeviceManager
-							.getStatsAggregation(this.field, this.devId, this.sampleSize, this.start, this.end),
-						DeviceStats.class)
-				.first();
+			final DeviceStats stats = new DeviceStats(); // TODO
+
 			if (stats != null) {
 				stats.setDevice(this.devId);
 				stats.setField(this.field);
@@ -219,30 +176,37 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Iterable<Record>> promise) {
-
-			final Collection<Bson> filters = new Vector<>();
-
-			filters.add(Filters.eq("deviceId", this.dev.getId()));
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("deviceId", this.dev.getId());
+			StringBuilder query = new StringBuilder("SELECT * FROM records WHERE deviceId=#{deviceId}");
 
 			if (this.start != null) {
-				filters.add(Filters.gte("date", this.start));
+				query.append(" AND date > #{start}");
+				parameters.put("start", this.start);
 			}
 
 			if (this.end != null) {
-				filters.add(Filters.lte("date", this.end));
+				query.append(" AND date < #{end}");
+				parameters.put("end", this.end);
 			}
 
-			final Iterable<Record> it = this.srv.getDatabaseManager()
-				.getCollection(Record.class)
-				.find(Filters.and(filters));
-			it.sort(Sorts.descending("date"));
-			it.limit(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
+			query.append(" ORDER BY date");
+			query.append(" LIMIT ");
 
 			if (this.full) {
-				it.limit(0);
+				query.append("ALL");
+			} else {
+				// TODO only return nths records when limit is hit
+				// int parse is a sanity-check
+				query.append(Integer.parseInt(this.srv.getConfig().getProperty("device.public-timeline-limit")));
 			}
 
-			promise.complete(it);
+			this.srv.getDatabaseManager()
+				.query(query.toString())
+				.mapTo(Record.class)
+				.execute(parameters)
+				.onSuccess(promise::complete)
+				.onFailure(promise::fail);
 		}
 
 		public Device getDev() {
@@ -306,21 +270,21 @@ public class DeviceManager extends AbstractManager {
 
 			if (this.name != null) {
 				updates.add(this.srv.getDatabaseManager()
-					.getClient()
+					.getPool()
 					.preparedQuery("UPDATE devices SET name=$1 WHERE id=$2")
 					.execute(Tuple.of(this.name, this.deviceId)));
 			}
 
 			if (this.model != null) {
 				updates.add(this.srv.getDatabaseManager()
-					.getClient()
+					.getPool()
 					.preparedQuery("UPDATE devices SET model=$1 WHERE id=$2")
 					.execute(Tuple.of(this.model, this.deviceId)));
 			}
 
 			if (this.location != null) {
 				updates.add(this.srv.getDatabaseManager()
-					.getClient()
+					.getPool()
 					.preparedQuery("UPDATE devices SET location=$1 WHERE id=$2")
 					.execute(Tuple.of(this.location, this.deviceId)));
 			}
@@ -333,9 +297,9 @@ public class DeviceManager extends AbstractManager {
 					}
 				}
 				updates.add(this.srv.getDatabaseManager()
-						.getClient()
-						.preparedQuery("UPDATE devices SET proxiesSettings=$1 WHERE id=$2")
-						.execute(Tuple.of(this.proxiesSettings, this.deviceId)));
+					.getPool()
+					.preparedQuery("UPDATE devices SET proxiesSettings=$1 WHERE id=$2")
+					.execute(Tuple.of(this.proxiesSettings, this.deviceId)));
 			}
 
 			CompositeFuture.all(updates).onSuccess(f -> promise.complete()).onFailure(promise::fail);
@@ -399,6 +363,7 @@ public class DeviceManager extends AbstractManager {
 	 */
 	public class GetDeviceAction extends AbstractAction<Device> {
 		private UUID id;
+		private Long gmcId;
 		private boolean fetchLastRecord;
 
 		public GetDeviceAction(final GMCServer srv) {
@@ -415,33 +380,26 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		private void aggregateLastRecord(final Promise<Device> promise) {
-			final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.aggregate(Arrays.asList(Aggregates.match(Filters.eq(this.id)),
-						Aggregates.lookup("records", "lastRecordId", "_id", "lastRecord"),
-						Aggregates.unwind("$lastRecord", new UnwindOptions().preserveNullAndEmptyArrays(true))))
-				.first();
-
-			if (dev == null) {
-				promise.fail(new EntityNotFoundException("Device not found"));
-				return;
-			}
-
-			promise.complete(dev);
+			// TODO
+			promise.complete(null);
 		}
 
 		private void classicFind(final Promise<Device> promise) {
-			final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(this.id))
-				.first();
+			this.srv.getDatabaseManager()
+				.query("SELECT * FROM devices WHERE " + (this.gmcId == null ? "id = #{id}" : "gmcId = #{gmcId}"))
+				.mapTo(Device.class)
+				.execute(Map.of("id", this.id, "gmcId", this.gmcId))
+				.onSuccess(rowSet -> {
+					final Device dev = rowSet.iterator().next();
 
-			if (dev == null) {
-				promise.fail(new EntityNotFoundException("Device not found"));
-				return;
-			}
+					if (dev == null) {
+						promise.fail(new EntityNotFoundException("Device not found"));
+						return;
+					}
 
-			promise.complete(dev);
+					promise.complete(dev);
+				})
+				.onFailure(promise::fail);
 		}
 
 		public UUID getId() {
@@ -461,9 +419,18 @@ public class DeviceManager extends AbstractManager {
 			this.fetchLastRecord = fetchLastRecord;
 			return this;
 		}
+
+		public Long getGmcId() {
+			return gmcId;
+		}
+
+		public GetDeviceAction setGmcId(Long gmcId) {
+			this.gmcId = gmcId;
+			return this;
+		}
 	}
 
-	public class GetMapAction extends AbstractAction<AggregateIterable<Device>> {
+	public class GetMapAction extends AbstractAction<Iterable<Device>> {
 		private double swlon;
 		private double swlat;
 		private double nelon;
@@ -474,14 +441,13 @@ public class DeviceManager extends AbstractManager {
 		}
 
 		@Override
-		protected void executeSync(final Promise<AggregateIterable<Device>> promise) {
-			final AggregateIterable<Device> dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.aggregate(Arrays.asList(Aggregates.match(Filters.geoWithinBox("location", swlon, swlat, nelon, nelat)),
-						Aggregates.lookup("records", "lastRecordId", "_id", "lastRecord"),
-						Aggregates.unwind("$lastRecord")));
-
-			promise.complete(dev);
+		protected void executeSync(final Promise<Iterable<Device>> promise) {
+			this.srv.getDatabaseManager()
+				.query("SELECT * FROM devices WHERE box(point(), point()) @> position")
+				.mapTo(Device.class)
+				.execute(Map.of("swlon", this.swlon, "swlat", this.swlat, "nelon", this.nelon, "nelat", this.nelat))
+				.onSuccess(promise::complete)
+				.onFailure(promise::fail);
 		}
 
 		public double getSwlon() {
@@ -528,7 +494,7 @@ public class DeviceManager extends AbstractManager {
 	 * Throws a {@code EntityNotFoundException} if the device doesn't exist
 	 */
 	public class DeleteDeviceAction extends AbstractAction<Void> {
-		private ObjectId deviceId;
+		private UUID deviceId;
 		private boolean delete;
 
 		public DeleteDeviceAction(final GMCServer srv) {
@@ -537,47 +503,47 @@ public class DeviceManager extends AbstractManager {
 
 		@Override
 		protected void executeSync(final Promise<Void> promise) {
-			final Device dev = this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.find(Filters.eq(this.deviceId))
-				.first();
-
-			if (dev == null) {
-				promise.fail(new EntityNotFoundException("Device not found"));
-				return;
-			}
-
-			if (!this.delete) {
+			if (this.delete) {
 				this.srv.getDatabaseManager()
-					.getCollection(Device.class)
-					.updateOne(Filters.eq(dev.getId()), Updates.set("disabled", true));
+					.update("DELETE FROM devices WHERE id = #{id}")
+					.execute(Map.of("id", this.deviceId))
+					.onSuccess(res -> {
+						if (res.rowCount() == 0) {
+							promise.fail(new EntityNotFoundException("Device " + this.deviceId + " not found"));
+						} else {
+							promise.complete();
+						}
+					})
+					.onFailure(promise::fail);
 			} else {
 				this.srv.getDatabaseManager()
-					.getCollection(Record.class)
-					.deleteMany(Filters.eq("deviceId", dev.getId()));
-				this.srv.getDatabaseManager()
-					.getCollection(DeviceCalendar.class)
-					.deleteMany(Filters.eq("deviceId", dev.getId()));
-				this.srv.getDatabaseManager().getCollection(Device.class).deleteOne(Filters.eq(dev.getId()));
+					.update("UPDATE devices SET disabled = true WHERE id = #{id}")
+					.execute(Map.of("id", this.deviceId))
+					.onSuccess(res -> {
+						if (res.rowCount() == 0) {
+							promise.fail(new EntityNotFoundException("Device " + this.deviceId + " not found"));
+						} else {
+							promise.complete();
+						}
+					})
+					.onFailure(promise::fail);
 			}
-
-			promise.complete();
 		}
 
-		public ObjectId getDeviceId() {
+		public UUID getDeviceId() {
 			return this.deviceId;
 		}
 
-		public DeleteDeviceAction setDeviceId(final ObjectId deviceId) {
+		public DeleteDeviceAction setDeviceId(final UUID deviceId) {
 			this.deviceId = deviceId;
 			return this;
 		}
 
 		public boolean isDelete() {
-			return this.delete;
+			return delete;
 		}
 
-		public DeleteDeviceAction setDelete(final boolean delete) {
+		public DeleteDeviceAction setDelete(boolean delete) {
 			this.delete = delete;
 			return this;
 		}
@@ -614,39 +580,50 @@ public class DeviceManager extends AbstractManager {
 				deviceLimit = Integer.parseInt(this.srv.getConfig().getProperty("device.user-limit"));
 			}
 
-			if (deviceLimit <= this.srv.getDatabaseManager()
-				.getCollection(Device.class)
-				.countDocuments(Filters.eq("ownerId", this.user.getId()))) {
-				promise.fail(new LimitReachedException("Device limit reached"));
-				return;
-			}
+			this.srv.getDatabaseManager()
+				.query("SELECT COUNT(*) FROM devices WHERE \"owner\" = #{userId}")
+				.execute(Map.of("userId", this.user.getId()))
+				.onSuccess(rowSet -> {
+					final int userDeviceCount = rowSet.iterator().next().getInteger("count");
 
-			final Point location;
-			if (this.arrLocation != null && this.arrLocation.size() == 2) {
-				location = DeviceManager.jsonArrToPoint(this.arrLocation);
-			} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
-				promise.fail(new IllegalArgumentException("Invalid location"));
-				return;
-			} else {
-				location = null;
-			}
+					if (deviceLimit <= userDeviceCount) {
+						promise.fail(new LimitReachedException("Device limit reached"));
+						return;
+					}
 
-			final Device dev = new Device();
-			dev.setOwner(this.user.getId());
-			dev.setName(this.name);
-			dev.setModel(this.model);
-			dev.setImportedFrom(this.importedFrom);
-			dev.setDisabled(this.disabled);
-			if (this.generateGmcId) {
-				dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()) % MAX_GMCID);
-			}
-			dev.setLocation(location);
+					final Point location;
+					if (this.arrLocation != null && this.arrLocation.size() == 2) {
+						location = DeviceManager.jsonArrToPoint(this.arrLocation);
+					} else if (this.arrLocation != null && this.arrLocation.size() != 2) {
+						promise.fail(new IllegalArgumentException("Invalid location"));
+						return;
+					} else {
+						location = null;
+					}
 
-			promise.complete(dev);
+					final Device dev = new Device();
+					dev.setOwner(this.user.getId());
+					dev.setName(this.name);
+					dev.setModel(this.model);
+					dev.setImportedFrom(this.importedFrom);
+					dev.setDisabled(this.disabled);
+					if (this.generateGmcId) {
+						dev.setGmcId(Math.abs(DeviceManager.DEVICE_RNG.nextLong()) % MAX_GMCID);
+					}
+					dev.setLocation(location);
 
-			if (this.insertInDb) {
-				this.srv.getDatabaseManager().getCollection(Device.class).insertOne(dev);
-			}
+					promise.complete(dev);
+
+					if (this.insertInDb) {
+						this.srv.getDatabaseManager()
+							.update("INSERT INTO devices VALUES")
+							.mapFrom(Device.class)
+							.execute(dev)
+							.onSuccess(rs -> promise.complete(dev))
+							.onFailure(promise::fail);
+					}
+				})
+				.onFailure(promise::fail);
 		}
 
 		public boolean isInsertInDb() {

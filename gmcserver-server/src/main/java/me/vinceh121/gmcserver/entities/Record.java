@@ -64,7 +64,7 @@ public class Record extends AbstractEntity {
 			tmp = Double.NaN, ap = Double.NaN, hmdt = Double.NaN, accy = Double.NaN;
 	private Date date;
 	private String ip, type;
-	private Point location;
+	private Point location; // FIXME Point is mutable, should be final
 
 	public UUID getDeviceId() {
 		return this.deviceId;

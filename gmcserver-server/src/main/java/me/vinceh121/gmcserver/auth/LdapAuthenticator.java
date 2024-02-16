@@ -17,6 +17,8 @@
  */
 package me.vinceh121.gmcserver.auth;
 
+import java.util.Collections;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ldaptive.BindConnectionInitializer;
@@ -33,8 +35,6 @@ import org.ldaptive.auth.SimpleBindAuthenticationHandler;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.sqlclient.Tuple;
-import me.vinceh121.gmcserver.DatabaseManager;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.managers.UserManager.CreateUserAction;
@@ -95,11 +95,11 @@ public class LdapAuthenticator extends AbstractAuthenticator {
 		final String email = e.getAttribute(this.fieldEmail).getStringValue();
 
 		this.srv.getDatabaseManager()
-			.getClient()
-			.preparedQuery("SELECT * FROM users WHERE username=$1")
-			.execute(Tuple.of(uid))
-			.onSuccess(res -> {
-				final User user = DatabaseManager.mapRowset(res.iterator().next(), User.class);
+			.query("SELECT * FROM users WHERE username=#{username}")
+			.mapTo(User.class)
+			.execute(Collections.singletonMap("username", uid))
+			.onSuccess(rowSet -> {
+				final User user = rowSet.iterator().next();
 
 				if (user != null) {
 					promise.complete(user);
