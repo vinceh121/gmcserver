@@ -39,7 +39,7 @@
 		<gmc.vertx.mail.config.path>./mail.json</gmc.vertx.mail.config.path>
 		<gmc.vertx.mail.templates.path>./gmcserver-email/out/</gmc.vertx.mail.templates.path>
 
-		<vertx.version>4.3.8</vertx.version>
+		<vertx.version>4.4.6</vertx.version>
 	</properties>
 
 	<repositories>
