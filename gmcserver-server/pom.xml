@@ -39,7 +39,7 @@
 		<gmc.vertx.mail.config.path>./mail.json</gmc.vertx.mail.config.path>
 		<gmc.vertx.mail.templates.path>./gmcserver-email/out/</gmc.vertx.mail.templates.path>
 
-		<vertx.version>4.3.8</vertx.version>
+		<vertx.version>4.4.2</vertx.version>
 	</properties>
 
 	<repositories>
@@ -68,13 +68,13 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.13.4.2</version>
+			<version>2.15.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-csv -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-csv</artifactId>
-			<version>2.13.4</version>
+			<version>2.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.vinceh121</groupId>
