@@ -315,6 +315,7 @@ public class AuthModule extends AbstractModule {
 						Updates.combine(
 								Updates.set("password", this.srv.getArgon().hash(10, 65536, 1, password.toCharArray())),
 								Updates.unset("passwordResetToken"),
+								Updates.unset("mfaKey"),
 								Updates.set("mfa", false)
 						)
 				);

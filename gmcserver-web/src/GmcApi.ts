@@ -106,7 +106,7 @@ export const passwordReset = async (
     });
 
     if (res.status !== 200) {
-        throw new Error("Login failed: " + res.status + ": " + res.statusText);
+        throw new Error("Password reset failed: " + res.status + ": " + res.statusText);
     }
 };
 
@@ -120,7 +120,7 @@ export const passwordResetConfirmation = async (
     });
 
     if (res.status !== 200) {
-        throw new Error("Login failed: " + res.status + ": " + res.statusText);
+        throw new Error("Password reset failed: " + res.status + ": " + res.statusText);
     }
 };
 
