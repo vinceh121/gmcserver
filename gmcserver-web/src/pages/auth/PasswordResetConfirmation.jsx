@@ -17,46 +17,33 @@
  */
 
 import React, { useState } from "react";
-import { Alert, Button, Card, Form, Input, InputNumber, Space } from "antd";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Link, useHistory } from "react-router-dom";
-import { login, mfaSubmit } from "../../GmcApi";
-import Modal from "antd/lib/modal/Modal";
+import { Alert, Button, Card, Form, Input, Space } from "antd";
+import { Link, useLocation, useHistory } from "react-router-dom";
+import {passwordResetConfirmation} from "../../GmcApi";
+import {LockOutlined} from '@ant-design/icons'
 
-function Login() {
+function PasswordResetConfirmation() {
 	const [state, setState] = useState({});
+	const location = useLocation();
 	const history = useHistory();
+	const searchParams = new URLSearchParams(location.search);
 
-	const doLogin = (values) => {
+	const doPasswordReset = (values) => {
 		setState({ loading: true });
-		login(values.username, values.password).then(
-			(res) => {
-				setState(res);
-				if (!res.mfa) {
-					history.push("/");
-				}
-			},
+		passwordResetConfirmation(searchParams.get('token'), values.password)
+			.then(() => history.push('/login'))
+			.catch(
 			(err) => setState({ error: err })
 		);
 	};
 
-	const doMfa = (values) => {
-		mfaSubmit(values.pass).then(
-			res => {
-				setState(res);
-				history.push("/");
-			},
-			err => setState({ error: err })
-		)
-	}
-
 	return (
 		<>
-			<Card title="Login" loading={state.loading} style={{ width: "max-content", margin: "16px" }}>
+			<Card title="Password Reset Confirmation" loading={state.loading} style={{ width: "max-content", margin: "16px" }}>
 				<Space direction="vertical">
 					{state.error ? (
 						<Alert
-							message="Error while logging in"
+							message="Error while password reset"
 							type="error"
 							description={
 								state.error.description
@@ -66,13 +53,7 @@ function Login() {
 							showIcon
 						/>
 					) : undefined}
-					<Form onFinish={doLogin}>
-						<Form.Item
-							name="username"
-							rules={[{ required: true, message: "Required" }]}
-						>
-							<Input prefix={<UserOutlined />} placeholder="Username or Email" />
-						</Form.Item>
+					<Form onFinish={doPasswordReset}>
 						<Form.Item
 							name="password"
 							rules={[{ required: true, message: "Required" }]}
@@ -85,26 +66,15 @@ function Login() {
 						</Form.Item>
 						<Form.Item>
 							<Button type="primary" htmlType="submit">
-								Login
+								Reset my password
 							</Button>
-							<p style={{ marginTop: "8px" }}>Forgot your password? <Link to="/password-reset">Reset my password</Link></p>
 							<p style={{ marginTop: "8px" }}>Don't have an account? <Link to="/register">Register</Link></p>
 						</Form.Item>
 					</Form>
 				</Space>
 			</Card>
-			<Modal title="2FA" visible={state.mfa}>
-				<Form onFinish={doMfa}>
-					<Form.Item name="pass">
-						<InputNumber placeholder="MFA code" />
-					</Form.Item>
-					<Form.Item>
-						<Button type="primary" htmlType="submit">Submit</Button>
-					</Form.Item>
-				</Form>
-			</Modal>
 		</>
 	);
 }
 
-export default Login;
+export default PasswordResetConfirmation;

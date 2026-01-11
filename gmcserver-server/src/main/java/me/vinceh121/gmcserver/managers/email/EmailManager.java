@@ -30,7 +30,7 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.mail.MailClient;
 import io.vertx.ext.mail.MailConfig;
 import io.vertx.ext.mail.MailMessage;
-import me.vinceh121.gmcserver.GMCBuild;
+import me.vinceh121.gmcserver	.GMCBuild;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.managers.AbstractManager;
 

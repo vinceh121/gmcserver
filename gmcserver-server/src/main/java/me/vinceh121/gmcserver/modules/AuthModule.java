@@ -17,11 +17,14 @@
  */
 package me.vinceh121.gmcserver.modules;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.codec.BodyCodec;
 import me.vinceh121.gmcserver.GMCServer;
+import me.vinceh121.gmcserver.auth.InternalAuthenticator;
 import me.vinceh121.gmcserver.entities.User;
 import me.vinceh121.gmcserver.exceptions.AuthenticationException;
 import me.vinceh121.gmcserver.exceptions.EntityNotFoundException;
@@ -39,9 +42,12 @@ public class AuthModule extends AbstractModule {
 		this.captchaEnabled = Boolean.parseBoolean(this.srv.getConfig().getProperty("captcha.enabled"));
 		this.registerRoute(HttpMethod.POST, "/auth/register", this::handleRegister);
 		this.registerRoute(HttpMethod.POST, "/auth/login", this::handleLogin);
+        this.registerRoute(HttpMethod.POST, "/auth/password-reset", this::handlePasswordReset);
+		this.registerRoute(HttpMethod.POST, "/auth/password-reset/confirm", this::handlePasswordResetLink);
+
 		this.registerAuthedRoute(HttpMethod.POST, "/auth/mfa", this::handleSubmitMfa);
 		this.registerStrictAuthedRoute(HttpMethod.PUT, "/auth/mfa", this::handleActivateMfa);
-		this.registerStrictAuthedRoute(HttpMethod.DELETE, "/auth/mfa", this::handleDisableMfa);
+        this.registerStrictAuthedRoute(HttpMethod.DELETE, "/auth/mfa", this::handleDisableMfa);
 	}
 
 	private void handleRegister(final RoutingContext ctx) {
@@ -260,6 +266,59 @@ public class AuthModule extends AbstractModule {
 					this.error(ctx, 500, "Failed to disable MFA: " + t.getMessage());
 				}
 			});
+	}
+
+	private void handlePasswordReset(final RoutingContext ctx) {
+
+		if (!(this.srv.getAuthenticator() instanceof InternalAuthenticator)) {
+			this.error(ctx, 400, "Password reset not supported");
+			return;
+		}
+
+		final JsonObject obj = ctx.body().asJsonObject();
+		final String identifier = obj.getString("identifier");
+
+		final User user = this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.or(Filters.eq("username", identifier), Filters.eq("email", identifier)))
+				.first();
+
+		if (user == null) {
+			this.error(ctx, 400, "Invalid identifier");
+			return;
+		}
+
+		final InternalAuthenticator authenticator = (InternalAuthenticator) this.srv.getAuthenticator();
+		authenticator.sendPasswordResetLink(user)
+				.onSuccess(v -> ctx.end())
+				.onFailure(t -> this.error(ctx, 500, "Failed to reset password link: " + t.getMessage()));
+	}
+
+	private void handlePasswordResetLink(final RoutingContext ctx) {
+		final JsonObject obj = ctx.body().asJsonObject();
+		final String token = obj.getString("token");
+
+		final User user = this.srv.getDatabaseManager()
+				.getCollection(User.class)
+				.find(Filters.eq("passwordResetToken", token))
+				.first();
+
+		if(user == null) {
+			this.error(ctx, 400, "Invalid token");
+			return;
+		}
+
+		final String password = obj.getString("password");
+
+		this.srv.getDatabaseManager().getCollection(User.class)
+				.updateOne(Filters.eq(user.getId()),
+						Updates.combine(
+								Updates.set("password", this.srv.getArgon().hash(10, 65536, 1, password.toCharArray())),
+								Updates.unset("passwordResetToken")
+						)
+				);
+
+		ctx.end(new JsonObject().put("success", "ok").toBuffer());
 	}
 
 	private void errorLogin(final RoutingContext ctx, final Throwable t) {

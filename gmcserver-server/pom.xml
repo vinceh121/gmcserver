@@ -37,7 +37,7 @@
 		<gmc.config.path>./config.properties</gmc.config.path>
 		<gmc.vertx.config.path>./vertx.json</gmc.vertx.config.path>
 		<gmc.vertx.mail.config.path>./mail.json</gmc.vertx.mail.config.path>
-		<gmc.vertx.mail.templates.path>./gmcserver-email/out/</gmc.vertx.mail.templates.path>
+		<gmc.vertx.mail.templates.path>../gmcserver-email/out/</gmc.vertx.mail.templates.path>
 
 		<vertx.version>4.3.8</vertx.version>
 	</properties>
@@ -54,6 +54,11 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
 			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec</artifactId>
+			<version>4.1.87.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>

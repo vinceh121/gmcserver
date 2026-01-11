@@ -97,6 +97,33 @@ export const login = async (
 	return login;
 };
 
+export const passwordReset = async (
+    identifier: string,
+): Promise<void> => {
+    const res = await request("/auth/password-reset", {
+        method: "POST",
+        body: JSON.stringify({ identifier }),
+    });
+
+    if (res.status !== 200) {
+        throw new Error("Login failed: " + res.status + ": " + res.statusText);
+    }
+};
+
+export const passwordResetConfirmation = async (
+    token: string,
+    password: string,
+): Promise<void> => {
+    const res = await request("/auth/password-reset/confirm", {
+        method: "POST",
+        body: JSON.stringify({ token, password }),
+    });
+
+    if (res.status !== 200) {
+        throw new Error("Login failed: " + res.status + ": " + res.statusText);
+    }
+};
+
 export const logoff = (): void => {
 	apiDispatcher.dispatchEvent(new Event("logoff"));
 	storage.removeItem("userId");
