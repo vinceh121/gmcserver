@@ -17,12 +17,6 @@
  */
 package me.vinceh121.gmcserver.managers.email;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -30,9 +24,15 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.mail.MailClient;
 import io.vertx.ext.mail.MailConfig;
 import io.vertx.ext.mail.MailMessage;
-import me.vinceh121.gmcserver	.GMCBuild;
+import me.vinceh121.gmcserver.GMCBuild;
 import me.vinceh121.gmcserver.GMCServer;
 import me.vinceh121.gmcserver.managers.AbstractManager;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EmailManager extends AbstractManager {
 	public static final Pattern VAR_PATTERN = Pattern.compile("\\{\\{[a-zA-Z/-_]+\\}\\}");

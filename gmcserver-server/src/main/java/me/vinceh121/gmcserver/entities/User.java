@@ -17,16 +17,11 @@
  */
 package me.vinceh121.gmcserver.entities;
 
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.vertx.core.json.JsonObject;
 import me.vinceh121.gmcserver.mfa.MFAKey;
-import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import xyz.bowser65.tokenize.IAccount;
-
-import java.util.UUID;
 
 /**
  * MFA: When setting up MFA, the key will be set, however the boolean mfa will
@@ -43,9 +38,9 @@ public class User extends AbstractEntity implements IAccount {
 	private long gmcId;
 	private boolean admin, mfa, alertEmails;
 	private MFAKey mfaKey;
-    private String passwordResetToken;
+	private String passwordResetToken;
 
-    public long getGmcId() {
+	public long getGmcId() {
 		return this.gmcId;
 	}
 
@@ -155,11 +150,11 @@ public class User extends AbstractEntity implements IAccount {
 		return this.getUsername() + " (" + this.getId().toString() + ")";
 	}
 
-    public void setPasswordResetToken(String passwordResetToken) {
-        this.passwordResetToken = passwordResetToken;
-    }
+	public void setPasswordResetToken(String passwordResetToken) {
+		this.passwordResetToken = passwordResetToken;
+	}
 
-    public String getPasswordResetToken() {
-        return passwordResetToken;
-    }
+	public String getPasswordResetToken() {
+		return passwordResetToken;
+	}
 }

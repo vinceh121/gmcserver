@@ -151,5 +151,5 @@
       "react-app"
     ]
   },
-  "proxy": "http://localhost:8080"
+  "proxy": "http://gmc.vinceh121.me"
 }
