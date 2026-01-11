@@ -31,6 +31,8 @@ import Register from "./pages/auth/Register";
 import Device from "./pages/device/Device";
 import LiveDevice from "./pages/device/LiveDevice";
 import NewDevice from "./pages/device/NewDevice";
+import PasswordReset from "./pages/auth/PasswordReset"
+import PasswordResetConfirmation from "./pages/auth/PasswordResetConfirmation"
 
 import Welcome from "./pages/Welcome";
 import Mfa from "./pages/Mfa";
@@ -88,6 +90,12 @@ function App() {
 						</Route>
 						<Route path="/register">
 							<Register />
+						</Route>
+						<Route path="/password-reset/confirm">
+							<PasswordResetConfirmation />
+						</Route>
+						<Route path="/password-reset">
+							<PasswordReset />
 						</Route>
 						<Route path="/accountDeletion">
 							<UserDeletion />
