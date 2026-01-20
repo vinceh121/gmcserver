@@ -6,7 +6,7 @@
     "@ant-design/icons": "^4.7.0",
     "@craco/craco": "^6.4.3",
     "@nivo/calendar": "^0.68.0",
-    "@nivo/core": "^0.68.0",
+    "@nivo/core": "^0.83.1",
     "@nivo/line": "^0.68.0",
     "@nivo/tooltip": "^0.68.0",
     "antd": "^4.20.6",
